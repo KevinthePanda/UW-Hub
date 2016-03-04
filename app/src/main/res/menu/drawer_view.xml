@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@android:drawable/ic_dialog_alert"
+            android:title="@string/home"
+            android:checked="true" />
+        <item
+            android:id="@+id/nav_second_fragment"
+            android:icon="@android:drawable/ic_dialog_alert"
+            android:title="Second" />
+        <item
+            android:id="@+id/nav_third_fragment"
+            android:icon="@android:drawable/ic_dialog_alert"
+            android:title="Third" />
+    </group>
+
+    <item android:title="Sub items">
+        <menu>
+            <item
+                android:icon="@android:drawable/ic_dialog_alert"
+                android:title="Sub item 1" />
+            <item
+                android:icon="@android:drawable/ic_dialog_alert"
+                android:title="Sub item 2" />
+        </menu>
+    </item>
+</menu>
