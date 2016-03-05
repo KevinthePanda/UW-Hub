@@ -355,7 +355,6 @@ public class ResourcesParser extends UWParser {
     @Override
     public void setParseType(int parseType) {
         this.parseType = ParseType.values()[parseType];
-        Log.i("test", parseType + "");
     }
 
     @Override
