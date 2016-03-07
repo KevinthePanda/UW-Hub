@@ -8,7 +8,7 @@ import com.projects.kquicho.uw_api_client.Resources.ResourcesParser;
 
 public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
 
-    private final String LOGCAT_TAG = "InfoSessionWidget";
+    public static final String TAG = "InfoSessionWidget";
     private static InfoSessionWidget mInstance = null;
     private static ResourcesParser mParser;
     private UWClientResponseHandler mHandler;
@@ -19,6 +19,16 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
         }
         return mInstance;
     }
+
+    public static ResourcesParser getParser() {
+        return mParser;
+    }
+
+    public static void destroyWidget() {
+        mParser = null;
+        mInstance = null;
+    }
+
 
     private InfoSessionWidget(UWClientResponseHandler handler) {
         mParser = new ResourcesParser();
@@ -32,7 +42,7 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
 
     @Override
     public void onDownloadFail(String givenURL, int index) {
-        mHandler.onError(LOGCAT_TAG + ": " + "Download failed.. url = " + givenURL );
+        mHandler.onError(TAG + ": " + "Download failed.. url = " + givenURL );
     }
 
     @Override
@@ -41,6 +51,5 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
         mParser.parseJSON();
         mHandler.onSuccess(mParser);
     }
-
 
 }

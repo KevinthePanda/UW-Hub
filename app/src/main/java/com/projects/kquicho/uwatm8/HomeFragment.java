@@ -1,5 +1,6 @@
 package com.projects.kquicho.uwatm8;
 
+import android.content.SharedPreferences;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.gordonwong.materialsheetfab.MaterialSheetFab;
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.ItemShadowDecorator;
@@ -19,6 +21,7 @@ import com.h6ah4i.android.widget.advrecyclerview.decoration.SimpleListDividerDec
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager;
 import com.h6ah4i.android.widget.advrecyclerview.utils.WrapperAdapterUtils;
 import com.projects.kquicho.uw_api_client.Core.UWParser;
+import com.projects.kquicho.uw_api_client.Resources.InfoSession;
 
 import java.util.ArrayList;
 
@@ -33,9 +36,19 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
     private RecyclerView.LayoutManager mLayoutManager;
     private RecyclerView.Adapter mWrappedAdapter;
     private RecyclerViewDragDropManager mRecyclerViewDragDropManager;
+    private SharedPreferences mSettings;
+    private MaterialSheetFab mMaterialSheetFab;
+
 
     public HomeFragment(){
         super();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstance){
+        super.onCreate(savedInstance);
+        mSettings = getActivity().getSharedPreferences("Settings", 0);
+
     }
 
     @Override
@@ -46,6 +59,16 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
     public void onViewCreated(View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
 
+        Fab fab = (Fab) view.findViewById(R.id.fab);
+        View sheetView = view.findViewById(R.id.fab_sheet);
+        View overlay = view.findViewById(R.id.dim_overlay);
+        int sheetColor = getResources().getColor(R.color.background_fab_card);
+        int fabColor = getResources().getColor(R.color.theme_primary);
+
+
+        // Initialize material sheet FAB
+        mMaterialSheetFab  = new MaterialSheetFab<>(fab, sheetView, overlay,
+                sheetColor, fabColor);
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
 
@@ -76,9 +99,33 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
 
         mRecyclerViewDragDropManager.attachRecyclerView(mRecyclerView);
 
+        if(mSettings.getBoolean(WeatherWidget.TAG, true)) {
+            WeatherWidget.getInstance(this);
+        }
+        if(mSettings.getBoolean(InfoSessionWidget.TAG, true)) {
+            InfoSessionWidget.getInstance(this);
+        }
+        view.findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int index = mParsers.indexOf(InfoSessionWidget.getParser());
+                if(index != -1) {
+                    mParsers.remove(index);
+                    mAdapter.notifyItemRemoved(index);
+                    mSettings.edit().putBoolean(InfoSessionWidget.TAG, false).apply();
+                    InfoSessionWidget.destroyWidget();
+                }
+            }
+        });
 
-        WeatherWidget.getInstance(this);
-        InfoSessionWidget.getInstance(this);
+        final UWClientResponseHandler handler = this;
+        view.findViewById(R.id.fab_sheet_info_session).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                InfoSessionWidget.getInstance(handler);
+                mSettings.edit().putBoolean(InfoSessionWidget.TAG, true).apply();
+            }
+        });
     }
 
     @Override
@@ -109,7 +156,6 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
 
         super.onDestroyView();
     }
-
 
 
 
