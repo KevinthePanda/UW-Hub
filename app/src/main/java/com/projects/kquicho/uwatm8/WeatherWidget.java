@@ -8,7 +8,7 @@ import com.projects.kquicho.uw_api_client.Weather.WeatherParser;
 
 public class WeatherWidget implements JSONDownloader.onDownloadListener {
 
-    private final String LOGCAT_TAG = "WeatherWidget";
+    public static final String TAG = "WeatherWidget";
     private static WeatherWidget mInstance = null;
     private static WeatherParser mParser;
     private UWClientResponseHandler mHandler;
@@ -32,7 +32,7 @@ public class WeatherWidget implements JSONDownloader.onDownloadListener {
 
     @Override
     public void onDownloadFail(String givenURL, int index) {
-        mHandler.onError(LOGCAT_TAG + ": " + "Download failed.. url = " + givenURL );
+        mHandler.onError(TAG + ": " + "Download failed.. url = " + givenURL );
     }
 
     @Override
