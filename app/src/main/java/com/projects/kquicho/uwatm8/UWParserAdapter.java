@@ -7,12 +7,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemConstants;
 import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange;
-import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractDraggableItemViewHolder;
+import com.h6ah4i.android.widget.advrecyclerview.swipeable.SwipeableItemAdapter;
+import com.h6ah4i.android.widget.advrecyclerview.swipeable.SwipeableItemConstants;
+import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultAction;
+import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultActionDefault;
+import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultActionMoveToSwipedDirection;
+import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractDraggableSwipeableItemViewHolder;
+import com.h6ah4i.android.widget.advrecyclerview.utils.RecyclerViewAdapterUtils;
 import com.projects.kquicho.uw_api_client.Core.UWParser;
 import com.projects.kquicho.uw_api_client.Resources.InfoSession;
 import com.projects.kquicho.uw_api_client.Resources.ResourcesParser;
@@ -22,31 +29,61 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
-        implements DraggableItemAdapter<RecyclerView.ViewHolder> {
+        implements DraggableItemAdapter<RecyclerView.ViewHolder>,
+        SwipeableItemAdapter<RecyclerView.ViewHolder> {
 
     private final String TAG = "UWParserAdapter";
+    
     private interface Draggable extends DraggableItemConstants {
     }
+    private interface Swipeable extends SwipeableItemConstants {
+    }
 
-    private ArrayList<UWParser> mParsers;
+    private ArrayList<UWData> mParsers;
     private final int WEATHER = 0, INFO_SESSIONS = 1;
+    private EventListener mEventListener;
+    private View.OnClickListener mUnderSwipeableViewButtonOnClickListener;
 
-    public UWParserAdapter(ArrayList<UWParser> parsers){
+    public interface EventListener {
+        void onUnderSwipeableViewButtonClicked(View v);
+    }
+
+    public UWParserAdapter(ArrayList<UWData> parsers){
         mParsers = parsers;
+        mUnderSwipeableViewButtonOnClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onUnderSwipeableViewButtonClick(v);
+            }
+        };
         setHasStableIds(true);
     }
 
-
-    private static abstract class DraggableHolder extends AbstractDraggableItemViewHolder{
-        public View container;
-
-        public DraggableHolder(View itemView){
-            super(itemView);
-            container = itemView.findViewById(R.id.container);
+    private void onUnderSwipeableViewButtonClick(View v) {
+        if (mEventListener != null) {
+            mEventListener.onUnderSwipeableViewButtonClicked(
+                    RecyclerViewAdapterUtils.getParentViewHolderItemView(v));
         }
     }
 
-    public static class WeatherViewHolder extends DraggableHolder {
+
+    private static abstract class DraggableSwipeableHolder extends AbstractDraggableSwipeableItemViewHolder {
+        public View container;
+        public Button button;
+
+        public DraggableSwipeableHolder(View itemView){
+            super(itemView);
+            container = itemView.findViewById(R.id.container);
+            button = (Button) itemView.findViewById(android.R.id.button1);
+        }
+
+        @Override
+        public View getSwipeableContainerView() {
+            return container;
+        }
+    }
+
+    public static class WeatherViewHolder extends DraggableSwipeableHolder {
         public TextView currentTemp;
 
         public WeatherViewHolder(View itemView) {
@@ -55,7 +92,7 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    public static class InfoSessionViewHolder extends DraggableHolder {
+    public static class InfoSessionViewHolder extends DraggableSwipeableHolder {
         public TextView company1;
         public TextView company2;
         public TextView company3;
@@ -75,9 +112,9 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public int getItemViewType(int position) {
-        if (mParsers.get(position) instanceof WeatherParser) {
+        if (mParsers.get(position).getParser() instanceof WeatherParser) {
             return WEATHER;
-        } else if (mParsers.get(position) instanceof ResourcesParser) {
+        } else if (mParsers.get(position).getParser() instanceof ResourcesParser) {
             return INFO_SESSIONS;
         }
         return -1;
@@ -113,10 +150,12 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
+        ((DraggableSwipeableHolder)viewHolder).button.setOnClickListener(mUnderSwipeableViewButtonOnClickListener);
         switch (viewHolder.getItemViewType()) {
             case WEATHER:
                 WeatherViewHolder vh1 = (WeatherViewHolder) viewHolder;
                 final int dragState1 = vh1.getDragStateFlags();
+
                 if (((dragState1 & Draggable.STATE_FLAG_IS_UPDATED) != 0)) {
                     int bgResId;
 
@@ -163,11 +202,16 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 configureWeatherViewHolder(vh3, position);
                 break;
         }
+        // set swiping properties
+        ((DraggableSwipeableHolder)viewHolder).setMaxLeftSwipeAmount(-0.5f);
+        ((DraggableSwipeableHolder)viewHolder).setMaxRightSwipeAmount(0);
+        ((DraggableSwipeableHolder)viewHolder).setSwipeItemHorizontalSlideAmount(
+                mParsers.get(position).isPinned() ? -0.5f : 0);
 
     }
 
     private void configureWeatherViewHolder(WeatherViewHolder viewHolder, int position){
-        UWParser parser = mParsers.get(position);
+        UWParser parser = mParsers.get(position).getParser();
 
         // Set item views based on the data model
         TextView textView = viewHolder.currentTemp;
@@ -183,7 +227,7 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     private void configureInfoSessionViewHolder(InfoSessionViewHolder viewHolder, int position){
-        ResourcesParser parser = (ResourcesParser)mParsers.get(position);
+        ResourcesParser parser = (ResourcesParser)mParsers.get(position).getParser();
 
         // Set item views based on the data model
         TextView company1 = viewHolder.company1;
@@ -226,7 +270,124 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return null;
     }
 
+    @Override
+    public int onGetSwipeReactionType(RecyclerView.ViewHolder holder, int position, int x, int y) {
+        if (ViewUtils.hitTest(((DraggableSwipeableHolder)holder).getSwipeableContainerView(), x, y)) {
+            return Swipeable.REACTION_CAN_SWIPE_BOTH_H;
+        } else {
+            return Swipeable.REACTION_CAN_NOT_SWIPE_BOTH_H;
+        }
+    }
 
+    @Override
+    public void onSetSwipeBackground(RecyclerView.ViewHolder holder, int position, int type) {
+        int bgRes = 0;
+        switch (type) {
+            case Swipeable.DRAWABLE_SWIPE_NEUTRAL_BACKGROUND:
+                bgRes = R.drawable.bg_swipe_item_neutral;
+                break;
+            case Swipeable.DRAWABLE_SWIPE_LEFT_BACKGROUND:
+                bgRes = R.drawable.bg_swipe_item_left;
+                break;
+            case Swipeable.DRAWABLE_SWIPE_RIGHT_BACKGROUND:
+                bgRes = R.drawable.bg_swipe_item_right;
+                break;
+        }
 
+        holder.itemView.setBackgroundResource(bgRes);
+    }
+
+    @Override
+    public SwipeResultAction onSwipeItem(RecyclerView.ViewHolder holder, int position, int result) {
+        Log.d(TAG, "onSwipeItem(position = " + position + ", result = " + result + ")");
+
+        switch (result) {
+            // swipe left --- pin
+            case Swipeable.RESULT_SWIPED_LEFT:
+                return new SwipeLeftResultAction(this, position);
+            // other --- do nothing
+            case Swipeable.RESULT_SWIPED_RIGHT:
+            case Swipeable.RESULT_CANCELED:
+            default:
+                if (position != RecyclerView.NO_POSITION) {
+                    return new UnpinResultAction(this, position);
+                } else {
+                    return null;
+                }
+
+        }
+    }
+
+    public EventListener getEventListener() {
+        return mEventListener;
+    }
+
+    public void setEventListener(EventListener eventListener) {
+        mEventListener = eventListener;
+    }
+
+    private static class SwipeLeftResultAction extends SwipeResultActionMoveToSwipedDirection {
+        private UWParserAdapter mAdapter;
+        private final int mPosition;
+        private boolean mSetPinned;
+
+        SwipeLeftResultAction(UWParserAdapter adapter, int position) {
+            mAdapter = adapter;
+            mPosition = position;
+        }
+
+        @Override
+        protected void onPerformAction() {
+            super.onPerformAction();
+
+            UWData item = mAdapter.mParsers.get(mPosition);
+
+            if (!item.isPinned()) {
+                item.setPinned(true);
+                mAdapter.notifyItemChanged(mPosition);
+                mSetPinned = true;
+            }
+        }
+
+        @Override
+        protected void onSlideAnimationEnd() {
+            super.onSlideAnimationEnd();
+        }
+
+        @Override
+        protected void onCleanUp() {
+            super.onCleanUp();
+            // clear the references
+            mAdapter = null;
+        }
+    }
+
+    private static class UnpinResultAction extends SwipeResultActionDefault {
+        private UWParserAdapter mAdapter;
+        private final int mPosition;
+
+        UnpinResultAction(UWParserAdapter adapter, int position) {
+            mAdapter = adapter;
+            mPosition = position;
+        }
+
+        @Override
+        protected void onPerformAction() {
+            super.onPerformAction();
+
+            UWData item = mAdapter.mParsers.get(mPosition);
+            if (item.isPinned()) {
+                item.setPinned(false);
+                mAdapter.notifyItemChanged(mPosition);
+            }
+        }
+
+        @Override
+        protected void onCleanUp() {
+            super.onCleanUp();
+            // clear the references
+            mAdapter = null;
+        }
+    }
 
 }
