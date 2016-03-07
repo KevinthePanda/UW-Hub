@@ -16,9 +16,12 @@ import android.view.ViewGroup;
 import com.gordonwong.materialsheetfab.MaterialSheetFab;
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
+import com.h6ah4i.android.widget.advrecyclerview.animator.SwipeDismissItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.ItemShadowDecorator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.SimpleListDividerDecorator;
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager;
+import com.h6ah4i.android.widget.advrecyclerview.swipeable.RecyclerViewSwipeManager;
+import com.h6ah4i.android.widget.advrecyclerview.touchguard.RecyclerViewTouchActionGuardManager;
 import com.h6ah4i.android.widget.advrecyclerview.utils.WrapperAdapterUtils;
 import com.projects.kquicho.uw_api_client.Core.UWParser;
 import com.projects.kquicho.uw_api_client.Resources.InfoSession;
@@ -29,7 +32,7 @@ import java.util.ArrayList;
 public class HomeFragment extends Fragment implements  UWClientResponseHandler{
     final String LOGCAT_TAG = "HomeFragment";
 
-    private ArrayList<UWParser> mParsers = new ArrayList<>();
+    private ArrayList<UWData> mParsers = new ArrayList<>();
 
     private UWParserAdapter mAdapter;
     private RecyclerView mRecyclerView;
@@ -37,8 +40,9 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
     private RecyclerView.Adapter mWrappedAdapter;
     private RecyclerViewDragDropManager mRecyclerViewDragDropManager;
     private SharedPreferences mSettings;
-    private MaterialSheetFab mMaterialSheetFab;
 
+    private RecyclerViewSwipeManager mRecyclerViewSwipeManager;
+    private RecyclerViewTouchActionGuardManager mRecyclerViewTouchActionGuardManager;
 
     public HomeFragment(){
         super();
@@ -67,8 +71,8 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
 
 
         // Initialize material sheet FAB
-        mMaterialSheetFab  = new MaterialSheetFab<>(fab, sheetView, overlay,
-                sheetColor, fabColor);
+        MaterialSheetFab materialSheetFab  = new MaterialSheetFab<>(fab, sheetView, overlay, sheetColor, fabColor);
+
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
 
@@ -81,10 +85,23 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         mRecyclerViewDragDropManager.setInitiateOnMove(false);
         mRecyclerViewDragDropManager.setLongPressTimeout(750);
 
+        // touch guard manager  (this class is required to suppress scrolling while swipe-dismiss animation is running)
+        mRecyclerViewTouchActionGuardManager = new RecyclerViewTouchActionGuardManager();
+        mRecyclerViewTouchActionGuardManager.setInterceptVerticalScrollingWhileAnimationRunning(true);
+        mRecyclerViewTouchActionGuardManager.setEnabled(true);
+
+        // swipe manager
+        mRecyclerViewSwipeManager = new RecyclerViewSwipeManager();
+
         mAdapter = new UWParserAdapter(mParsers);
 
         mWrappedAdapter = mRecyclerViewDragDropManager.createWrappedAdapter(mAdapter);      // wrap for dragging
-        final GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();
+        mWrappedAdapter = mRecyclerViewSwipeManager.createWrappedAdapter(mWrappedAdapter);      // wrap for swiping
+
+        final GeneralItemAnimator animator = new SwipeDismissItemAnimator();
+        // Change animations are enabled by default since support-v7-recyclerview v22.
+        // Disable the change animation in order to make turning back animation of swiped item works properly.
+        animator.setSupportsChangeAnimations(false);
 
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mWrappedAdapter);
@@ -98,6 +115,8 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         mRecyclerView.addItemDecoration(new SimpleListDividerDecorator(ContextCompat.getDrawable(getContext(), R.drawable.list_divider_h), true));
 
         mRecyclerViewDragDropManager.attachRecyclerView(mRecyclerView);
+        mRecyclerViewTouchActionGuardManager.attachRecyclerView(mRecyclerView);
+        mRecyclerViewSwipeManager.attachRecyclerView(mRecyclerView);
 
         if(mSettings.getBoolean(WeatherWidget.TAG, true)) {
             WeatherWidget.getInstance(this);
@@ -141,6 +160,16 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
             mRecyclerViewDragDropManager = null;
         }
 
+        if (mRecyclerViewSwipeManager != null) {
+            mRecyclerViewSwipeManager.release();
+            mRecyclerViewSwipeManager = null;
+        }
+
+        if (mRecyclerViewTouchActionGuardManager != null) {
+            mRecyclerViewTouchActionGuardManager.release();
+            mRecyclerViewTouchActionGuardManager = null;
+        }
+
         if (mRecyclerView != null) {
             mRecyclerView.setItemAnimator(null);
             mRecyclerView.setAdapter(null);
@@ -163,7 +192,7 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
     public void onSuccess(UWParser parser) {
         Log.i(LOGCAT_TAG, "onSuccess");
         final int position =  mParsers.size();
-        mParsers.add(position, parser);
+        mParsers.add(position, new UWData(parser));
         android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
 
         Runnable runnable = new Runnable() {
