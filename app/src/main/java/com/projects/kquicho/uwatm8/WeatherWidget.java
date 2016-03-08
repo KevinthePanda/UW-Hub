@@ -12,9 +12,17 @@ public class WeatherWidget implements JSONDownloader.onDownloadListener {
     private static WeatherWidget mInstance = null;
     private static WeatherParser mParser;
     private UWClientResponseHandler mHandler;
+    private static Integer mPosition;
 
     public static WeatherWidget getInstance(UWClientResponseHandler handler) {
         if(mInstance == null){
+            mInstance = new WeatherWidget(handler);
+        }
+        return mInstance;
+    }
+    public static WeatherWidget getInstance(UWClientResponseHandler handler, int position) {
+        if(mInstance == null){
+            mPosition = position;
             mInstance = new WeatherWidget(handler);
         }
         return mInstance;
@@ -29,6 +37,11 @@ public class WeatherWidget implements JSONDownloader.onDownloadListener {
         downloader.setOnDownloadListener(this);
         downloader.start();
     }
+    public static void destroyWidget() {
+        mParser = null;
+        mInstance = null;
+        mPosition = null;
+    }
 
     @Override
     public void onDownloadFail(String givenURL, int index) {
@@ -39,7 +52,8 @@ public class WeatherWidget implements JSONDownloader.onDownloadListener {
     public void onDownloadComplete(APIResult apiResult) {
         mParser.setAPIResult(apiResult);
         mParser.parseJSON();
-        mHandler.onSuccess(mParser);
+        UWData data = new UWData(mParser, TAG);
+        mHandler.onSuccess(data, mPosition);
     }
 
 

@@ -5,10 +5,12 @@ import com.projects.kquicho.uw_api_client.Core.UWParser;
 
 public class UWData {
     private UWParser mParser;
+    private String mWidgetTag;
     private boolean mPinned = false;
 
-    public UWData(UWParser parser){
+    public UWData(UWParser parser, String widgetTag){
         mParser = parser;
+        mWidgetTag = widgetTag;
     }
     public UWParser getParser(){
         return mParser;
@@ -22,4 +24,7 @@ public class UWData {
         mPinned = pinned;
     }
 
+    public String getWidgetTag(){
+        return mWidgetTag;
+    }
 }
