@@ -28,7 +28,7 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
         }
         return mInstance;
     }
-    
+
     public static void destroyWidget() {
         mParser = null;
         mInstance = null;

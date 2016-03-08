@@ -25,24 +25,21 @@ import com.h6ah4i.android.widget.advrecyclerview.utils.WrapperAdapterUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class HomeFragment extends Fragment implements  UWClientResponseHandler{
-    final String LOGCAT_TAG = "HomeFragment";
-    private ArrayList<UWData> mData = new ArrayList<>();
+    private final String LOGCAT_TAG = "HomeFragment";
+    private final static ArrayList<String> mAvailableWidgets =
+            new ArrayList<>(Arrays.asList(WeatherWidget.TAG, InfoSessionWidget.TAG));
 
+    private ArrayList<UWData> mData = new ArrayList<>();
     private UWParserAdapter mAdapter;
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private RecyclerView.Adapter mWrappedAdapter;
     private RecyclerViewDragDropManager mRecyclerViewDragDropManager;
-    private SharedPreferences mSettings;
-
-    private final static ArrayList<String> mAvailableWidgets =
-            new ArrayList<>(Arrays.asList(WeatherWidget.TAG, InfoSessionWidget.TAG));
-
     private RecyclerViewSwipeManager mRecyclerViewSwipeManager;
     private RecyclerViewTouchActionGuardManager mRecyclerViewTouchActionGuardManager;
+    private SharedPreferences mSettings;
 
     public HomeFragment(){
         super();
@@ -159,7 +156,6 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         mRecyclerViewDragDropManager.cancelDrag();
         int index = 0;
         SharedPreferences.Editor editor = mSettings.edit();
-        List<String> notSelected = mAvailableWidgets;
         int availableSize = mAvailableWidgets.size();
         int size = mData.size();
         for(;index < size; index++){
@@ -201,6 +197,9 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         }
         mAdapter = null;
         mLayoutManager = null;
+
+        WeatherWidget.destroyWidget();
+        InfoSessionWidget.destroyWidget();
 
         super.onDestroyView();
     }

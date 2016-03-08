@@ -116,15 +116,15 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         View view;
         switch (viewType) {
             case WEATHER:
-                view = inflater.inflate(R.layout.weather_row, parent, false);
+                view = inflater.inflate(R.layout.widget_weather_row, parent, false);
                 viewHolder = new WeatherViewHolder(view);
                 break;
             case INFO_SESSIONS:
-                view = inflater.inflate(R.layout.info_session_row, parent, false);
+                view = inflater.inflate(R.layout.widget_info_session_row, parent, false);
                 viewHolder = new InfoSessionViewHolder(view);
                 break;
             default:
-                view = inflater.inflate(R.layout.weather_row, parent, false);
+                view = inflater.inflate(R.layout.widget_weather_row, parent, false);
                 viewHolder = new WeatherViewHolder(view);
                 break;
         }
@@ -138,18 +138,14 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             public void onClick(View v) {
                 mData.remove(position);
                 notifyDataSetChanged();
-                String tag;
                 switch (viewHolder.getItemViewType()) {
                     case WEATHER:
-                        tag = WeatherWidget.TAG;
                         WeatherWidget.destroyWidget();
                         break;
                     case INFO_SESSIONS:
-                        tag = InfoSessionWidget.TAG;
                         InfoSessionWidget.destroyWidget();
                         break;
                     default:
-                        tag = "";
                         break;
                 }
             }

@@ -9,13 +9,12 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    final String LOGCAT_TAG = "MainActivity";
+    final String TAG = "MainActivity";
 
     private DrawerLayout mDrawerLayout;
     private Toolbar mToolbar;
@@ -73,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.nav_home:
                 fragmentClass = HomeFragment.class;
                 break;
-            case R.id.nav_second_fragment:
-                fragmentClass = HomeFragment.class;
+            case R.id.nav_info_sessions:
+                fragmentClass = InfoSessionsFragment.class;
                 break;
             case R.id.nav_third_fragment:
                 fragmentClass = HomeFragment.class;
