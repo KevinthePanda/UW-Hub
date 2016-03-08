@@ -5,4 +5,5 @@
     <string name="drawer_close">Close navigation drawer</string>
     <string name="weather">Weather</string>
     <string name="info_sessions">Info Sessions</string>
+    <string name="remove">Remove</string>
 </resources>

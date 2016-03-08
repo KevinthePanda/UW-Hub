@@ -16,14 +16,14 @@
         android:background="#888888">
 
         <Button
-            android:id="@android:id/button1"
+            android:id="@+id/remove_widget"
             style="@style/Widget.AppCompat.Button.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:layout_marginRight="16dp"
-            android:text="Button"/>
+            android:text="@string/remove"/>
 
     </RelativeLayout>
 
