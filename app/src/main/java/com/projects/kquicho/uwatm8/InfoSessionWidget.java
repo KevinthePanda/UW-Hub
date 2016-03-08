@@ -11,6 +11,7 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
     public static final String TAG = "InfoSessionWidget";
     private static InfoSessionWidget mInstance = null;
     private static ResourcesParser mParser;
+    private static Integer mPosition;
     private UWClientResponseHandler mHandler;
 
     public static InfoSessionWidget getInstance(UWClientResponseHandler handler) {
@@ -20,13 +21,18 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
         return mInstance;
     }
 
-    public static ResourcesParser getParser() {
-        return mParser;
+    public static InfoSessionWidget getInstance(UWClientResponseHandler handler, Integer position) {
+        if(mInstance == null){
+            mPosition = position;
+            mInstance = new InfoSessionWidget(handler);
+        }
+        return mInstance;
     }
-
+    
     public static void destroyWidget() {
         mParser = null;
         mInstance = null;
+        mPosition = null;
     }
 
 
@@ -49,7 +55,8 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
     public void onDownloadComplete(APIResult apiResult) {
         mParser.setAPIResult(apiResult);
         mParser.parseJSON();
-        mHandler.onSuccess(mParser);
+        UWData data = new UWData(mParser, TAG);
+        mHandler.onSuccess(data, mPosition);
     }
 
 }
