@@ -117,6 +117,7 @@ public class ResourcesParser extends UWParser {
     private static final String DATE_TAG = "date";
     private static final String START_TIME_TAG = "start_time";
     private static final String END_TIME_TAG = "end_time";
+    private static final String BUILDING_TAG = "building";
     private static final String LOCATION_TAG = "location";
     private static final String WEBSITE_TAG = "website";
     private static final String AUDIENCE_TAG = "audience";
@@ -125,6 +126,8 @@ public class ResourcesParser extends UWParser {
     private static final String LATITUDE_TAG = "latitude";
     private static final String LONGITUDE_TAG = "longitude";
     private static final String UPDATED_TAG = "updated";
+    private static final String CODE_TAG = "code";
+    private static final String MAP_URL_TAG = "map_url";
 
     // JSON Array tags
     private static final String DATA_TAG = "data";
@@ -267,16 +270,26 @@ public class ResourcesParser extends UWParser {
                 if(!jsonInfoSessionLocation.isNull(END_TIME_TAG))
                     location.setEnd_time(jsonInfoSessionLocation.getString(END_TIME_TAG));
 
-                if(!jsonInfoSessionLocation.isNull(LOCATION_TAG))
-                    location.setLocation(jsonInfoSessionLocation.getString(LOCATION_TAG));
+                if(!jsonInfoSessionLocation.isNull(BUILDING_TAG)){
+                    JSONObject jsonBuildingObject = jsonInfoSessionLocation.getJSONObject(BUILDING_TAG);
+                    if(!jsonBuildingObject.isNull(CODE_TAG)){
+                        location.setBuildingCode(jsonBuildingObject.getString(CODE_TAG));
+                    }
+                    if(!jsonBuildingObject.isNull(ROOM_TAG)){
+                        location.setBuildingRoom(jsonBuildingObject.getString(ROOM_TAG));
+                    }
+                    if(!jsonBuildingObject.isNull(MAP_URL_TAG)){
+                        location.setBuildingMapUrl(jsonBuildingObject.getString(MAP_URL_TAG));
+                    }
+                }
 
-                if(!jsonInfoSessionLocation.isNull(WEBSITE_TAG))
+                if (!jsonInfoSessionLocation.isNull(WEBSITE_TAG))
                     location.setWebsite(jsonInfoSessionLocation.getString(WEBSITE_TAG));
 
-                if(!jsonInfoSessionLocation.isNull(AUDIENCE_TAG))
+                if (!jsonInfoSessionLocation.isNull(AUDIENCE_TAG))
                     location.setAudience(jsonInfoSessionLocation.getString(AUDIENCE_TAG));
 
-                if(!jsonInfoSessionLocation.isNull(PROGRAMS_TAG))
+                if (!jsonInfoSessionLocation.isNull(PROGRAMS_TAG))
                     location.setPrograms(jsonInfoSessionLocation.getString(PROGRAMS_TAG));
 
                 if(!jsonInfoSessionLocation.isNull(DESCRIPTION_TAG))

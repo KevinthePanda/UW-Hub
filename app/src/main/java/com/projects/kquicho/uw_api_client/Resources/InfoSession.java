@@ -6,7 +6,9 @@ public class InfoSession {
     private String date = null;
     private String start_time = null;
     private String end_time = null;
-    private String location = null;
+    private String building_code = null;
+    private String building_room = null;
+    private String building_map_url = null;
     private String website = null;
     private String audience = null;
     private String programs = null;
@@ -52,12 +54,28 @@ public class InfoSession {
         this.end_time = end_time;
     }
 
-    public String getLocation() {
-        return location;
+    public String getBuildingCode() {
+        return building_code;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setBuildingRoom(String building_room) {
+        this.building_room = building_room;
+    }
+
+    public String getBuildingRoom() {
+        return building_room;
+    }
+
+    public void setBuildingMapUrl(String building_map_url) {
+        this.building_map_url = building_map_url;
+    }
+
+    public String getBuildingMapUrl() {
+        return building_map_url;
+    }
+
+    public void setBuildingCode(String building_code) {
+        this.building_code = building_code;
     }
 
     public String getWebsite() {

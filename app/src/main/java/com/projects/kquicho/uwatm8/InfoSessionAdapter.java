@@ -18,7 +18,11 @@ import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultAct
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractSwipeableItemViewHolder;
 import com.projects.kquicho.uw_api_client.Resources.InfoSession;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.InfoSessionHolder>
         implements SwipeableItemAdapter<InfoSessionAdapter.InfoSessionHolder> {
@@ -112,11 +116,12 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
         viewHolder.setMaxRightSwipeAmount(0);
         viewHolder.setSwipeItemHorizontalSlideAmount(
                 data.isPinned() ? -0.17f : 0);
+
         InfoSession infoSession = data.getInfoSession();
         viewHolder.mCompany.setText(infoSession.getEmployer());
         viewHolder.mDate.setText(infoSession.getDate());
         viewHolder.mTime.setText(infoSession.getStart_time() + " - " + infoSession.getEnd_time());
-        viewHolder.mLocation.setText(infoSession.getLocation());
+        viewHolder.mLocation.setText(infoSession.getBuildingCode() + " - " + infoSession.getBuildingRoom());
     }
 
 

@@ -48,8 +48,8 @@
 
         <ImageView
             android:id="@+id/ic_date"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
             android:src="@drawable/ic_calendar"
             android:layout_alignLeft="@id/company"
             android:layout_below="@id/company" />
@@ -57,7 +57,7 @@
             android:id="@+id/date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="MAR 23"
+            android:text="23/06/2016"
             android:textSize="15sp"
             android:fontFamily="sans-serif"
             android:layout_toRightOf="@id/ic_date"
@@ -65,10 +65,10 @@
             android:paddingLeft="3dp"/>
         <ImageView
             android:id="@+id/ic_time"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
             android:src="@drawable/ic_clock"
-            android:layout_below="@id/company"
+            android:layout_alignTop="@id/ic_date"
             android:layout_marginLeft="16dp"
             android:layout_toRightOf="@id/date" />
         <TextView
@@ -79,16 +79,16 @@
             android:textSize="15sp"
             android:fontFamily="sans-serif"
             android:layout_toRightOf="@id/ic_time"
-            android:layout_alignTop="@id/ic_time"
+            android:layout_alignBaseline="@id/date"
             android:paddingLeft="3dp"/>
         <ImageView
             android:id="@+id/ic_location"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
             android:src="@drawable/ic_map_marker"
-            android:layout_below="@id/company"
-            android:layout_marginLeft="16dp"
-            android:layout_toRightOf="@id/time" />
+            android:layout_below="@id/ic_date"
+            android:layout_marginTop="8dp"
+            android:layout_alignLeft="@id/ic_date" />
         <TextView
             android:id="@+id/location"
             android:layout_width="wrap_content"
@@ -96,8 +96,8 @@
             android:text="DC - 1302"
             android:textSize="15sp"
             android:fontFamily="sans-serif"
-            android:layout_toRightOf="@id/ic_location"
             android:layout_alignTop="@id/ic_location"
+            android:layout_alignLeft="@id/date"
             android:paddingLeft="3dp"/>
     </RelativeLayout>
 
