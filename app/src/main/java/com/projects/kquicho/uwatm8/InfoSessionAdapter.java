@@ -120,8 +120,16 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
                     long alarmTime = date.getTime() - 3600000;
                     int id = infoSession.getId();
 
+                    InfoSessionDBModel infoSessionDBModel = new
+                            InfoSessionDBModel(infoSession.getId(), alarmTime,
+                            "Info Session - " + infoSession.getEmployer(),
+                            "From " + infoSession.getStart_time() + " - "
+                                    + infoSession.getEnd_time() + " at "
+                                    + infoSession.getBuildingCode());
+                    mDBHelper.addInfoSession(infoSessionDBModel);
+
                     Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);
-                    intent.putExtra(InfoSessionAlarmReceiver.INFO_SESSION, infoSession);
+                    intent.putExtra(InfoSessionAlarmReceiver.INFO_SESSION_MODEL, infoSessionDBModel);
 
                     final PendingIntent pIntent = PendingIntent.getBroadcast(mActivity,
                             id,intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -134,8 +142,9 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
                     viewHolder.mSaveIcon.setImageDrawable(null);
                     viewHolder.mSaveBtn.setImageDrawable(mUnselectedDrawable);
                     InfoSession infoSession = data.getInfoSession();
-                    mDBHelper.deleteInfoSession(
-                            new InfoSessionDBModel(String.valueOf(infoSession.getId()), 0));
+                    InfoSessionDBModel infoSessionDBModel = new InfoSessionDBModel();
+                    infoSession.setId(infoSession.getId());
+                    mDBHelper.deleteInfoSession(infoSessionDBModel);
 
                     Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);
                     final PendingIntent pIntent = PendingIntent.getBroadcast(mActivity, infoSession.getId(),

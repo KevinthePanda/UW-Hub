@@ -13,10 +13,7 @@ import android.util.Log;
 
 public class InfoSessionService extends IntentService {
     public final static String TAG = "InfoSessionService";
-    public final static String ID = "id";
-    public final static String EMPLOYER = "employer";
-    public final static String TIME = "time";
-    public final static String BUILDING = "building";
+    public final static String INFO_SESSION_MODEL = "infoSessionModel";
 
 
     public InfoSessionService(){
@@ -25,13 +22,12 @@ public class InfoSessionService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent){
-        String title = intent.getStringExtra(EMPLOYER) + " - Info Session";
-        String msg = "From " + intent.getStringExtra(TIME) + " at " + intent.getStringExtra(BUILDING);
-        sendNotification(intent.getIntExtra(ID, -1),title,  msg);
+        sendNotification((InfoSessionDBModel)intent.getParcelableExtra(INFO_SESSION_MODEL));
     }
 
-    private void sendNotification(int id, String title, String msg){
-       Log.d("InfoSessionService", "Preparing to send notification...: " + msg);
+    private void sendNotification(InfoSessionDBModel infoSessionDBModel){
+        int id = infoSessionDBModel.getId();
+       Log.d("InfoSessionService", "Preparing to send notification...: " + id);
        NotificationManager notificationManager = (NotificationManager) this
                 .getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -41,9 +37,9 @@ public class InfoSessionService extends IntentService {
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setContentTitle(title)
+                .setContentTitle(infoSessionDBModel.getTitle())
                 .setSmallIcon(R.drawable.ic_launcher)
-                .setContentText(msg)
+                .setContentText(infoSessionDBModel.getMsg())
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
                 .setOnlyAlertOnce(true);
