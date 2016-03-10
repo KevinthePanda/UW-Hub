@@ -1,6 +1,11 @@
 package com.projects.kquicho.uwatm8;
 
 
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -19,30 +24,36 @@ import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractSwipeableItemView
 import com.projects.kquicho.uw_api_client.Resources.InfoSession;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.InfoSessionHolder>
-        implements SwipeableItemAdapter<InfoSessionAdapter.InfoSessionHolder> {
+        implements SwipeableItemAdapter<InfoSessionAdapter.InfoSessionHolder>{
 
     private final String TAG = "InfoSessionAdapter";
     private ArrayList<InfoSessionData> mData;
-    Drawable mSelectedDrawable;
-    Drawable mUnselectedDrawable;
-
+    private Drawable mSelectedDrawable;
+    private Drawable mUnselectedDrawable;
+    private final InfoSessionDBHelper mDBHelper;
+    private final Activity mActivity;
     private interface Swipeable extends SwipeableItemConstants {
     }
 
-    public InfoSessionAdapter(ArrayList<InfoSessionData> data, Drawable selected, Drawable unselected){
+    public InfoSessionAdapter(ArrayList<InfoSessionData> data, Drawable selected, Drawable unselected,
+                              InfoSessionDBHelper dbHelper, Activity activity){
         mData = data;
         mSelectedDrawable = selected;
         mUnselectedDrawable = unselected;
+        mDBHelper = dbHelper;
+        mActivity = activity;
         setHasStableIds(true);
     }
 
-    public static class InfoSessionHolder extends AbstractSwipeableItemViewHolder{
+    public class InfoSessionHolder extends AbstractSwipeableItemViewHolder {
         public View mContainer;
         public ImageView mSaveBtn;
         public ImageView mSaveIcon;
@@ -71,7 +82,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
 
     @Override
     public long getItemId(int position) {
-        return position;
+        return mData.get(position).getInfoSession().getId();
     }
 
     @Override
@@ -82,8 +93,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
     @Override
     public InfoSessionHolder onCreateViewHolder(ViewGroup parent, int viewType){
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.info_session_row, parent, false);
-        InfoSessionHolder viewHolder = new InfoSessionHolder(view);
-        return viewHolder;
+        return new InfoSessionHolder(view);
     }
 
     @Override
@@ -95,15 +105,49 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
                 if (data.toggleAlert()) {
                     viewHolder.mSaveIcon.setImageDrawable(mSelectedDrawable);
                     viewHolder.mSaveBtn.setImageDrawable(mSelectedDrawable);
+                    InfoSession infoSession = data.getInfoSession();
+                    DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CANADA);
+                    format.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    Date date = null;
+                    try {
+                        date = format.parse(infoSession.getDate() + " " + infoSession.getStart_time());
+                    } catch (ParseException exception) {
+                        Log.e(TAG, "onReceive ParseException: " + exception.getMessage());
+                    }
+                    if (date == null) {
+                        return;
+                    }
+                    long alarmTime = date.getTime() - 3600000;
+                    int id = infoSession.getId();
+
+                    Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);
+                    intent.putExtra(InfoSessionAlarmReceiver.INFO_SESSION, infoSession);
+
+                    final PendingIntent pIntent = PendingIntent.getBroadcast(mActivity,
+                            id,intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                    AlarmManager alarm = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
+                    //set the alarm an hour before the start time
+                    alarm.set(AlarmManager.RTC_WAKEUP, alarmTime , pIntent);
+                    Log.d(TAG, "Setting alarm for " + id + " at " +  format.format(date));
                 } else {
                     viewHolder.mSaveIcon.setImageDrawable(null);
                     viewHolder.mSaveBtn.setImageDrawable(mUnselectedDrawable);
+                    InfoSession infoSession = data.getInfoSession();
+                    mDBHelper.deleteInfoSession(
+                            new InfoSessionDBModel(String.valueOf(infoSession.getId()), 0));
+
+                    Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);
+                    final PendingIntent pIntent = PendingIntent.getBroadcast(mActivity, infoSession.getId(),
+                            intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    AlarmManager alarm = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
+                    alarm.cancel(pIntent);
+
                 }
                 data.setPinned(false);
                 notifyItemChanged(position);
             }
         });
-
         viewHolder.mContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -111,7 +155,6 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
                 notifyItemChanged(position);
             }
         });
-
         viewHolder.setMaxLeftSwipeAmount(-0.17f);
         viewHolder.setMaxRightSwipeAmount(0);
         viewHolder.setSwipeItemHorizontalSlideAmount(
@@ -122,6 +165,14 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
         viewHolder.mDate.setText(infoSession.getDate());
         viewHolder.mTime.setText(infoSession.getStart_time() + " - " + infoSession.getEnd_time());
         viewHolder.mLocation.setText(infoSession.getBuildingCode() + " - " + infoSession.getBuildingRoom());
+
+        if(data.isAlertSet()){
+            viewHolder.mSaveIcon.setImageDrawable(mSelectedDrawable);
+            viewHolder.mSaveBtn.setImageDrawable(mSelectedDrawable);
+        }else{
+            viewHolder.mSaveIcon.setImageDrawable(null);
+            viewHolder.mSaveBtn.setImageDrawable(mUnselectedDrawable);
+        }
     }
 
 

@@ -1,5 +1,9 @@
 package com.projects.kquicho.uw_api_client.Resources;
-public class InfoSession {
+
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class InfoSession  implements Parcelable{
 
     private int id;
     private String employer = null;
@@ -108,5 +112,55 @@ public class InfoSession {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+    public InfoSession(){
+    }
+
+    public InfoSession(Parcel in){
+        id = in.readInt();
+        employer = in.readString();
+        date = in.readString();
+        start_time = in.readString();
+        end_time = in.readString();
+        building_code = in.readString();
+        building_room = in.readString();
+        building_map_url = in.readString();
+        website = in.readString();
+        audience = in.readString();
+        programs = in.readString();
+        description = in.readString();
+    }
+
+    public static final Parcelable.Creator<InfoSession> CREATOR
+            = new Parcelable.Creator<InfoSession>() {
+        public InfoSession createFromParcel(Parcel in) {
+            return new InfoSession(in);
+        }
+
+        public InfoSession[] newArray(int size) {
+            return new InfoSession[size];
+        }
+    };
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeString(employer);
+        dest.writeString(date);
+        dest.writeString(start_time);
+        dest.writeString(end_time);
+        dest.writeString(building_code);
+        dest.writeString(building_room);
+        dest.writeString(building_map_url);
+        dest.writeString(website);
+        dest.writeString(audience);
+        dest.writeString(programs);
+        dest.writeString(description);
     }
 }

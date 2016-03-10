@@ -23,7 +23,14 @@ import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
 import com.projects.kquicho.uw_api_client.Resources.InfoSession;
 import com.projects.kquicho.uw_api_client.Resources.ResourcesParser;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class InfoSessionsFragment extends Fragment implements JSONDownloader.onDownloadListener {
     final String TAG = "InfoSessionsFragment";
@@ -65,7 +72,8 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
 
         Drawable selected = ContextCompat.getDrawable(getActivity(), R.drawable.ic_star);
         Drawable unselected = ContextCompat.getDrawable(getActivity(), R.drawable.ic_star_outline);
-        mAdapter = new InfoSessionAdapter(mData, selected, unselected);
+        mAdapter = new InfoSessionAdapter(mData, selected, unselected, InfoSessionDBHelper.getInstance(getContext()),
+                getActivity());
 
         mWrappedAdapter = mRecyclerViewSwipeManager.createWrappedAdapter(mAdapter);      // wrap for swiping
 
@@ -100,10 +108,29 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     public void onDownloadComplete(APIResult apiResult) {
         mParser.setAPIResult(apiResult);
         mParser.parseJSON();
-        ArrayList<InfoSession> infoSessions = mParser.getInfoSessions();
         final int curSize = mAdapter.getItemCount();
-        for(InfoSession infoSession : infoSessions){
-            mData.add(new InfoSessionData(infoSession, false));
+
+        ArrayList<InfoSession> infoSessions = mParser.getInfoSessions();
+        ListIterator li = infoSessions.listIterator(infoSessions.size());
+        InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(getActivity().getApplicationContext());
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CANADA);
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        while (li.hasPrevious()){
+            InfoSession infoSession = (InfoSession)li.previous();
+            Date date = null;
+            try {
+                date = format.parse(infoSession.getDate() + " " + infoSession.getStart_time());
+            } catch (ParseException exception) {
+                Log.e(TAG, "onReceive ParseException: " + exception.getMessage());
+            }
+            if (date == null || date.getTime() < System.currentTimeMillis()) {
+                break;
+            }
+
+            boolean isAlertSet = dbHelper.checkForInfoSession(String.valueOf(infoSession.getId()));
+
+            mData.add(new InfoSessionData(infoSession, isAlertSet));
+
         }
         android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
 
@@ -114,7 +141,6 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
             }
         };
         handler.post(runnable);
-
     }
 
 
