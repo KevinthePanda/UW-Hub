@@ -23,8 +23,10 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
 
     // Table Columns
     private static final String KEY_INFO_SESSIONS_ID = "id";
-    private static final String KEY_INFO_SESSIONS_NAME_EVENT_ID = "eventid";
+    private static final String KEY_INFO_SESSIONS_NAME_EVENT_ID = "eventId";
     private static final String KEY_INFO_SESSIONS_TIME = "userId";
+    private static final String KEY_INFO_SESSIONS_TITLE = "title";
+    private static final String KEY_INFO_SESSIONS_MSG = "msg";
 
     public static synchronized InfoSessionDBHelper getInstance(Context context){
         if(sInstance == null){
@@ -50,8 +52,10 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
         String CREATE_POSTS_TABLE = "CREATE TABLE " + TABLE_INFO_SESSIONS +
                 "(" +
                     KEY_INFO_SESSIONS_ID + " INTEGER PRIMARY KEY," + // Define a primary key
-                    KEY_INFO_SESSIONS_NAME_EVENT_ID + " TEXT," +
-                    KEY_INFO_SESSIONS_TIME + " INTEGER" +
+                    KEY_INFO_SESSIONS_NAME_EVENT_ID + " INTEGER," +
+                    KEY_INFO_SESSIONS_TIME + " INTEGER," +
+                    KEY_INFO_SESSIONS_TITLE + " TEXT," +
+                    KEY_INFO_SESSIONS_MSG + " TEXT" +
                 ")";
 
         db.execSQL(CREATE_POSTS_TABLE);
@@ -79,8 +83,10 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
         try {
 
             ContentValues values = new ContentValues();
-            values.put(KEY_INFO_SESSIONS_NAME_EVENT_ID, infoSession.id);
-            values.put(KEY_INFO_SESSIONS_TIME, infoSession.time);
+            values.put(KEY_INFO_SESSIONS_NAME_EVENT_ID, infoSession.getId());
+            values.put(KEY_INFO_SESSIONS_TIME, infoSession.getTime());
+            values.put(KEY_INFO_SESSIONS_TITLE, infoSession.getTitle());
+            values.put(KEY_INFO_SESSIONS_MSG, infoSession.getMsg());
 
             db.insertOrThrow(TABLE_INFO_SESSIONS, null, values);
             db.setTransactionSuccessful();
@@ -99,9 +105,10 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
             if (cursor.moveToFirst()) {
                 do {
                     InfoSessionDBModel newInfoSession = new InfoSessionDBModel();
-                    newInfoSession.id = cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_NAME_EVENT_ID));
-                    newInfoSession.time = cursor.getLong(cursor.getColumnIndex(KEY_INFO_SESSIONS_TIME));
-                    infoSessions.add(newInfoSession);
+                    newInfoSession.setId(cursor.getInt(cursor.getColumnIndex(KEY_INFO_SESSIONS_NAME_EVENT_ID)));
+                    newInfoSession.setTime(cursor.getLong(cursor.getColumnIndex(KEY_INFO_SESSIONS_TIME)));
+                    newInfoSession.setTitle(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_TITLE)));
+                    newInfoSession.setMsg(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_MSG)));
                 } while(cursor.moveToNext());
             }
         } catch (Exception e) {
@@ -123,22 +130,11 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
         return doesExist;
     }
 
-    public int updateTime(InfoSessionDBModel infoSession) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put(KEY_INFO_SESSIONS_TIME, infoSession.time);
-
-        // Updating time infosession with that id
-        return db.update(TABLE_INFO_SESSIONS, values, KEY_INFO_SESSIONS_NAME_EVENT_ID + " = ?",
-                new String[] { infoSession.id });
-    }
-
     public void deleteInfoSession(InfoSessionDBModel infoSessions){
         SQLiteDatabase db = this.getWritableDatabase();
 
         db.delete(TABLE_INFO_SESSIONS, KEY_INFO_SESSIONS_NAME_EVENT_ID + " = ?",
-                new String[]{ infoSessions.id });
+                new String[]{String.valueOf(infoSessions.getId()) });
     }
 
     public void deleteAllInfoSessions() {
