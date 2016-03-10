@@ -1,6 +1,8 @@
 package com.projects.kquicho.uwatm8;
 
 
+import android.util.Log;
+
 import com.projects.kquicho.uw_api_client.Resources.InfoSession;
 
 public class InfoSessionData {
@@ -24,6 +26,10 @@ public class InfoSessionData {
     public boolean toggleAlert(){
         mIsAlertSet = !mIsAlertSet;
         return mIsAlertSet;
+    }
+
+    public void setAlert(boolean alert) {
+        mIsAlertSet = alert;
     }
 
     public boolean isPinned(){
