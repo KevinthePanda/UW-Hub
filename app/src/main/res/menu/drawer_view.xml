@@ -10,9 +10,9 @@
             android:icon="@android:drawable/ic_dialog_alert"
             android:title="@string/info_sessions" />
         <item
-            android:id="@+id/nav_third_fragment"
+            android:id="@+id/nav_courses_fragment"
             android:icon="@android:drawable/ic_dialog_alert"
-            android:title="Third" />
+            android:title="Courses" />
     </group>
 
     <item android:title="Sub items">

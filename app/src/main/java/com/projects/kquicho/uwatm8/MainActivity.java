@@ -75,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.nav_info_sessions:
                 fragmentClass = InfoSessionsFragment.class;
                 break;
-            case R.id.nav_third_fragment:
-                fragmentClass = HomeFragment.class;
+            case R.id.nav_courses_fragment:
+                fragmentClass = CoursesFragment.class;
                 break;
             default:
                 fragmentClass = HomeFragment.class;

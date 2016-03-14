@@ -3,6 +3,7 @@ package com.projects.kquicho.uwatm8;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,6 +18,8 @@ import com.h6ah4i.android.widget.advrecyclerview.animator.SwipeDismissItemAnimat
 import com.h6ah4i.android.widget.advrecyclerview.decoration.SimpleListDividerDecorator;
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.RecyclerViewSwipeManager;
 import com.h6ah4i.android.widget.advrecyclerview.touchguard.RecyclerViewTouchActionGuardManager;
+import com.projects.kquicho.uw_api_client.Codes.CodesParser;
+import com.projects.kquicho.uw_api_client.Codes.Subject;
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.JSONDownloader;
 import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
@@ -27,9 +30,12 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.ListIterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class InfoSessionsFragment extends Fragment implements JSONDownloader.onDownloadListener {
@@ -42,7 +48,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     private RecyclerView.Adapter mWrappedAdapter;
     private RecyclerViewSwipeManager mRecyclerViewSwipeManager;
     private RecyclerViewTouchActionGuardManager mRecyclerViewTouchActionGuardManager;
-    private  ResourcesParser mParser = new ResourcesParser();
+    private ResourcesParser mParser = new ResourcesParser();
 
 
     public InfoSessionsFragment(){
@@ -93,9 +99,20 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
 
         mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
         String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
+
         JSONDownloader downloader = new JSONDownloader(url);
         downloader.setOnDownloadListener(this);
         downloader.start();
+
+        FloatingActionButton fab = (FloatingActionButton)view.findViewById(R.id.fab);
+
+
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mAdapter.fabClick();
+            }
+        });
     }
 
 
@@ -108,8 +125,6 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     public void onDownloadComplete(APIResult apiResult) {
         mParser.setAPIResult(apiResult);
         mParser.parseJSON();
-        final int curSize = mAdapter.getItemCount();
-
         ArrayList<InfoSession> infoSessions = mParser.getInfoSessions();
         ListIterator li = infoSessions.listIterator(infoSessions.size());
         InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(getActivity().getApplicationContext());
@@ -123,26 +138,34 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
             } catch (ParseException exception) {
                 Log.e(TAG, "onReceive ParseException: " + exception.getMessage());
             }
-            if (date == null || date.getTime() < System.currentTimeMillis()) {
+            if (date == null ||  date.getTime() < System.currentTimeMillis()) {
                 break;
             }
 
             boolean isAlertSet = dbHelper.checkForInfoSession(String.valueOf(infoSession.getId()));
 
-            mData.add(new InfoSessionData(infoSession, isAlertSet));
+            mData.add(new InfoSessionData(infoSession, isAlertSet,  date.getTime()));
 
         }
+        Collections.sort(mData, new CustonComparator());
         android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
 
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                mAdapter.notifyItemRangeChanged(curSize, mData.size());
+                mAdapter.notifyDataSetChanged();
             }
         };
         handler.post(runnable);
     }
+    public class CustonComparator implements Comparator<InfoSessionData>{
+        @Override
+        public int compare(InfoSessionData o1, InfoSessionData o2) {
+            return  o1.getTime()<o2.getTime()?-1:
+                    o1.getTime()>o2.getTime()?1:0;
+        }
 
-
+    }
 
 }
+
