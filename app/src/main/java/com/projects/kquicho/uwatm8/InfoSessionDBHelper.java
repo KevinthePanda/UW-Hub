@@ -1,7 +1,9 @@
 package com.projects.kquicho.uwatm8;
 
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -13,6 +15,7 @@ import java.util.List;
 public class InfoSessionDBHelper extends SQLiteOpenHelper{
     public final static String TAG = "InfoSessionDBHelper";
     private static InfoSessionDBHelper sInstance;
+    private Context mContext;
 
     // Database Info
     private static final String DATABASE_NAME = "InfoSessionDB";
@@ -37,6 +40,7 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
 
     private  InfoSessionDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        mContext = context;
     }
 
     // Called when the database connection is being configured.
@@ -77,7 +81,22 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
         // Create and/or open the database for writing
         SQLiteDatabase db = getWritableDatabase();
 
-        // It's a good idea to wrap our insert in a transaction. This helps with performance and ensures
+        String count = "SELECT count(*) FROM " + TABLE_INFO_SESSIONS;
+        Cursor cursor = db.rawQuery(count, null);
+        cursor.moveToFirst();
+        int icount = cursor.getInt(0);
+        if(icount == 0){
+            ComponentName receiver = new ComponentName(mContext, InfoSessionBootReceiver.class);
+            PackageManager pm = mContext.getPackageManager();
+
+            pm.setComponentEnabledSetting(receiver,
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                    PackageManager.DONT_KILL_APP);
+            Log.d(TAG, "Enabling InfoSessionBootReceiver");
+        }
+        cursor.close();
+
+            // It's a good idea to wrap our insert in a transaction. This helps with performance and ensures
         // consistency of the database.
         db.beginTransaction();
         try {
@@ -109,6 +128,7 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
                     newInfoSession.setTime(cursor.getLong(cursor.getColumnIndex(KEY_INFO_SESSIONS_TIME)));
                     newInfoSession.setTitle(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_TITLE)));
                     newInfoSession.setMsg(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_MSG)));
+                    infoSessions.add(newInfoSession);
                 } while(cursor.moveToNext());
             }
         } catch (Exception e) {
@@ -131,10 +151,25 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
     }
 
     public void deleteInfoSession(InfoSessionDBModel infoSessions){
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
 
         db.delete(TABLE_INFO_SESSIONS, KEY_INFO_SESSIONS_NAME_EVENT_ID + " = ?",
                 new String[]{String.valueOf(infoSessions.getId()) });
+
+        String count = "SELECT count(*) FROM " + TABLE_INFO_SESSIONS;
+        Cursor cursor = db.rawQuery(count, null);
+        cursor.moveToFirst();
+        int icount = cursor.getInt(0);
+        if(icount == 0){
+            ComponentName receiver = new ComponentName(mContext, InfoSessionBootReceiver.class);
+            PackageManager pm = mContext.getPackageManager();
+
+            pm.setComponentEnabledSetting(receiver,
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    PackageManager.DONT_KILL_APP);
+            Log.d(TAG, "Disabling InfoSessionBootReceiver");
+        }
+        cursor.close();
     }
 
     public void deleteAllInfoSessions() {

@@ -1,4 +1,4 @@
-package Codes;
+package com.projects.kquicho.uw_api_client.Codes;
 
 /**
  * Created by ZainH on 02/09/2015.

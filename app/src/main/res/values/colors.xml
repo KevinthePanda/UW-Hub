@@ -42,4 +42,5 @@
 
     <color name="background_fab_card">#fff</color>
     <color name="theme_primary">#FFD747</color>
+    <color name="gray">#D3D3D3</color>
 </resources>
