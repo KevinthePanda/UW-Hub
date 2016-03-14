@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.SwipeableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.SwipeableItemConstants;
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultAction;
@@ -22,14 +21,8 @@ import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultAct
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultActionMoveToSwipedDirection;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractSwipeableItemViewHolder;
 import com.projects.kquicho.uw_api_client.Resources.InfoSession;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.Iterator;
 
 public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.InfoSessionHolder>
         implements SwipeableItemAdapter<InfoSessionAdapter.InfoSessionHolder>{
@@ -106,18 +99,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
                     viewHolder.mSaveIcon.setImageDrawable(mSelectedDrawable);
                     viewHolder.mSaveBtn.setImageDrawable(mSelectedDrawable);
                     InfoSession infoSession = data.getInfoSession();
-                    DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CANADA);
-                    format.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    Date date = null;
-                    try {
-                        date = format.parse(infoSession.getDate() + " " + infoSession.getStart_time());
-                    } catch (ParseException exception) {
-                        Log.e(TAG, "onReceive ParseException: " + exception.getMessage());
-                    }
-                    if (date == null) {
-                        return;
-                    }
-                    long alarmTime = date.getTime() - 3600000;
+                    long alarmTime = data.getTime() - 3600000;
                     int id = infoSession.getId();
 
                     InfoSessionDBModel infoSessionDBModel = new
@@ -136,14 +118,15 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
 
                     AlarmManager alarm = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
                     //set the alarm an hour before the start time
-                    alarm.set(AlarmManager.RTC_WAKEUP, alarmTime , pIntent);
-                    Log.d(TAG, "Setting alarm for " + id + " at " +  format.format(date));
+                    alarm.set(AlarmManager.RTC_WAKEUP, alarmTime, pIntent);
+                    //http://www.fileformat.info/tip/java/date2millis.htm
+                    Log.d(TAG, "Setting alarm for " + id + " at " + alarmTime );
                 } else {
                     viewHolder.mSaveIcon.setImageDrawable(null);
                     viewHolder.mSaveBtn.setImageDrawable(mUnselectedDrawable);
                     InfoSession infoSession = data.getInfoSession();
                     InfoSessionDBModel infoSessionDBModel = new InfoSessionDBModel();
-                    infoSession.setId(infoSession.getId());
+                    infoSessionDBModel.setId(infoSession.getId());
                     mDBHelper.deleteInfoSession(infoSessionDBModel);
 
                     Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);
@@ -151,7 +134,11 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
                             intent, PendingIntent.FLAG_UPDATE_CURRENT);
                     AlarmManager alarm = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
                     alarm.cancel(pIntent);
-
+                    if(!mIsShowingAll){
+                        mData.remove(data);
+                        notifyItemRemoved(position);
+                        notifyItemRangeChanged(position, mData.size());
+                    }
                 }
                 data.setPinned(false);
                 notifyItemChanged(position);
@@ -297,5 +284,41 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
             mAdapter = null;
         }
     }
+    private boolean mIsShowingAll = true;
+    ArrayList<InfoSessionData> mDataFabCopy = new ArrayList<>();
+    public boolean showOnlyFavourites() {
+        boolean existsAlarmSet = false;
+        mDataFabCopy.addAll(mData);
+        for(Iterator<InfoSessionData> iterator = mData.iterator(); iterator.hasNext();){
+            if (!iterator.next().isAlertSet()) {
+                iterator.remove();
+                existsAlarmSet = true;
+            }
+        }
+        if(!existsAlarmSet){
+            mDataFabCopy.clear();
+            return false;
+        }
+        notifyDataSetChanged();
+        return true;
+    }
 
+    public boolean showAll() {
+        if(mDataFabCopy.size() == 0){
+            return false;
+        }
+        mData.clear();
+        mData.addAll(mDataFabCopy);
+        mDataFabCopy.clear();
+        notifyDataSetChanged();
+        return true;
+    }
+
+    public void fabClick(){
+        if(mIsShowingAll && showOnlyFavourites()){
+            mIsShowingAll = false;
+        }else if(!mIsShowingAll && showAll()){
+            mIsShowingAll = true;
+        }
+    }
 }
