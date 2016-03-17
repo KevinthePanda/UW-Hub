@@ -54,6 +54,7 @@ public class CourseParser extends UWParser{
     private static final String TERM_TAG = "term";
     private static final String LAST_UPDATED_TAG = "last_updated";
 
+    private static final String OFFERINGS_TAG = "offerings";
     private static final String ONLINE_TAG = "online";
     private static final String ONLINE_ONLY_TAG = "online_only";
     private static final String ST_JEROMES_TAG = "st_jerome";
@@ -185,7 +186,7 @@ public class CourseParser extends UWParser{
             mCourseDetail = new CourseDetails();
 
             parseSingleCourse(mCourseDetail, courseDetailsObject);
-            mCourseDetail.setPrequisites(courseDetailsObject.getString(PREREQUISITES_TAG));
+            mCourseDetail.setPrerequisites(courseDetailsObject.getString(PREREQUISITES_TAG));
             mCourseDetail.setAntirequisites(courseDetailsObject.getString(ANTI_REQUISITES_TAG));
             mCourseDetail.setCorequisites(courseDetailsObject.getString(CO_REQUISITES_TAG));
             mCourseDetail.setCrossListings(courseDetailsObject.getString(CROSS_LISTINGS_TAG));
@@ -197,14 +198,16 @@ public class CourseParser extends UWParser{
             mCourseDetail.setCalendarYear(courseDetailsObject.getString(CALENDAR_YEAR_TAG));
             mCourseDetail.setUrl(courseDetailsObject.getString(URL_TAG));
             mCourseDetail.setInstructions(courseDetailsObject.getString(INSTRUCTIONS_TAG));
-            mCourseDetail.setOnline(courseDetailsObject.getBoolean(ONLINE_TAG));
-            mCourseDetail.setOnlineOnly(courseDetailsObject.getBoolean(ONLINE_ONLY_TAG));
-            mCourseDetail.setStJeromes(courseDetailsObject.getBoolean(ST_JEROMES_TAG));
-            mCourseDetail.setStJeromesOnly(courseDetailsObject.getBoolean(ST_JEROMES_ONLY_TAG));
-            mCourseDetail.setRenison(courseDetailsObject.getBoolean(RENSION_TAG));
-            mCourseDetail.setRenisonOnly(courseDetailsObject.getBoolean(RENISON_ONLY_TAG));
-            mCourseDetail.setConradGrebel(courseDetailsObject.getBoolean(CONRAD_GREBEL_TAG));
-            mCourseDetail.setConradGrebelOnly(courseDetailsObject.getBoolean(CONRAD_GREBEL_ONLY_TAG));
+            JSONObject offeringsObject = courseDetailsObject.getJSONObject(OFFERINGS_TAG);
+
+            mCourseDetail.setOnline(offeringsObject.getBoolean(ONLINE_TAG));
+            mCourseDetail.setOnlineOnly(offeringsObject.getBoolean(ONLINE_ONLY_TAG));
+            mCourseDetail.setStJeromes(offeringsObject.getBoolean(ST_JEROMES_TAG));
+            mCourseDetail.setStJeromesOnly(offeringsObject.getBoolean(ST_JEROMES_ONLY_TAG));
+            mCourseDetail.setRenison(offeringsObject.getBoolean(RENSION_TAG));
+            mCourseDetail.setRenisonOnly(offeringsObject.getBoolean(RENISON_ONLY_TAG));
+            mCourseDetail.setConradGrebel(offeringsObject.getBoolean(CONRAD_GREBEL_TAG));
+            mCourseDetail.setConradGrebelOnly(offeringsObject.getBoolean(CONRAD_GREBEL_ONLY_TAG));
         } catch (JSONException e){
             e.printStackTrace();
         }

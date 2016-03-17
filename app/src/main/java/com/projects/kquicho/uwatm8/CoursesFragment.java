@@ -1,11 +1,8 @@
 package com.projects.kquicho.uwatm8;
 
-
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,33 +16,41 @@ import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.ItemShadowDecorator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.SimpleListDividerDecorator;
-import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager;
-import com.h6ah4i.android.widget.advrecyclerview.utils.WrapperAdapterUtils;
-import com.projects.kquicho.uw_api_client.Codes.CodesParser;
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.JSONDownloader;
 import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
+import com.projects.kquicho.uw_api_client.Course.Course;
+import com.projects.kquicho.uw_api_client.Course.CourseParser;
 
+import java.util.ArrayList;
+
+/**
+ * Created by Kevin Quicho on 3/14/2016.
+ */
 public class CoursesFragment extends Fragment implements JSONDownloader.onDownloadListener,
-        RecyclerViewExpandableItemManager.OnGroupCollapseListener,
-        RecyclerViewExpandableItemManager.OnGroupExpandListener{
-
-    final String TAG = "CoursesFragment";
-    private static final String SAVED_STATE_EXPANDABLE_ITEM_MANAGER = "RecyclerViewExpandableItemManager";
-
-    private GroupSubjectData mData;
-    private GroupSubjectAdapter mAdapter;
+        CoursesAdapter.onCourseClickListener{
+    public static final String TAG = "CoursesFragment";
+    private static final String SUBJECT = "subject";
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
-    private RecyclerViewExpandableItemManager mRecyclerViewExpandableItemManager;
-    private RecyclerView.Adapter mWrappedAdapter;
-    private CodesParser mCodesParser = new CodesParser();
-    private String mCodeUrl;
+    private CourseParser mCoursesParser = new CourseParser();
+    private String mUrl;
+    private String mSubject;
+    private ArrayList<Course> mData;
+    private CoursesAdapter mAdapter;
 
+    public static CoursesFragment newInstance(String subject) {
+        Bundle args = new Bundle();
+        args.putString(SUBJECT, subject);
+        CoursesFragment fragment = new CoursesFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
 
-
-    public CoursesFragment(){
-        super();
+    @Override
+    public void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+        mSubject = getArguments().getString(SUBJECT);
     }
 
     @Override
@@ -60,12 +65,6 @@ public class CoursesFragment extends Fragment implements JSONDownloader.onDownlo
 
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
-
-        final Parcelable eimSavedState = (savedInstanceState != null) ? savedInstanceState.getParcelable(SAVED_STATE_EXPANDABLE_ITEM_MANAGER) : null;
-        mRecyclerViewExpandableItemManager = new RecyclerViewExpandableItemManager(eimSavedState);
-        mRecyclerViewExpandableItemManager.setOnGroupExpandListener(this);
-        mRecyclerViewExpandableItemManager.setOnGroupCollapseListener(this);
-
 
         final GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();
         // Change animations are enabled by default since support-v7-recyclerview v22.
@@ -84,25 +83,13 @@ public class CoursesFragment extends Fragment implements JSONDownloader.onDownlo
             mRecyclerView.addItemDecoration(new ItemShadowDecorator((NinePatchDrawable) ContextCompat.getDrawable(getContext(), R.drawable.material_shadow_z1)));
         }
         mRecyclerView.addItemDecoration(new SimpleListDividerDecorator(ContextCompat.getDrawable(getContext(), R.drawable.list_divider_h), true));
-        mRecyclerViewExpandableItemManager.attachRecyclerView(mRecyclerView);
 
-        mCodesParser.setParseType(CodesParser.ParseType.GROUPS_WITH_SUBJECTS.ordinal());
-        mCodeUrl = UWOpenDataAPI.buildURL(mCodesParser.getEndPoint());
+        mCoursesParser.setParseType(CourseParser.ParseType.COURSES.ordinal());
+        mUrl = UWOpenDataAPI.buildURL(String.format(mCoursesParser.getEndPoint(), mSubject));
 
-        JSONDownloader downloader = new JSONDownloader(mCodeUrl);
+        JSONDownloader downloader = new JSONDownloader(mUrl);
         downloader.setOnDownloadListener(this);
         downloader.start();
-
-        FloatingActionButton fab = (FloatingActionButton)view.findViewById(R.id.fab);
-
-
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mRecyclerViewExpandableItemManager.collapseAll();
-            }
-        });
-
 
     }
 
@@ -114,91 +101,38 @@ public class CoursesFragment extends Fragment implements JSONDownloader.onDownlo
 
     @Override
     public void onDownloadComplete(APIResult apiResult) {
-        if(apiResult.getUrl().equals(mCodeUrl)){
-            mCodesParser.setAPIResult(apiResult);
-            mCodesParser.parseJSON();
-            if(mCodesParser.getParseType() == CodesParser.ParseType.GROUPS_WITH_SUBJECTS){
-                mCodesParser.setParseType(CodesParser.ParseType.SUBJECTS_WITH_GROUPS.ordinal());
-                mCodeUrl = UWOpenDataAPI.buildURL(mCodesParser.getEndPoint());
+        mCoursesParser.setAPIResult(apiResult);
+        mCoursesParser.parseJSON();
+        mData = mCoursesParser.getCourses();
 
-                JSONDownloader downloader = new JSONDownloader(mCodeUrl);
-                downloader.setOnDownloadListener(this);
-                downloader.start();
-            }else{
-                mData = new GroupSubjectData(mCodesParser.getSubjectsWithGroups());
+        android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
 
-                android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
-
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        mAdapter = new GroupSubjectAdapter(mData);
-                        mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
-                        mRecyclerView.setAdapter(mWrappedAdapter);
-                    }
-                };
-                handler.post(runnable);
-                Log.i(TAG, "complete");
+        final CoursesAdapter.onCourseClickListener courseClickListener = this;
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                mAdapter = new CoursesAdapter(mData, courseClickListener);
+                mRecyclerView.setAdapter(mAdapter);
             }
-        }
-    }
-
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        // save current state to support screen rotation, etc...
-        if (mRecyclerViewExpandableItemManager != null) {
-            outState.putParcelable(
-                    SAVED_STATE_EXPANDABLE_ITEM_MANAGER,
-                    mRecyclerViewExpandableItemManager.getSavedState());
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        if (mRecyclerViewExpandableItemManager != null) {
-            mRecyclerViewExpandableItemManager.release();
-            mRecyclerViewExpandableItemManager = null;
-        }
-
-        if (mRecyclerView != null) {
-            mRecyclerView.setItemAnimator(null);
-            mRecyclerView.setAdapter(null);
-            mRecyclerView = null;
-        }
-
-        if (mWrappedAdapter != null) {
-            WrapperAdapterUtils.releaseAll(mWrappedAdapter);
-            mWrappedAdapter = null;
-        }
-        mLayoutManager = null;
-
-        super.onDestroyView();
-    }
-
-    @Override
-    public void onGroupCollapse(int groupPosition, boolean fromUser) {
-    }
-
-    @Override
-    public void onGroupExpand(int groupPosition, boolean fromUser) {
-        if (fromUser) {
-            adjustScrollPositionOnGroupExpanded(groupPosition);
-        }
-    }
-
-    private void adjustScrollPositionOnGroupExpanded(int groupPosition) {
-        int childItemHeight = 43;
-        int topMargin = (int) (getActivity().getResources().getDisplayMetrics().density * 16); // top-spacing: 16dp
-        int bottomMargin = topMargin; // bottom-spacing: 16dp
-
-        mRecyclerViewExpandableItemManager.scrollToGroup(groupPosition, childItemHeight, topMargin, bottomMargin);
+        };
+        handler.post(runnable);
+        Log.i(TAG, "complete");
     }
 
     private boolean supportsViewElevation() {
         return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP);
     }
+
+    @Override
+    public void onCourseClick(String catalogNumber, String title) {
+        android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+        CourseTabFragment fragment = CourseTabFragment.newInstance(mSubject, catalogNumber, title);
+        ft
+                .add(R.id.fragment_container, fragment)
+                .hide(this)
+                .addToBackStack(CourseTabFragment.TAG)
+                .commit();
+    }
+
 
 }

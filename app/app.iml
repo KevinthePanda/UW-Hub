@@ -81,6 +81,7 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.github.asyl.animation/arcanimator/1.0.0/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.gordonwong/material-sheet-fab/1.2.1/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.h6ah4i.android.widget.advrecyclerview/advrecyclerview/0.8.6/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.ms-square/expandableTextView/0.1.4/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/jacoco" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/javaResources" />
@@ -98,6 +99,7 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 23 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" exported="" name="expandableTextView-0.1.4" level="project" />
     <orderEntry type="library" exported="" name="animated-vector-drawable-23.2.0" level="project" />
     <orderEntry type="library" exported="" name="support-v4-23.2.0" level="project" />
     <orderEntry type="library" exported="" name="recyclerview-v7-23.2.0" level="project" />
