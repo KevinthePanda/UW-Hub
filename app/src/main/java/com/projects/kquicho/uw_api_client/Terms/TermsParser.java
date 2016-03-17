@@ -1,9 +1,15 @@
 package com.projects.kquicho.uw_api_client.Terms;
+import android.util.Log;
+
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.MetaData;
 import com.projects.kquicho.uw_api_client.Core.MetaDataParser;
 import com.projects.kquicho.uw_api_client.Core.UWParser;
+import com.projects.kquicho.uw_api_client.Course.Classes;
+import com.projects.kquicho.uw_api_client.Course.Course;
+import com.projects.kquicho.uw_api_client.Course.CourseSchedule;
 import com.projects.kquicho.uw_api_client.Course.Reserve;
+import com.projects.kquicho.uw_api_client.Course.Reserves;
 import com.projects.kquicho.uw_api_client.Course.ScheduleData;
 import com.projects.kquicho.uw_api_client.Course.UWClass;
 
@@ -16,18 +22,21 @@ public class TermsParser extends UWParser {
     public static final String NEW_SUBJECT_LETTER = "new_subject_letter:";
 
     // end point strings
+    private static final String TERM_END_POINT = "terms/list"; // //terms/list
     private static final String EXAM_END_POINT = "terms/%s/examschedule"; // /terms/{term}/examschedule
     private static final String SUBJECT_END_POINT = "terms/%s/%s/schedule"; // /terms/{term}/{subject}/schedule
     private static final String CATALOG_END_POINT = "terms/%s/%s/%s/schedule"; // /terms/{term}/{subject}/{catalog_number}/schedule
     private static final String TERM_COURSES_END_POINT = "terms/%s/courses"; // /terms/{term}/courses
 
     // JSON Object leaf node tags
+    private static final String COURSE_ID_TAG = "course_id";
     private static final String COURSE_TAG = "course";
     private static final String SECTION_TAG = "section";
     private static final String DAY_TAG = "day";
     private static final String DATE_TAG = "date";
     private static final String LOCATION_TAG = "location";
     private static final String NOTES_TAG = "notes";
+    private static final String DESCRIPTION_TAG = "description";
 
     private static final String SUBJECT_TAG = "subject";
     private static final String CATALOG_NUMBER_TAG = "catalog_number";
@@ -59,24 +68,32 @@ public class TermsParser extends UWParser {
     private static final String IS_TBA_TAG = "is_tba";
     private static final String IS_CANCELLED_TAG = "is_cancelled";
     private static final String IS_CLOSED_TAG = "is_closed";
+    private static final String CURRENT_TERM_TAG = "current_term";
+    private static final String NEXT_TERM_TAG = "next_term";
 
     // JSON Array/Object Tags
     private static final String DATA_TAG = "data";
     private static final String SECTIONS_TAG = "sections";
     private static final String CLASSES_TAG = "classes";
-    private static final String DATES_TAG = "dates";
+    private static final String DATES_TAG = "date";
     private static final String INSTRUCTORS_TAG = "instructors";
+    private static final String HELD_WITH_TAG = "held_with";
 
 
     // contains all JSON information
     APIResult apiResult = null;
 
     public enum ParseType {
+        TERM_LIST,
         EXAM_SCHEDULE,
         SUBJECT_SCHEDULE,
         CATALOG_SCHEDULE,
         TERM_COURSES
     }
+
+    // /terms/list
+    private String currentTerm = null;
+    private String nextTerm = null;
 
     // /terms/{term}/examschedule variables
     private ArrayList<CourseExamSchedule> examSchedules = new ArrayList<>();
@@ -85,7 +102,7 @@ public class TermsParser extends UWParser {
     private ArrayList<UWClass> subjectClasses = new ArrayList<>();
 
     // /terms/{term}/{subject}/{catalog_number}/schedule variables
-    private ArrayList<UWClass> catalogNumberClasses = new ArrayList<>();
+    private ArrayList<CourseSchedule> catalogNumberClasses = null;
 
     // /terms/{term}/courses /term course variables
     private ArrayList<TermCourse> mTermCourses = new ArrayList<>();
@@ -107,8 +124,10 @@ public class TermsParser extends UWParser {
     @Override
     public void parseJSON() {
         if(apiResult == null || apiResult.getResultJSON() == null) return;
-
         switch (parseType){
+            case TERM_LIST:
+                parseTermListJSON();
+                break;
             case EXAM_SCHEDULE:
                 parseExamScheduleJSON();
                 break;
@@ -121,6 +140,16 @@ public class TermsParser extends UWParser {
             case TERM_COURSES:
                 parseTermCoursesJSON();
                 break;
+        }
+    }
+
+    private void parseTermListJSON(){
+        try {
+            JSONObject termListObject = apiResult.getResultJSON().getJSONObject(DATA_TAG);
+            currentTerm = termListObject.getString(CURRENT_TERM_TAG);
+            nextTerm = termListObject.getString(NEXT_TERM_TAG);
+        }catch (JSONException e){
+            e.printStackTrace();
         }
     }
 
@@ -194,14 +223,62 @@ public class TermsParser extends UWParser {
 
     private void parseCatalogScheduleJSON(){
         try {
-            JSONArray classArray = apiResult.getResultJSON().getJSONArray(DATA_TAG);
-            int classArrayLength = classArray.length();
+            catalogNumberClasses = new ArrayList<>();
+            JSONArray courseScheduleArray = apiResult.getResultJSON().getJSONArray(DATA_TAG);
+            for(int i = 0; i < courseScheduleArray.length(); i++){
+                JSONObject courseScheduleObject = courseScheduleArray.getJSONObject(i);
+                CourseSchedule courseSchedule = new CourseSchedule();
 
-            for (int i = 0; i < classArrayLength; i++) {
-                JSONObject classObject = classArray.getJSONObject(i);
-                UWClass uwClass = parseSingleClass(classObject);
-                catalogNumberClasses.add(uwClass);
+                courseSchedule.setNote(courseScheduleObject.getString(NOTE_TAG));
+                courseSchedule.setSection(courseScheduleObject.getString(SECTION_TAG));
+                courseSchedule.setCampus(courseScheduleObject.getString(CAMPUS_TAG));
+                courseSchedule.setAssociatedClass(courseScheduleObject.getInt(ASSOCIATED_CLASS_TAG));
+                courseSchedule.setRelatedComponent1(courseScheduleObject.getString(RELATED_COMPONENT_1_TAG));
+                courseSchedule.setRelatedComponent2(courseScheduleObject.getString(RELATED_COMPONENT_2_TAG));
+                courseSchedule.setEnrollmentCapacity(courseScheduleObject.getInt(ENROLLMENT_CAPACITY_TAG));
+                courseSchedule.setEnrollmentTotal(courseScheduleObject.getInt(ENROLLMENT_TOTAL_TAG));
+                courseSchedule.setWaitingCapacity(courseScheduleObject.getInt(WAITING_CAPACITY_TAG));
+                courseSchedule.setWaitingTotal(courseScheduleObject.getInt(WAITING_TOTAL_TAG));
+                courseSchedule.setTopic(courseScheduleObject.getString(TOPIC_TAG));
+
+              /*  Reserves reserves = new Reserves();
+                JSONObject reserveObject = courseScheduleObject.getJSONObject(RESERVES_TAG);
+                reserves.setReserveGroup(reserveObject.getString(RESERVE_GROUP_TAG));
+                reserves.setEnrollmentCapacity(reserveObject.getInt(ENROLLMENT_CAPACITY_TAG));
+                reserves.setEnrollmentTotal(reserveObject.getInt(ENROLLMENT_TOTAL_TAG));
+                courseSchedule.setReserves(reserves);*/
+
+                ArrayList<Classes> classes = new ArrayList<>();
+                JSONArray classesArray = courseScheduleObject.getJSONArray(CLASSES_TAG);
+                for(int j = 0; j < classesArray.length(); j ++){
+                    JSONObject classesObject = classesArray.getJSONObject(j);
+                    JSONObject dateObject = classesObject.getJSONObject(DATE_TAG);
+                    Classes singleClass = new Classes();
+                    singleClass.setStartTime(dateObject.getString(START_TIME_TAG));
+                    singleClass.setEndTime(dateObject.getString(END_TIME_TAG));
+                    singleClass.setWeekdays(dateObject.getString(WEEKDAYS_TAG));
+                    singleClass.setStartDate(dateObject.getString(START_DATE_TAG));
+                    singleClass.setEndDate(dateObject.getString(END_DATE_TAG));
+                    singleClass.setIsTBA(dateObject.getBoolean(IS_TBA_TAG));
+                    singleClass.setIsCancelled(dateObject.getBoolean(IS_CANCELLED_TAG));
+                    singleClass.setIsClosed(dateObject.getBoolean(IS_CLOSED_TAG));
+
+                    JSONObject buildingObject = classesObject.getJSONObject(LOCATION_TAG);
+                    singleClass.setBuilding(buildingObject.getString(BUILDING_TAG));
+                    singleClass.setRoom(buildingObject.getString(ROOM_TAG));
+
+                    singleClass.setInstructors(classesObject.getString(INSTRUCTORS_TAG));
+                    classes.add(singleClass);
+                }
+                courseSchedule.setClasses(classes);
+
+                courseSchedule.setHeldWith(courseScheduleObject.getString(HELD_WITH_TAG));
+                courseSchedule.setTerm(courseScheduleObject.getInt(TERM_TAG));
+                courseSchedule.setLastUpdated(courseScheduleObject.getString(LAST_UPDATED_TAG));
+                Log.i("test", courseSchedule.getSection() + ", " + courseSchedule.getTerm());
+                catalogNumberClasses.add(courseSchedule);
             }
+
         } catch (JSONException e){
             e.printStackTrace();
         }
@@ -252,6 +329,14 @@ public class TermsParser extends UWParser {
     }
 
 
+    public String getCurrentTerm(){
+        return currentTerm;
+    }
+
+    public String getNextTerm(){
+        return nextTerm;
+    }
+
     public ArrayList<CourseExamSchedule> getExamSchedules() {
         return examSchedules;
     }
@@ -260,7 +345,7 @@ public class TermsParser extends UWParser {
         return subjectClasses;
     }
 
-    public ArrayList<UWClass> getCatalogNumberClasses() {
+    public ArrayList<CourseSchedule> getCatalogNumberClasses() {
         return catalogNumberClasses;
     }
 
@@ -440,6 +525,8 @@ public class TermsParser extends UWParser {
     @Override
     public String getEndPoint() {
         switch (parseType){
+            case TERM_LIST:
+                return TERM_END_POINT;
             case EXAM_SCHEDULE:
                 return EXAM_END_POINT;
             case SUBJECT_SCHEDULE:
