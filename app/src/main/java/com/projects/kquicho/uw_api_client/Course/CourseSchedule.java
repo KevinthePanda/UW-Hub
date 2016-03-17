@@ -21,7 +21,7 @@ public class CourseSchedule extends  Course{
     private int mWaitingTotal = 0;
     private String mTopic = null;
     private Reserves mReserves = null;
-    private Classes mClasses = null;
+    private ArrayList<Classes> mClasses = null;
     private String mHeldWith = null;
     private int mTerm = 0;
     private String mLastUpdated = null;
@@ -130,11 +130,11 @@ public class CourseSchedule extends  Course{
         mReserves = reserves;
     }
 
-    public Classes getClasses() {
+    public ArrayList<Classes> getClasses() {
         return mClasses;
     }
 
-    public void setClasses(Classes classes) {
+    public void setClasses(ArrayList<Classes> classes) {
         mClasses = classes;
     }
 
