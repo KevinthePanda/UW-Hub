@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 fragmentClass = InfoSessionsFragment.class;
                 break;
             case R.id.nav_courses_fragment:
-                fragmentClass = CoursesFragment.class;
+                fragmentClass = GroupSubjectFragment.class;
                 break;
             default:
                 fragmentClass = HomeFragment.class;
@@ -121,5 +121,9 @@ public class MainActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
         // Pass any configuration change to the drawer toggles
         mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    public void setToolbarTitle(String title){
+        mToolbar.setTitle(title);
     }
 }

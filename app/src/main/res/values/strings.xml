@@ -6,4 +6,31 @@
     <string name="weather">Weather</string>
     <string name="info_sessions">Info Sessions</string>
     <string name="remove">Remove</string>
+
+    <string name="description">Description</string>
+    <string name="prerequisites">Prerequisites</string>
+    <string name="antirequisites">Antirequisites</string>
+    <string name="corequisites">Corequisites</string>
+    <string name="cross_listings">Cross Listings</string>
+    <string name="terms_offered">Terms Offered</string>
+    <string name="components">Components</string>
+    <string name="campus_offerings">Campus Offerings</string>
+    <string name="required_consent">Required Consent</string>
+
+    <string name="online">Online</string>
+    <string name="online_only">Online Only</string>
+    <string name="st_jeromes">St. Jeromes</string>
+    <string name="st_jeromes_only">St. Jeromes Only</string>
+    <string name="renison">Renison</string>
+    <string name="renison_only">Renison Only</string>
+    <string name="conrad_grebel">Conrad Grebel</string>
+    <string name="conrad_grebel_only">Conrad Grebel Only</string>
+
+    <string name="department">Department</string>
+    <string name="instructor">Instructor</string>
+
+    <string name="default_string">N/A</string>
+    <string name="main_campus">Main Campus</string>
+    <string name="currently_not_offered">Currently not being offered</string>
+
 </resources>

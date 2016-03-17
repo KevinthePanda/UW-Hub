@@ -28,4 +28,5 @@ dependencies {
     compile ('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.8.6@aar'){
         transitive=true
     }
+    compile 'com.ms-square:expandableTextView:0.1.4'
 }
