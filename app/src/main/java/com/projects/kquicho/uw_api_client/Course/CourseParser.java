@@ -114,7 +114,7 @@ public class CourseParser extends UWParser{
     private CourseDetails mCourseDetail = null;
 
     // /courses/{subject}/schedule variables
-    private CourseSchedule mCourseSchedule = null;
+    private ArrayList<CourseSchedule> mCourseSchedule = new ArrayList<>();
 
     // /courses/{courses}/{subject}/examschedule variables
     private ExamSchedule mExamSchedule = null;
@@ -127,7 +127,7 @@ public class CourseParser extends UWParser{
         return mCourseDetail;
     }
 
-    public CourseSchedule getCourseSchedule() {
+    public ArrayList<CourseSchedule> getCourseSchedules() {
         return mCourseSchedule;
     }
 
@@ -215,48 +215,51 @@ public class CourseParser extends UWParser{
 
     private void parseCourseScheduleJSON() {
         try {
-            JSONObject courseScheduleObject = mApiResult.getResultJSON().getJSONObject(DATA_TAG);
-            mCourseSchedule = new CourseSchedule();
+            JSONArray courseScheduleArray = mApiResult.getResultJSON().getJSONArray(DATA_TAG);
+            for(int i = 0; i < courseScheduleArray.length(); i++){
+                JSONObject courseScheduleObject = courseScheduleArray.getJSONObject(i);
+                CourseSchedule courseSchedule = new CourseSchedule();
 
-            parseSingleCourse(mCourseSchedule, courseScheduleObject);
-            mCourseSchedule.setNote(courseScheduleObject.getString(NOTE_TAG));
-            mCourseSchedule.setClassNumber(courseScheduleObject.getInt(CLASS_NUMBER_TAG));
-            mCourseSchedule.setSection(courseScheduleObject.getString(SECTION_TAG));
-            mCourseSchedule.setCampus(courseScheduleObject.getString(CAMPUS_TAG));
-            mCourseSchedule.setAssociatedClass(courseScheduleObject.getInt(ASSOCIATED_CLASS_TAG));
-            mCourseSchedule.setRelatedComponent1(courseScheduleObject.getString(RELATED_COMPONENT_1_TAG));
-            mCourseSchedule.setRelatedComponent2(courseScheduleObject.getString(RELATED_COMPONENT_2_TAG));
-            mCourseSchedule.setEnrollmentCapacity(courseScheduleObject.getInt(ENROLLMENT_CAPACITY_TAG));
-            mCourseSchedule.setEnrollmentTotal(courseScheduleObject.getInt(ENROLLMENT_TOTAL_TAG));
-            mCourseSchedule.setWaitingCapacity(courseScheduleObject.getInt(WAITING_CAPACITY_TAG));
-            mCourseSchedule.setWaitingTotal(courseScheduleObject.getInt(WAITING_TOTAL_TAG));
-            mCourseSchedule.setTopic(courseScheduleObject.getString(TOPIC_TAG));
+                parseSingleCourse(courseSchedule, courseScheduleObject);
+                courseSchedule.setNote(courseScheduleObject.getString(NOTE_TAG));
+                courseSchedule.setSection(courseScheduleObject.getString(SECTION_TAG));
+                courseSchedule.setCampus(courseScheduleObject.getString(CAMPUS_TAG));
+                courseSchedule.setAssociatedClass(courseScheduleObject.getInt(ASSOCIATED_CLASS_TAG));
+                courseSchedule.setRelatedComponent1(courseScheduleObject.getString(RELATED_COMPONENT_1_TAG));
+                courseSchedule.setRelatedComponent2(courseScheduleObject.getString(RELATED_COMPONENT_2_TAG));
+                courseSchedule.setEnrollmentCapacity(courseScheduleObject.getInt(ENROLLMENT_CAPACITY_TAG));
+                courseSchedule.setEnrollmentTotal(courseScheduleObject.getInt(ENROLLMENT_TOTAL_TAG));
+                courseSchedule.setWaitingCapacity(courseScheduleObject.getInt(WAITING_CAPACITY_TAG));
+                courseSchedule.setWaitingTotal(courseScheduleObject.getInt(WAITING_TOTAL_TAG));
+                courseSchedule.setTopic(courseScheduleObject.getString(TOPIC_TAG));
 
-            Reserves reserves = new Reserves();
-            JSONObject reserveObject = courseScheduleObject.getJSONObject(RESERVES_TAG);
-            reserves.setReserveGroup(reserveObject.getString(RESERVE_GROUP_TAG));
-            reserves.setEnrollmentCapacity(reserveObject.getInt(ENROLLMENT_CAPACITY_TAG));
-            reserves.setEnrollmentTotal(reserveObject.getInt(ENROLLMENT_TOTAL_TAG));
-            mCourseSchedule.setReserves(reserves);
+                Reserves reserves = new Reserves();
+                JSONObject reserveObject = courseScheduleObject.getJSONObject(RESERVES_TAG);
+                reserves.setReserveGroup(reserveObject.getString(RESERVE_GROUP_TAG));
+                reserves.setEnrollmentCapacity(reserveObject.getInt(ENROLLMENT_CAPACITY_TAG));
+                reserves.setEnrollmentTotal(reserveObject.getInt(ENROLLMENT_TOTAL_TAG));
+                courseSchedule.setReserves(reserves);
 
-            Classes classes = new Classes();
-            JSONObject classesObject = courseScheduleObject.getJSONObject(CLASSES_TAG);
-            classes.setStartTime(classesObject.getString(START_DATE_TAG));
-            classes.setEndTime(classesObject.getString(END_TIME_TAG));
-            classes.setWeekdays(classesObject.getString(WEEKDAYS_TAG));
-            classes.setStartDate(classesObject.getString(START_DATE_TAG));
-            classes.setEndDate(classesObject.getString(END_DATE_TAG));
-            classes.setIsTBA(classesObject.getBoolean(IS_TBA_TAG));
-            classes.setIsCancelled(classesObject.getBoolean(IS_CANCELLED_TAG));
-            classes.setIsClosed(classesObject.getBoolean(IS_CLOSED_TAG));
-            classes.setBuilding(classesObject.getString(BUILDING_TAG));
-            classes.setRoom(classesObject.getString(ROOM_TAG));
-            classes.setInstructors(classesObject.getString(INSTRUCTORS_TAG));
-            mCourseSchedule.setClasses(classes);
+           /*     Classes classes = new Classes();
+                JSONObject classesObject = courseScheduleObject.getJSONObject(CLASSES_TAG);
+                classes.setStartTime(classesObject.getString(START_DATE_TAG));
+                classes.setEndTime(classesObject.getString(END_TIME_TAG));
+                classes.setWeekdays(classesObject.getString(WEEKDAYS_TAG));
+                classes.setStartDate(classesObject.getString(START_DATE_TAG));
+                classes.setEndDate(classesObject.getString(END_DATE_TAG));
+                classes.setIsTBA(classesObject.getBoolean(IS_TBA_TAG));
+                classes.setIsCancelled(classesObject.getBoolean(IS_CANCELLED_TAG));
+                classes.setIsClosed(classesObject.getBoolean(IS_CLOSED_TAG));
+                classes.setBuilding(classesObject.getString(BUILDING_TAG));
+                classes.setRoom(classesObject.getString(ROOM_TAG));
+                classes.setInstructors(classesObject.getString(INSTRUCTORS_TAG));
+                courseSchedule.setClasses(classes);*/
 
-            mCourseSchedule.setHeldWith(courseScheduleObject.getString(HELD_WITH_TAG));
-            mCourseSchedule.setTerm(courseScheduleObject.getInt(TERM_TAG));
-            mCourseSchedule.setLastUpdated(courseScheduleObject.getString(LAST_UPDATED_TAG));
+                courseSchedule.setHeldWith(courseScheduleObject.getString(HELD_WITH_TAG));
+                courseSchedule.setTerm(courseScheduleObject.getInt(TERM_TAG));
+                courseSchedule.setLastUpdated(courseScheduleObject.getString(LAST_UPDATED_TAG));
+                mCourseSchedule.add(courseSchedule);
+            }
 
         } catch (JSONException e){
             e.printStackTrace();
@@ -268,7 +271,7 @@ public class CourseParser extends UWParser{
             JSONObject examScheduleObject = mApiResult.getResultJSON().getJSONObject(DATA_TAG);
             mExamSchedule = new ExamSchedule();
 
-            parseSingleCourse(mCourseSchedule, examScheduleObject);
+          //  parseSingleCourse(mCourseSchedule, examScheduleObject);
             mExamSchedule.setCourse(examScheduleObject.getString(COURSE_TAG));
 
             JSONArray sectionsArray = examScheduleObject.getJSONArray(SECTIONS_TAG);
