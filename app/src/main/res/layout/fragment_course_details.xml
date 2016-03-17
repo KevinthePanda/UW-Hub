@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:orientation="vertical">
+        <com.ms.square.android.expandabletextview.ExpandableTextView
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:expandableTextView="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/expandable_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            expandableTextView:maxCollapsedLines="3"
+            expandableTextView:animDuration="200">
+            <TextView
+                style="@style/CourseDetailsTitle"
+                android:text="@string/description"/>
+            <TextView
+                android:id="@+id/expandable_text"
+                style="@style/CourseDetailsText"/>
+            <ImageButton
+                android:id="@id/expand_collapse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|bottom"
+                android:background="@android:color/transparent"
+                android:paddingBottom="4dp"/>
+        </com.ms.square.android.expandabletextview.ExpandableTextView>
+        <View
+            android:id="@+id/separator_description"
+            style="@style/CourseDetailSeparator"/>
+
+        <TextView
+            android:id="@+id/title_prerequisites"
+            style="@style/CourseDetailsTitle"
+            android:text="@string/prerequisites"/>
+        <TextView
+            android:id="@+id/prerequisites"
+            style="@style/CourseDetailsText"/>
+        <View
+            android:id="@+id/separator_prerequisites"
+            style="@style/CourseDetailSeparator"/>
+
+        <TextView
+            android:id="@+id/title_antirequisites"
+            style="@style/CourseDetailsTitle"
+            android:text="@string/antirequisites"/>
+        <TextView
+            android:id="@+id/antirequisites"
+            style="@style/CourseDetailsText"/>
+        <View
+            android:id="@+id/separator_antirequisites"
+            style="@style/CourseDetailSeparator"/>
+
+        <TextView
+            android:id="@+id/title_terms_offered"
+            style="@style/CourseDetailsTitle"
+            android:text="@string/terms_offered"/>
+        <TextView
+            android:id="@+id/terms_offered"
+            style="@style/CourseDetailsText"/>
+        <View
+            android:id="@+id/separator_terms_offered"
+            style="@style/CourseDetailSeparator"/>
+
+        <TextView
+            android:id="@+id/title_instructions"
+            style="@style/CourseDetailsTitle"
+            android:text="@string/components"/>
+        <TextView
+            android:id="@+id/instructions"
+            style="@style/CourseDetailsText"/>
+        <View
+            android:id="@+id/separator_instructions"
+            style="@style/CourseDetailSeparator"/>
+
+        <TextView
+            android:id="@+id/title_offerings"
+            android:text="@string/campus_offerings"
+            style="@style/CourseDetailsTitle"/>
+        <TextView
+            android:id="@+id/offerings"
+            style="@style/CourseDetailsText"/>
+        <View
+            android:id="@+id/separator_offerings"
+            style="@style/CourseDetailSeparator"/>
+
+        <TextView
+            android:id="@+id/title_corequisites"
+            style="@style/CourseDetailsOptionalTitle"
+            android:text="@string/corequisites"/>
+        <TextView
+            android:id="@+id/corequisites"
+            style="@style/CourseDetailsOptionalText"/>
+        <View
+            android:id="@+id/separator_corequisites"
+            style="@style/CourseDetailOptionalSeparator"/>
+
+        <TextView
+            android:id="@+id/title_cross_listings"
+            style="@style/CourseDetailsOptionalTitle"
+            android:text="@string/cross_listings"/>
+        <TextView
+            android:id="@+id/cross_listings"
+            style="@style/CourseDetailsOptionalText"/>
+        <View
+            android:id="@+id/separator_cross_listings"
+            style="@style/CourseDetailOptionalSeparator"/>
+
+        <TextView
+            android:id="@+id/title_consent"
+            style="@style/CourseDetailsOptionalTitle"
+            android:text="@string/required_consent"/>
+        <TextView
+            android:id="@+id/consent"
+            style="@style/CourseDetailsOptionalText"/>
+        <View
+            android:id="@+id/separator_consent"
+            style="@style/CourseDetailOptionalSeparator"/>
+    </LinearLayout>
+</ScrollView>
+

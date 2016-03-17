@@ -1,18 +1,17 @@
 package com.projects.kquicho.uw_api_client.Course;
 
-import java.util.ArrayList;
 
 /**
  * Created by Kevin Quicho on 3/14/2016.
  */
 public class CourseDetails extends Course {
     private String mInstructions = null;
-    private String mPrequisites = null;
+    private String mPrerequisites = null;
     private String mAntirequisites = null;
     private String mCorequisites = null;
     private String mCrossListings = null;
     private String mTermsOffered = null;
-    private String mNotes = null;
+    private String mNotes  =null;
     private Boolean mNeedsDepartmentConsent = false;
     private Boolean mNeedsInstructorConsent = false;
     private String mExtra = null;
@@ -34,15 +33,24 @@ public class CourseDetails extends Course {
     }
 
     public void setInstructions(String instructions) {
+        instructions = instructions.replace("[", "");
+        instructions = instructions.replace("]", "");
+        if(instructions.equals("")){
+            mTermsOffered = "";
+            return;
+        }
+        instructions = instructions.replace("\"", "");
+        instructions = instructions.replace(",", ", ");
+
         mInstructions = instructions;
     }
 
-    public String getPrequisites() {
-        return mPrequisites;
+    public String getPrerequisites() {
+        return mPrerequisites;
     }
 
-    public void setPrequisites(String prequisites) {
-        mPrequisites = prequisites;
+    public void setPrerequisites(String prerequisites) {
+        mPrerequisites = prerequisites;
     }
 
     public String getAntirequisites() {
@@ -61,6 +69,10 @@ public class CourseDetails extends Course {
         mCorequisites = corequisites;
     }
 
+    public Boolean getNeedsInstructorConsent() {
+        return mNeedsInstructorConsent;
+    }
+
     public String getCrossListings() {
         return mCrossListings;
     }
@@ -74,6 +86,14 @@ public class CourseDetails extends Course {
     }
 
     public void setTermsOffered(String termsOffered) {
+        termsOffered = termsOffered.replace("[", "");
+        termsOffered = termsOffered.replace("]", "");
+        if(termsOffered.equals("")){
+            mTermsOffered = termsOffered;
+            return;
+        }
+        termsOffered = termsOffered.replace("\"", "");
+        termsOffered = termsOffered.replace(",", ", ");
         mTermsOffered = termsOffered;
     }
 
@@ -192,4 +212,5 @@ public class CourseDetails extends Course {
     public void setConradGrebelOnly(Boolean conradGrebelOnly) {
         mConradGrebelOnly = conradGrebelOnly;
     }
+
 }

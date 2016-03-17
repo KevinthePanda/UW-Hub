@@ -1,6 +1,5 @@
 package com.projects.kquicho.uw_api_client.Codes;
 
-import android.util.Log;
 
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.MetaData;
@@ -364,8 +363,6 @@ public class CodesParser extends UWParser {
                 }else {
                     subjects.add(subject);
                 }
-
-                Log.i("test subjects", "key " + key + "value " + subject.getSubject());
 
             }
 

@@ -14,7 +14,8 @@ import com.projects.kquicho.uw_api_client.Codes.Subject;
 
 public class GroupSubjectAdapter
         extends AbstractExpandableItemAdapter<GroupSubjectAdapter.MyGroupViewHolder, GroupSubjectAdapter.MyChildViewHolder>{
-    private static final String TAG = "GroupSubjectAdapter";
+    public static final String TAG = "GroupSubjectAdapter";
+    private static onSubjectClickListener mSubjectClickListener;
 
     // NOTE: Make accessible with short name
     private interface Expandable extends ExpandableItemConstants {
@@ -43,7 +44,7 @@ public class GroupSubjectAdapter
         }
     }
 
-    public static class MyChildViewHolder extends MyBaseViewHolder {
+    public static class MyChildViewHolder extends MyBaseViewHolder implements View.OnClickListener {
         public TextView mSubject;
         public TextView mDesc;
 
@@ -51,11 +52,18 @@ public class GroupSubjectAdapter
             super(v);
             mSubject = (TextView) v.findViewById(R.id.subject);
             mDesc = (TextView) v.findViewById(R.id.desc);
+            mContainer.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            mSubjectClickListener.onSubjectClick(mSubject.getText().toString());
         }
     }
 
-    public GroupSubjectAdapter(GroupSubjectData data) {
+    public GroupSubjectAdapter(GroupSubjectData data, onSubjectClickListener subjectClickListener) {
         mData = data;
+        mSubjectClickListener = subjectClickListener;
 
         // ExpandableItemAdapter requires stable ID, and also
         // have to implement the getGroupItemId()/getChildItemId() methods appropriately.
@@ -96,7 +104,7 @@ public class GroupSubjectAdapter
     @Override
     public MyGroupViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
         final LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        final View v = inflater.inflate(R.layout.courses_row, parent, false);
+        final View v = inflater.inflate(R.layout.group_subject_row, parent, false);
         return new MyGroupViewHolder(v);
     }
 
@@ -159,5 +167,8 @@ public class GroupSubjectAdapter
         return true;
     }
 
+    public interface onSubjectClickListener {
+        void onSubjectClick(String subject);
+    }
 
 }
