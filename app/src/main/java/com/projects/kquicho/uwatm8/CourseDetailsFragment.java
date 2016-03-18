@@ -1,11 +1,20 @@
 package com.projects.kquicho.uwatm8;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
+import android.animation.TypeEvaluator;
+import android.animation.ValueAnimator;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.ms.square.android.expandabletextview.ExpandableTextView;
@@ -101,7 +110,7 @@ public class CourseDetailsFragment extends Fragment implements JSONDownloader.on
                 }else{
                     description.setText(getString(R.string.default_string));
                 }
-                String preqText = mCourseDetails.getPrerequisites();
+                final String preqText = mCourseDetails.getPrerequisites();
                 if(preqText != null && !preqText.equals("") && !preqText.equals("null")){
                     prerequisites.setText(preqText);
                 }
@@ -192,10 +201,68 @@ public class CourseDetailsFragment extends Fragment implements JSONDownloader.on
                     mView.findViewById(R.id.title_consent).setVisibility(View.VISIBLE);
                     mView.findViewById(R.id.separator_consent).setVisibility(View.VISIBLE);
                 }
+               /* final ProgressBar progressBar = (ProgressBar) mView.findViewById(R.id.progressBar);
+                final TextView enrollmentTotal = (TextView) mView.findViewById(R.id.enrollment_total);
+
+                progressBar.setMax(300);
+                ObjectAnimator animation = ObjectAnimator.ofInt (progressBar, "progress", 0, 260); // see this max value coming back here, we animale towards that value
+                animation.setDuration(1000); //in milliseconds
+                animation.setInterpolator(new DecelerateInterpolator());
+                animation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        Integer current = (Integer)animation.getAnimatedValue();
+                        enrollmentTotal.setText(current.toString());
+                    }
+                });
+                animation.start();
+
+                ArgbEvaluator evaluator = new ArgbEvaluator();
+                ValueAnimator animator = new ValueAnimator();
+                animator.setIntValues(Color.parseColor("#ff99cc00"), Color.parseColor("#ffff8800"));
+                animator.setEvaluator(evaluator);
+                animator.setDuration(1000);
+                animator.setInterpolator(new DecelerateInterpolator());
+                animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        int color = (int) animation.getAnimatedValue();
+                        progressBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+                    }
+                });
+                animator.start();
+
+
+                ValueAnimator textAnimator = new ValueAnimator();
+                textAnimator.setObjectValues("0", "260");
+                textAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        enrollmentTotal.setText((CharSequence) animation.getAnimatedValue());
+                    }
+                });
+                textAnimator.setEvaluator(new TypeEvaluator<CharSequence>() {
+                    public CharSequence evaluate(float fraction,
+                                                 CharSequence startValue, CharSequence endValue) {
+                        return String.valueOf(Math.round(Integer.valueOf(endValue.toString()) * fraction)) + "/" + "300";
+                    }
+                });
+
+                textAnimator.setDuration(1000);
+                textAnimator.setInterpolator(new DecelerateInterpolator());
+                //textAnimator.start();*/
+
+
             }
         };
         handler.post(runnable);
         Log.i(TAG, "complete");
+    }
+    private class AnimatedTextView {
+        private final TextView textView;
+
+        public AnimatedTextView(TextView textView) {this.textView = textView;}
+        public String getText() {return textView.getText().toString();}
+        public void setText(String text) {textView.setText(text);}
     }
 
 }
