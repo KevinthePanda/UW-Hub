@@ -123,6 +123,50 @@
         <View
             android:id="@+id/separator_consent"
             style="@style/CourseDetailOptionalSeparator"/>
+        <!--RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:progress="0"
+                android:progressDrawable="@drawable/circular_progress_bar" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@id/progressBar"
+                android:layout_alignTop="@id/progressBar"
+                android:layout_alignRight="@id/progressBar"
+                android:layout_alignBottom="@id/progressBar"
+                android:layout_margin="1dp"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/enrollment_total"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="12dp"
+                    android:textColor="#000000"
+                    android:gravity="center"/>
+                <View
+                    android:layout_width="18dp"
+                    android:layout_height="1dip"
+                    android:background="@android:color/background_dark"/>
+                <TextView
+                    android:id="@+id/enrollment_capacity"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="1dp"
+                    android:text="300"
+                    android:textSize="12dp"
+                    android:gravity="center"
+                    android:textColor="#000000"
+                    android:layout_below="@id/enrollment_total"/>
+            </LinearLayout>
+        </RelativeLayout-->
     </LinearLayout>
 </ScrollView>
 

@@ -1,5 +1,7 @@
 package com.projects.kquicho.uw_api_client.Course;
 
+import java.util.ArrayList;
+
 /**
  * Created by Kevin Quicho on 3/14/2016.
  */
@@ -14,7 +16,7 @@ public class Classes{
     private Boolean mIsClosed = null;
     private String mBuilding = null;
     private String mRoom = null;
-    private String mInstructors = null;
+    private ArrayList<String> mInstructors = null;
 
     public String getStartTime() {
         return mStartTime;
@@ -96,11 +98,12 @@ public class Classes{
         mRoom = room;
     }
 
-    public String getInstructors() {
+    public ArrayList<String> getInstructors() {
         return mInstructors;
     }
 
-    public void setInstructors(String instructors) {
+    public void setInstructors(ArrayList<String> instructors) {
+
         mInstructors = instructors;
     }
 

@@ -120,55 +120,28 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
             }else{
                 term = mNextTerm;
             }
-            Runnable runnable = new Runnable() {
-                @Override
-                public void run() {
-                    createTerm(term);
-                    createClass(courseSchedules.get(0));
-                }
-            };
+            if(courseSchedules.size() > 0) {
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        createTerm(term);
 
-            mSchedules.put(term, courseSchedules);
-            handler.post(runnable);
+                       /* for(CourseSchedule courseSchedule : courseSchedules) {
+                            createClass(courseSchedule);
+                        }*/
+                    }
+                };
+
+                mSchedules.put(term, courseSchedules);
+                handler.post(runnable);
+            }
             Log.i(TAG, "completed " + term);
         }
     }
 
     private void createClass(CourseSchedule courseSchedule){
         String section = courseSchedule.getSection();
-        Classes classes = courseSchedule.getClasses().get(0);
-        String instructor = classes.getInstructors();
-        String location = classes.getBuilding() + " " + classes.getRoom();
-        DateFormat dateFormat = new SimpleDateFormat("HH:mm");
-        DateFormat newFormat = new SimpleDateFormat("hh:mm a");
-        Date startTime = null;
-        Date endTime = null;
-        try{
-            startTime = dateFormat.parse(classes.getStartTime());
-            endTime = dateFormat.parse(classes.getEndTime());
-        }catch (ParseException ex){
-            Log.e(TAG, "createClass ParseException: " + ex.getMessage());
-        }
-        if(startTime == null || endTime == null){
-            return;
-        }
-
-        String time = newFormat.format(startTime) + " - " + newFormat.format(endTime);
-        String weekdays = classes.getWeekdays();
-        String daysCopy = "MTWThF";
-        String days = "";
-        for(int i = 0; i < daysCopy.length(); i++){
-            String letter = daysCopy.charAt(i) + "";
-            if(i +1 < daysCopy.length() && daysCopy.charAt(i +1) == 'h'){
-                letter += 'h';
-                i++;
-            }
-            if(weekdays.contains(letter)){
-                days += "<font color=#000000>" + letter + "</font>";
-            }else{
-                days += "<font color=#d3d3d3>" + letter + "</font>";
-            }
-        }
+        ArrayList<Classes> classes = courseSchedule.getClasses();
 
         String capacity = courseSchedule.getEnrollmentTotal() + "/" + courseSchedule.getEnrollmentCapacity();
         Context context = getContext();
@@ -186,11 +159,6 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         column1Layout.setOrientation(LinearLayout.VERTICAL);
         column1Layout.setPadding((int) res.getDimension(R.dimen.term_side_padding), 0, 0, 0);
 
-        LinearLayout column2Layout = new LinearLayout(context);
-        column2Layout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT, 0.5f));
-        column2Layout.setOrientation(LinearLayout.VERTICAL);
-        column2Layout.setPadding((int)res.getDimension(R.dimen.term_side_padding), 0, 0, 0);
 
         LinearLayout.LayoutParams tvLP = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
@@ -200,7 +168,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         sectionTV.setTextSize(15);
 
         TextView instructorTV = new TextView(context);
-        instructorTV.setText(instructor);
+       // instructorTV.setText(instructor);
         instructorTV.setLayoutParams(tvLP);
         instructorTV.setTextSize(15);
 
@@ -215,28 +183,76 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
 
         horizontalLinearLayout.addView(column1Layout);
 
-        TextView timeTV = new TextView(context);
-        timeTV.setText(time);
-        timeTV.setLayoutParams(tvLP);
-        timeTV.setTextSize(15);
+        for(Classes singgleClass : classes){
+            ArrayList<String> instructors = singgleClass.getInstructors();
+            String instructor = "---";
+            if(instructors.size() > 0){
+                instructor = instructors.get(0);
+            }
 
-        TextView daysTV = new TextView(context);
-        daysTV.setText(Html.fromHtml(days));
-        daysTV.setLayoutParams(tvLP);
-        daysTV.setTextSize(15);
+            String location = singgleClass.getBuilding() + " " + singgleClass.getRoom();
+            DateFormat dateFormat = new SimpleDateFormat("HH:mm");
+            DateFormat newFormat = new SimpleDateFormat("hh:mm a");
+            Date startTime = null;
+            Date endTime = null;
+            try{
+                startTime = dateFormat.parse(singgleClass.getStartTime());
+                endTime = dateFormat.parse(singgleClass.getEndTime());
+            }catch (ParseException ex){
+                Log.e(TAG, "createClass ParseException: " + ex.getMessage());
+            }
+            if(startTime == null || endTime == null){
+                return;
+            }
 
-        TextView locationTV = new TextView(context);
-        locationTV.setText(location);
-        locationTV.setLayoutParams(tvLP);
-        locationTV.setTextSize(15);
+            String time = newFormat.format(startTime) + " - " + newFormat.format(endTime);
+            String weekdays = singgleClass.getWeekdays();
+            String daysCopy = "MTWThF";
+            String days = "";
+            for(int i = 0; i < daysCopy.length(); i++){
+                String letter = daysCopy.charAt(i) + "";
+                if(i +1 < daysCopy.length() && daysCopy.charAt(i +1) == 'h'){
+                    letter += 'h';
+                    i++;
+                }
+                if(weekdays.contains(letter)){
+                    days += "<font color=#000000>" + letter + "</font>";
+                }else{
+                    days += "<font color=#d3d3d3>" + letter + "</font>";
+                }
+            }
 
-        column2Layout.addView(timeTV);
-        column2Layout.addView(daysTV);
-        column2Layout.addView(locationTV);
 
-        horizontalLinearLayout.addView(column2Layout);
+            LinearLayout column2Layout = new LinearLayout(context);
+            column2Layout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, 0.5f));
+            column2Layout.setOrientation(LinearLayout.VERTICAL);
+            column2Layout.setPadding((int)res.getDimension(R.dimen.term_side_padding), 0, 0, 0);
 
-        mContainer.addView(horizontalLinearLayout);
+
+            TextView timeTV = new TextView(context);
+            timeTV.setText(time);
+            timeTV.setLayoutParams(tvLP);
+            timeTV.setTextSize(15);
+
+            TextView daysTV = new TextView(context);
+            daysTV.setText(Html.fromHtml(days));
+            daysTV.setLayoutParams(tvLP);
+            daysTV.setTextSize(15);
+
+            TextView locationTV = new TextView(context);
+            locationTV.setText(location);
+            locationTV.setLayoutParams(tvLP);
+            locationTV.setTextSize(15);
+
+            column2Layout.addView(timeTV);
+            column2Layout.addView(daysTV);
+            column2Layout.addView(locationTV);
+
+            horizontalLinearLayout.addView(column2Layout);
+
+            mContainer.addView(horizontalLinearLayout);
+        }
     }
 
     private void createTerm(String term){
@@ -264,6 +280,6 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         termHeader.setTextSize(14);
         termHeader.setPadding((int)res.getDimension(R.dimen.term_side_padding), (int)res.getDimension(R.dimen.term_top_bottom_padding),
                 (int)res.getDimension(R.dimen.term_side_padding), (int)res.getDimension(R.dimen.term_top_bottom_padding));
-        mContainer.addView(termHeader);
+            mContainer.addView(termHeader);
     }
 }
