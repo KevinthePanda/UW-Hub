@@ -267,7 +267,15 @@ public class TermsParser extends UWParser {
                     singleClass.setBuilding(buildingObject.getString(BUILDING_TAG));
                     singleClass.setRoom(buildingObject.getString(ROOM_TAG));
 
-                    singleClass.setInstructors(classesObject.getString(INSTRUCTORS_TAG));
+                    ArrayList<String> instructors = new ArrayList<>();
+                    JSONArray instructorsArray = classesObject.getJSONArray(INSTRUCTORS_TAG);
+                    for(int k = 0; k < instructorsArray.length(); k++){
+                        String instructor = (String)instructorsArray.get(i);
+                        String[] tempArray = instructor.split(",");
+                        instructor = tempArray[1] + " " + tempArray[0];
+                        instructors.add(instructor);
+                    }
+                    singleClass.setInstructors(instructors);
                     classes.add(singleClass);
                 }
                 courseSchedule.setClasses(classes);
@@ -275,7 +283,6 @@ public class TermsParser extends UWParser {
                 courseSchedule.setHeldWith(courseScheduleObject.getString(HELD_WITH_TAG));
                 courseSchedule.setTerm(courseScheduleObject.getInt(TERM_TAG));
                 courseSchedule.setLastUpdated(courseScheduleObject.getString(LAST_UPDATED_TAG));
-                Log.i("test", courseSchedule.getSection() + ", " + courseSchedule.getTerm());
                 catalogNumberClasses.add(courseSchedule);
             }
 
