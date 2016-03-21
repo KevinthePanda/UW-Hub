@@ -10,67 +10,37 @@
     <RelativeLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="35dp"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
-        android:paddingTop="8dp"
         android:clickable="true"
         android:background="@color/bg_item_normal_state">
-        <RelativeLayout
-            android:id="@+id/enrollment_container"
+        <TextView
+            android:id="@+id/enrollment_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:gravity="right">
-           <ProgressBar
-               android:id="@+id/progressBar"
-               style="?android:attr/progressBarStyleHorizontal"
-               android:layout_width="60dp"
-               android:layout_height="60dp"
-               android:progress="0"
-               android:progressDrawable="@drawable/circular_progress_bar" />
-           <LinearLayout
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:layout_alignLeft="@id/progressBar"
-               android:layout_alignTop="@id/progressBar"
-               android:layout_alignRight="@id/progressBar"
-               android:layout_alignBottom="@id/progressBar"
-               android:layout_margin="1dp"
-               android:gravity="center"
-               android:orientation="vertical">
-               <TextView
-                   android:id="@+id/enrollment_total"
-                   android:layout_width="60dp"
-                   android:layout_height="wrap_content"
-                   android:text="0"
-                   android:textSize="12dp"
-                   android:textColor="#000000"
-                   android:gravity="center"/>
-               <View
-                   android:layout_width="18dp"
-                   android:layout_height="1dip"
-                   android:background="@android:color/background_dark"/>
-               <TextView
-                   android:id="@+id/enrollment_capacity"
-                   android:layout_width="60dp"
-                   android:layout_height="wrap_content"
-                   android:layout_margin="1dp"
-                   android:text="300"
-                   android:textSize="12dp"
-                   android:gravity="center"
-                   android:textColor="#000000"
-                   android:layout_below="@id/enrollment_total"/>
-           </LinearLayout>
-        </RelativeLayout>
-        <TextView
-            android:id="@+id/enrollment_title"
-            android:layout_width="wrap_content"
-            android:layout_height="60dp"
             android:textSize="15sp"
             android:fontFamily="sans-serif-medium"
             android:textStyle="italic"
             android:text="Enrollment"
-            android:gravity="center_vertical"/>
+            android:layout_centerVertical="true"/>
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:progress="0"
+            android:progressDrawable="@drawable/circular_progress_bar"
+            android:layout_alignParentRight="true"/>
+        <TextView
+                android:id="@+id/enrollment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:text=""
+                android:fontFamily="sans-serif-medium"
+                android:paddingRight="4dp"
+                android:layout_toLeftOf="@id/progressBar"
+                android:layout_centerVertical="true"/>
     </RelativeLayout>
 </android.support.v7.widget.CardView>

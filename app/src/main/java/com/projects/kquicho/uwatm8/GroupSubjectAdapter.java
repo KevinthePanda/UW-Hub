@@ -77,8 +77,7 @@ public class GroupSubjectAdapter
 
     @Override
     public int getChildCount(int groupPosition) {
-        int i = mData.getChildCount(groupPosition);
-        return i;
+        return  mData.getChildCount(groupPosition);
     }
 
     @Override

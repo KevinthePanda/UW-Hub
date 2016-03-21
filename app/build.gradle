@@ -29,4 +29,14 @@ dependencies {
         transitive=true
     }
     compile 'com.ms-square:expandableTextView:0.1.4'
+
+    compile 'com.google.android.gms:play-services-identity:8.4.0'
+    compile('com.google.api-client:google-api-client-android:1.20.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+    compile('com.google.apis:google-api-services-calendar:v3-rev125-1.20.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+
+
 }
