@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    card_view:cardBackgroundColor="#E6E6E6"
+    card_view:cardElevation="2dp"
+    android:foreground="?android:attr/selectableItemBackground">
+    <RelativeLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:clickable="true"
+        android:background="@color/bg_item_normal_state">
+        <!--View
+            android:layout_width="match_parent"
+            android:layout_height="1dip"
+            android:background="@color/gray"
+            android:layout_alignParentTop="true"/-->
+        <TextView
+            android:id="@+id/time_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:text="Time"
+            android:fontFamily="sans-serif-medium"
+            android:paddingRight="8dp"
+            android:layout_marginBottom="4dp"
+            android:textStyle="italic"/>
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:gravity="right"
+            android:text="12:30 PM  - 2:50 PM MWF"
+            android:fontFamily="sans-serif-medium"
+            android:paddingRight="8dp"/>
+
+        <TextView
+            android:id="@+id/location_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:text="Location"
+            android:fontFamily="sans-serif-medium"
+            android:paddingRight="8dp"
+            android:layout_below="@id/time_label"
+            android:textStyle="italic"/>
+        <TextView
+            android:id="@+id/location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:gravity="right"
+            android:text="DWE 1245 - UW CAMPUS"
+            android:fontFamily="sans-serif-medium"
+            android:paddingRight="8dp"
+            android:layout_below="@id/time_label"/>
+        <!--View
+            android:layout_width="match_parent"
+            android:layout_height="1dip"
+            android:background="@color/gray"
+            android:layout_below="@id/location"/-->
+    </RelativeLayout>
+</android.support.v7.widget.CardView>

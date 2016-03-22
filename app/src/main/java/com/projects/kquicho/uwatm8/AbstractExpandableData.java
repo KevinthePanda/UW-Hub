@@ -5,23 +5,14 @@ package com.projects.kquicho.uwatm8;
  */
 public abstract class AbstractExpandableData {
     public static abstract class GroupData {
-        protected long mId;
-        public long getGroupId(){
-            return mId;
-        }
-        protected GroupData(long id){
-            mId = id;
+        protected GroupData(){
+
         }
     }
 
     public static abstract class ChildData {
-        protected long mId;
-        public long getChildId(){
-            return mId;
-        }
+        protected  ChildData(){
 
-        protected  ChildData(long id){
-            mId = id;
         }
     }
 

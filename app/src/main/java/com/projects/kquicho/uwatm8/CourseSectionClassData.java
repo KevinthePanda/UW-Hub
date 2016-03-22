@@ -12,8 +12,7 @@ public class CourseSectionClassData extends AbstractExpandableData.ChildData {
     private String mCampus = null;
     private String mDate = null;
 
-    private CourseSectionClassData(long id, String startTime, String endTime, String weekdays, String building, String room, String campus, String date) {
-        super(id);
+    private CourseSectionClassData( String startTime, String endTime, String weekdays, String building, String room, String campus, String date) {
         mStartTime = startTime;
         mEndTime = endTime;
         mWeekdays = weekdays;
@@ -55,11 +54,7 @@ public class CourseSectionClassData extends AbstractExpandableData.ChildData {
         private String mRoom = null;
         private String mCampus = null;
         private String mDate = null;
-        private long mId;
 
-        public Builder(long id){
-            mId = id;
-        }
 
         public Builder startTime(String startTime){
             mStartTime = startTime;
@@ -98,7 +93,7 @@ public class CourseSectionClassData extends AbstractExpandableData.ChildData {
 
 
         public CourseSectionClassData createCourseSectionClassData(){
-            return new CourseSectionClassData(mId, mStartTime, mEndTime, mWeekdays, mBuilding, mRoom, mCampus, mDate);
+            return new CourseSectionClassData(mStartTime, mEndTime, mWeekdays, mBuilding, mRoom, mCampus, mDate);
         }
 
     }
