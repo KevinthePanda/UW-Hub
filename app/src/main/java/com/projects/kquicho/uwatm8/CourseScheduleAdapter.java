@@ -1,17 +1,14 @@
 package com.projects.kquicho.uwatm8;
 
-import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -32,10 +29,11 @@ import java.util.Locale;
 public class CourseScheduleAdapter
         extends AbstractExpandableItemAdapter<CourseScheduleAdapter.MyGroupViewHolder, CourseScheduleAdapter.MyBaseViewHolder>{
     public static final String TAG = "CourseScheduleAdapter";
-    private final int CLASS = 0, ENROLLMENT = 1;
+    private final int CLASS = 0, ENROLLMENT = 1, FOOTER = 2;
 
     private CourseScheduleData mData;
 
+    onButtonClickListener mOnButtonClickListener;
     Drawable mEnrollmentStatusOpen;
     Drawable mEnrollmentStatusFull;
 
@@ -99,10 +97,24 @@ public class CourseScheduleAdapter
         }
     }
 
-    public CourseScheduleAdapter(CourseScheduleData data, Drawable enrollmentOpen, Drawable enrollmentFull){
+    public static class MyChildFooterViewHolder extends MyBaseViewHolder  {
+        public TextView mClassNumber;
+        public ImageView mAddToGoogleCalendarBTN;
+
+        public MyChildFooterViewHolder(View v) {
+            super(v);
+            mClassNumber = (TextView) v.findViewById(R.id.class_number);
+            mAddToGoogleCalendarBTN = (ImageButton) v.findViewById(R.id.add_google_calendar_event);
+        }
+    }
+
+
+    public CourseScheduleAdapter(CourseScheduleData data, Drawable enrollmentOpen, Drawable enrollmentFull,
+                                 onButtonClickListener onButtonClickListener){
         mData = data;
         mEnrollmentStatusOpen = enrollmentOpen;
         mEnrollmentStatusFull = enrollmentFull;
+        mOnButtonClickListener = onButtonClickListener;
 
         setHasStableIds(true);
     }
@@ -119,12 +131,12 @@ public class CourseScheduleAdapter
 
     @Override
     public long getGroupId(int i) {
-        return mData.getGroupItem(i).getGroupId();
+        return i;
     }
 
     @Override
     public long getChildId(int i, int j) {
-        return mData.getChildItem(i,j).getChildId();
+        return j;
     }
 
     @Override
@@ -136,8 +148,10 @@ public class CourseScheduleAdapter
     public int getChildItemViewType(int i, int j) {
         if(mData.getChildItem(i,j) instanceof  CourseSectionClassData){
             return CLASS;
-        }else{
+        }else if(mData.getChildItem(i,j) instanceof CourseEnrollmentData){
             return ENROLLMENT;
+        }else{
+            return FOOTER;
         }
     }
 
@@ -155,15 +169,19 @@ public class CourseScheduleAdapter
         View view;
         switch (i) {
             case CLASS:
-                view = inflater.inflate(R.layout.class_row, viewGroup, false);
+                view = inflater.inflate(R.layout.section_class_row, viewGroup, false);
                 viewHolder = new MyChildClassViewHolder(view);
                 break;
             case ENROLLMENT:
                 view = inflater.inflate(R.layout.section_details_row, viewGroup, false);
                 viewHolder = new MyChildEnrollmentViewHolder(view);
                 break;
+            case FOOTER:
+                view = inflater.inflate(R.layout.section_footer, viewGroup, false);
+                viewHolder = new MyChildFooterViewHolder(view);
+                break;
             default:
-                view = inflater.inflate(R.layout.class_row, viewGroup, false);
+                view = inflater.inflate(R.layout.section_class_row, viewGroup, false);
                 viewHolder = new MyChildClassViewHolder(view);
                 break;
         }
@@ -175,6 +193,7 @@ public class CourseScheduleAdapter
         final CourseSectionData courseSectionData = (CourseSectionData)mData.getGroupItem(i);
         myGroupViewHolder.mSection.setText(courseSectionData.getSection());
         myGroupViewHolder.mInstructor.setText(courseSectionData.getInstructor());
+
 
         DateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.CANADA) ;
         DateFormat newFormat = new SimpleDateFormat("h:mm a", Locale.CANADA);
@@ -211,7 +230,7 @@ public class CourseScheduleAdapter
         myGroupViewHolder.mTime.setText(finalTimeText);
         myGroupViewHolder.mLocation.setText(location + courseSectionData.getCampus());
 
-        int visibility = mData.getChildCount(i) == 1 ? View.GONE : View.VISIBLE;
+        int visibility = mData.getChildCount(i) == 2 ? View.GONE : View.VISIBLE;
         myGroupViewHolder.mExpandMessage.setVisibility(visibility);
 
         Drawable status = courseSectionData.getEnrollmentTotal() < courseSectionData.getEnrollmentCapacity() ?
@@ -235,7 +254,7 @@ public class CourseScheduleAdapter
                 isExpanded = false;
                 for(int k = mData.getChildCount(i) -1; k >= 0; k-- ){
                     AbstractExpandableData.ChildData data = mData.getChildItem(i,k);
-                    if(data instanceof CourseEnrollmentData){
+                    if(data instanceof CourseEnrollmentData ){
                         ((CourseEnrollmentData)data).setHasAnimationRan(false);
                     }else{
                         break;
@@ -249,7 +268,7 @@ public class CourseScheduleAdapter
     }
 
     @Override
-    public void onBindChildViewHolder(MyBaseViewHolder myBaseViewHolder, int groupPosition, int childPosition, int viewType) {
+    public void onBindChildViewHolder(MyBaseViewHolder myBaseViewHolder, final int groupPosition, int childPosition, int viewType) {
         switch (viewType){
             case CLASS:
                 CourseSectionClassData classData = (CourseSectionClassData)mData.getChildItem(groupPosition,childPosition);
@@ -287,7 +306,7 @@ public class CourseScheduleAdapter
 
                 break;
             case ENROLLMENT:
-                CourseEnrollmentData enrollmentData = (CourseEnrollmentData)mData.getChildItem(groupPosition,childPosition);
+                final CourseEnrollmentData enrollmentData = (CourseEnrollmentData)mData.getChildItem(groupPosition,childPosition);
                 final MyChildEnrollmentViewHolder enrollmentHolder = (MyChildEnrollmentViewHolder)myBaseViewHolder;
 
                 String enrollmentGroup = enrollmentData.getGroup();
@@ -322,6 +341,21 @@ public class CourseScheduleAdapter
                     enrollmentData.setHasAnimationRan(true);
                 }
 
+                break;
+            case FOOTER:
+                final CourseSectionFooterData footerData = (CourseSectionFooterData)mData.getChildItem(groupPosition,childPosition);
+                final MyChildFooterViewHolder footerHolder = (MyChildFooterViewHolder)myBaseViewHolder;
+
+                footerHolder.mAddToGoogleCalendarBTN.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mOnButtonClickListener.onButtonClick(groupPosition);
+                    }
+                });
+
+                footerHolder.mClassNumber.setText(String.valueOf(footerData.getClassNumber()));
+                break;
+
         }
     }
 
@@ -335,5 +369,8 @@ public class CourseScheduleAdapter
     }
 
 
+    public interface onButtonClickListener{
+        void onButtonClick(int pos);
+    }
 
 }

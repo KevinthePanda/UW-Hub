@@ -1,33 +1,32 @@
 package com.projects.kquicho.uw_api_client.Terms;
 import android.support.v4.util.Pair;
-import android.util.Log;
 
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.MetaData;
 import com.projects.kquicho.uw_api_client.Core.MetaDataParser;
 import com.projects.kquicho.uw_api_client.Core.UWParser;
 import com.projects.kquicho.uw_api_client.Course.Classes;
-import com.projects.kquicho.uw_api_client.Course.Course;
 import com.projects.kquicho.uw_api_client.Course.CourseSchedule;
 import com.projects.kquicho.uw_api_client.Course.Reserve;
-import com.projects.kquicho.uw_api_client.Course.Reserves;
 import com.projects.kquicho.uw_api_client.Course.ScheduleData;
 import com.projects.kquicho.uw_api_client.Course.UWClass;
 import com.projects.kquicho.uwatm8.AbstractExpandableData;
 import com.projects.kquicho.uwatm8.CourseEnrollmentData;
 import com.projects.kquicho.uwatm8.CourseSectionClassData;
 import com.projects.kquicho.uwatm8.CourseSectionData;
+import com.projects.kquicho.uwatm8.CourseSectionFooterData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 
 public class TermsParser extends UWParser {
@@ -313,8 +312,7 @@ public class TermsParser extends UWParser {
             JSONArray courseScheduleArray = apiResult.getResultJSON().getJSONArray(DATA_TAG);
             for(int i = 0; i < courseScheduleArray.length(); i++){
                 JSONObject courseSectionObject = courseScheduleArray.getJSONObject(i);
-                CourseSectionData.Builder courseSectionBuilder = new CourseSectionData.Builder
-                        (courseSectionObject.getInt(CLASS_NUMBER_TAG));
+                CourseSectionData.Builder courseSectionBuilder = new CourseSectionData.Builder                        ();
                 String campus = courseSectionObject.getString(CAMPUS_TAG);
                 int enrollmentCapacity = courseSectionObject.getInt(ENROLLMENT_CAPACITY_TAG);
                 int enrollmentTotal = courseSectionObject.getInt(ENROLLMENT_TOTAL_TAG);
@@ -324,38 +322,21 @@ public class TermsParser extends UWParser {
                         .enrollmentCapacity(enrollmentCapacity)
                         .enrollmentTotal(enrollmentTotal);
 
-                JSONArray classesArray = courseSectionObject.getJSONArray(CLASSES_TAG);
-                JSONObject singleClass = classesArray.getJSONObject(0);
+
+
+
                 DateFormat dateFormat = new SimpleDateFormat("MM/dd", Locale.CANADA);
                 DateFormat newFormat = new SimpleDateFormat("MMM d", Locale.CANADA);
-                JSONObject dateObject = singleClass.getJSONObject(DATE_TAG);
-                String startDate = dateObject.getString(START_DATE_TAG);
-                if(!startDate.equals("null")){
-                    try {
-                        Date date = dateFormat.parse(startDate);
-                        startDate = " (" + newFormat.format(date) + ")";
-                    }catch (ParseException ex){
-                        ex.printStackTrace();
-                    }
-                }else{
-                    startDate = "";
-                }
-
-                courseSectionBuilder
-                        .startTime(dateObject.getString(START_TIME_TAG))
-                        .endTime(dateObject.getString(END_TIME_TAG))
-                        .weekdays(dateObject.getString(WEEKDAYS_TAG) + startDate)
-                        .date(dateObject.getString(START_DATE_TAG));
-
+                JSONArray classesArray = courseSectionObject.getJSONArray(CLASSES_TAG);
                 ArrayList<AbstractExpandableData.ChildData> childDataArrayList = new ArrayList<>();
-                for(int j = 1; j < classesArray.length(); j ++){
-                    singleClass = classesArray.getJSONObject(j);
-                    dateObject = singleClass.getJSONObject(DATE_TAG);
+                for(int j = 0; j < classesArray.length(); j ++){
+                    JSONObject singleClass = classesArray.getJSONObject(childDataArrayList.size());
+                    JSONObject dateObject = singleClass.getJSONObject(DATE_TAG);
                     JSONObject locationObject = singleClass.getJSONObject(LOCATION_TAG);
 
-                    CourseSectionClassData.Builder classBuilder = new CourseSectionClassData.Builder(i);
+                    CourseSectionClassData.Builder classBuilder = new CourseSectionClassData.Builder();
 
-                    startDate = dateObject.getString(START_DATE_TAG);
+                    String startDate = dateObject.getString(START_DATE_TAG);
                     if(!startDate.equals("null")){
                         try {
                             Date date = dateFormat.parse(startDate);
@@ -366,47 +347,58 @@ public class TermsParser extends UWParser {
                     }else{
                         startDate = "";
                     }
-                    classBuilder
-                            .startTime(dateObject.getString(START_TIME_TAG))
-                            .endTime(dateObject.getString(END_TIME_TAG))
-                            .weekdays(dateObject.getString(WEEKDAYS_TAG)   + startDate )
-                            .date(dateObject.getString(START_DATE_TAG) )
-                            .building(locationObject.getString(BUILDING_TAG))
-                            .room(locationObject.getString(ROOM_TAG))
-                            .campus(campus);
 
-                    childDataArrayList.add(classBuilder.createCourseSectionClassData());
+
+                    if(j == 0){
+                        courseSectionBuilder
+                                .startTime(dateObject.getString(START_TIME_TAG))
+                                .endTime(dateObject.getString(END_TIME_TAG))
+                                .weekdays(dateObject.getString(WEEKDAYS_TAG) + startDate)
+                                .date(dateObject.getString(START_DATE_TAG));
+
+                        courseSectionBuilder.building(locationObject.getString(BUILDING_TAG));
+                        courseSectionBuilder.room(locationObject.getString(ROOM_TAG));
+                        String instructor = "N/A";
+                        JSONArray instructorsArray = singleClass.getJSONArray(INSTRUCTORS_TAG);
+                        if(instructorsArray.length() !=0) {
+                            instructor = (String) instructorsArray.get(0);
+                            String[] tempArray = instructor.split(",");
+                            instructor = tempArray[1] + " " + tempArray[0];
+                        }
+                        courseSectionBuilder.instructor(instructor);
+                    }else {
+                        classBuilder
+                                .startTime(dateObject.getString(START_TIME_TAG))
+                                .endTime(dateObject.getString(END_TIME_TAG))
+                                .weekdays(dateObject.getString(WEEKDAYS_TAG) + startDate)
+                                .date(dateObject.getString(START_DATE_TAG))
+                                .building(locationObject.getString(BUILDING_TAG))
+                                .room(locationObject.getString(ROOM_TAG))
+                                .campus(campus);
+
+                        childDataArrayList.add(classBuilder.createCourseSectionClassData());
+                    }
                 }
+                CourseSectionData courseSectionData = courseSectionBuilder.createCourseSectionData();
 
 
-                JSONObject locationObject = singleClass.getJSONObject(LOCATION_TAG);
-                courseSectionBuilder.building(locationObject.getString(BUILDING_TAG));
-                courseSectionBuilder.room(locationObject.getString(ROOM_TAG));
-                String instructor = "N/A";
-                JSONArray instructorsArray = singleClass.getJSONArray(INSTRUCTORS_TAG);
-                if(instructorsArray.length() !=0) {
-                    instructor = (String) instructorsArray.get(0);
-                    String[] tempArray = instructor.split(",");
-                    instructor = tempArray[1] + " " + tempArray[0];
-                }
-                courseSectionBuilder.instructor(instructor);
 
-                childDataArrayList.add(new CourseEnrollmentData(childDataArrayList.size(), enrollmentCapacity,
+                //enrollment
+
+                childDataArrayList.add(new CourseEnrollmentData(enrollmentCapacity,
                         enrollmentTotal, ""));
-
+                //reserves
                 JSONArray reservesArray = courseSectionObject.getJSONArray(RESERVES_TAG);
                 ArrayList<AbstractExpandableData.ChildData> reserves = new ArrayList<>();
                 for(int j = 0; j < reservesArray.length(); j++){
                     JSONObject reservesObject = reservesArray.getJSONObject(j);
-                    CourseEnrollmentData enrollmentData = new CourseEnrollmentData(childDataArrayList.size(),
+                    CourseEnrollmentData enrollmentData = new CourseEnrollmentData(
                             reservesObject.getInt(ENROLLMENT_CAPACITY_TAG), reservesObject.getInt(ENROLLMENT_TOTAL_TAG),
                             reservesObject.getString(RESERVE_GROUP_TAG));
                     childDataArrayList.add(enrollmentData);
                 }
 
-                CourseSectionData courseSectionData = courseSectionBuilder.createCourseSectionData();
-
-
+                childDataArrayList.add(new CourseSectionFooterData(courseSectionObject.getInt(CLASS_NUMBER_TAG)));
                 courseSchedule.add(new Pair<AbstractExpandableData.GroupData, ArrayList<AbstractExpandableData.ChildData>>(
                         courseSectionData, childDataArrayList));
             }
@@ -416,7 +408,27 @@ public class TermsParser extends UWParser {
         }
     }
 
+    public static String getFormattedDate(String date, String time) {
+        String dtStart = date;
+        Calendar calendar = new GregorianCalendar();
+        calendar.clear();
+        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy"); // This should be MMM and not MM according to the date format 08-aug-2013
+        try {
+            Date dateObject = format.parse(dtStart);
+            calendar.setTime(dateObject);
+            String[] hoursMins = time.split(":");
+            int hours = Integer.valueOf(hoursMins[0]);
+            int minutes = Integer.valueOf(hoursMins[1]);
+            calendar.set(Calendar.HOUR_OF_DAY, hours);
+            calendar.set(Calendar.MINUTE, minutes);
+            calendar.set(Calendar.SECOND, 0);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
+        return outputFormat.format(calendar.getTime());
+    }
 
     private void parseTermCoursesJSON(){
         try {
