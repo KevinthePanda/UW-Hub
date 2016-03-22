@@ -7,7 +7,6 @@ public class CourseSectionHeader extends AbstractExpandableData.GroupData {
 
     private String mHeader = null;
     public CourseSectionHeader(long id, String header){
-        super(id);
         mHeader = header;
     }
 

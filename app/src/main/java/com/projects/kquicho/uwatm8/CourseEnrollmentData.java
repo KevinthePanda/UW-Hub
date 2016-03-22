@@ -9,8 +9,7 @@ public class CourseEnrollmentData extends AbstractExpandableData.ChildData {
     private String mGroup = "";
     private boolean mHasAnimationRan = false;
 
-    public CourseEnrollmentData(long id, int enrollmentCapacity, int enrollmentTotal, String group){
-        super(id);
+    public CourseEnrollmentData(int enrollmentCapacity, int enrollmentTotal, String group){
         mEnrollmentCapacity = enrollmentCapacity;
         mEnrollmentTotal = enrollmentTotal;
         mGroup = group;

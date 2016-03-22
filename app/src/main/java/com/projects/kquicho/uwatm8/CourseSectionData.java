@@ -16,8 +16,7 @@ public class CourseSectionData extends AbstractExpandableData.GroupData {
     private String mInstructor = null;
     private String mDate = null;
 
-    private CourseSectionData(long id, String section, String campus, int enrollmentCapacity, int enrollmentTotal, String startTime, String endTime, String weekdays, String building, String room, String instructor, String date) {
-        super(id);
+    private CourseSectionData(String section, String campus, int enrollmentCapacity, int enrollmentTotal, String startTime, String endTime, String weekdays, String building, String room, String instructor, String date) {
         mSection = section;
         mCampus = campus;
         mEnrollmentCapacity = enrollmentCapacity;
@@ -87,12 +86,8 @@ public class CourseSectionData extends AbstractExpandableData.GroupData {
         private String mBuilding = null;
         private String mRoom = null;
         private String mInstructor = null;
-        private long mId;
         private String mDate = null;
 
-        public Builder(long id){
-            mId = id;
-        }
         public Builder section(String section){
             mSection = section;
             return this;
@@ -149,7 +144,7 @@ public class CourseSectionData extends AbstractExpandableData.GroupData {
         }
 
         public CourseSectionData createCourseSectionData(){
-            return new CourseSectionData(mId, mSection, mCampus, mEnrollmentCapacity, mEnrollmentTotal,
+            return new CourseSectionData(mSection, mCampus, mEnrollmentCapacity, mEnrollmentTotal,
                     mStartTime, mEndTime, mWeekdays, mBuilding, mRoom, mInstructor, mDate);
         }
     }
