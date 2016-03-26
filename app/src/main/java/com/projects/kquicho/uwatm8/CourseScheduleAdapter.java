@@ -2,13 +2,14 @@ package com.projects.kquicho.uwatm8;
 
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -30,12 +31,17 @@ public class CourseScheduleAdapter
         extends AbstractExpandableItemAdapter<CourseScheduleAdapter.MyGroupViewHolder, CourseScheduleAdapter.MyBaseViewHolder>{
     public static final String TAG = "CourseScheduleAdapter";
     private final int CLASS = 0, ENROLLMENT = 1, FOOTER = 2;
+    public static final int ADD_EVENT = 0, DIRECTION = 1, VIEW_EVENT = 2, ADD_WATCH = 3, REMOVE_WATCH = 4;
 
     private CourseScheduleData mData;
 
     onButtonClickListener mOnButtonClickListener;
     Drawable mEnrollmentStatusOpen;
     Drawable mEnrollmentStatusFull;
+    Drawable mViewCalendarDrawable;
+    Drawable mAddCalendarDrawable;
+    Drawable mEyeClosedDrawable;
+    Drawable mEyeOpenDrawable;
 
     // NOTE: Make accessible with short name
     private interface Expandable extends ExpandableItemConstants {
@@ -99,22 +105,32 @@ public class CourseScheduleAdapter
 
     public static class MyChildFooterViewHolder extends MyBaseViewHolder  {
         public TextView mClassNumber;
-        public ImageView mAddToGoogleCalendarBTN;
+        public ImageView mGoogleCalendarBTN;
+        public ImageView mGoogleMapsDirectionsBTN;
+        public ImageView mCourseWatchBTN;
 
         public MyChildFooterViewHolder(View v) {
             super(v);
             mClassNumber = (TextView) v.findViewById(R.id.class_number);
-            mAddToGoogleCalendarBTN = (ImageButton) v.findViewById(R.id.add_google_calendar_event);
+            mGoogleCalendarBTN = (ImageView) v.findViewById(R.id.google_calendar);
+            mGoogleMapsDirectionsBTN = (ImageView) v.findViewById(R.id.google_maps_directions);
+            mCourseWatchBTN = (ImageView) v.findViewById(R.id.watch_course_section);
         }
     }
 
 
-    public CourseScheduleAdapter(CourseScheduleData data, Drawable enrollmentOpen, Drawable enrollmentFull,
+    public CourseScheduleAdapter(CourseScheduleData data, Context context,
                                  onButtonClickListener onButtonClickListener){
         mData = data;
-        mEnrollmentStatusOpen = enrollmentOpen;
-        mEnrollmentStatusFull = enrollmentFull;
+        mEnrollmentStatusOpen = ContextCompat.getDrawable(context, R.drawable.enrollment_status_open);
+        mEnrollmentStatusFull = ContextCompat.getDrawable(context, R.drawable.enrollment_status_full);
+        mViewCalendarDrawable = ContextCompat.getDrawable(context, R.drawable.ic_calendar);
+        mAddCalendarDrawable = ContextCompat.getDrawable(context, R.drawable.ic_calendar_plus);
+        mEyeClosedDrawable = ContextCompat.getDrawable(context, R.drawable.ic_eye_off);
+        mEyeOpenDrawable = ContextCompat.getDrawable(context, R.drawable.ic_eye);
+
         mOnButtonClickListener = onButtonClickListener;
+
 
         setHasStableIds(true);
     }
@@ -173,7 +189,7 @@ public class CourseScheduleAdapter
                 viewHolder = new MyChildClassViewHolder(view);
                 break;
             case ENROLLMENT:
-                view = inflater.inflate(R.layout.section_details_row, viewGroup, false);
+                view = inflater.inflate(R.layout.section_enrollment_row, viewGroup, false);
                 viewHolder = new MyChildEnrollmentViewHolder(view);
                 break;
             case FOOTER:
@@ -268,7 +284,7 @@ public class CourseScheduleAdapter
     }
 
     @Override
-    public void onBindChildViewHolder(MyBaseViewHolder myBaseViewHolder, final int groupPosition, int childPosition, int viewType) {
+    public void onBindChildViewHolder(MyBaseViewHolder myBaseViewHolder, final int groupPosition, final int childPosition, int viewType) {
         switch (viewType){
             case CLASS:
                 CourseSectionClassData classData = (CourseSectionClassData)mData.getChildItem(groupPosition,childPosition);
@@ -313,7 +329,7 @@ public class CourseScheduleAdapter
                 if(enrollmentGroup.equals("")){
                     enrollmentHolder.mEnrollmentGroup.setText("Enrollment");
                 }else{
-                    enrollmentHolder.mEnrollmentGroup.setText("Reserves - " + enrollmentGroup);
+                    enrollmentHolder.mEnrollmentGroup.setText(enrollmentGroup);
                 }
 
                 final ProgressBar progressBar = enrollmentHolder.mProgressBar;
@@ -346,12 +362,51 @@ public class CourseScheduleAdapter
                 final CourseSectionFooterData footerData = (CourseSectionFooterData)mData.getChildItem(groupPosition,childPosition);
                 final MyChildFooterViewHolder footerHolder = (MyChildFooterViewHolder)myBaseViewHolder;
 
-                footerHolder.mAddToGoogleCalendarBTN.setOnClickListener(new View.OnClickListener() {
+               if(footerData.getEventID() != null) {
+                    footerHolder.mGoogleCalendarBTN.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            mOnButtonClickListener.onButtonClick(groupPosition, childPosition, VIEW_EVENT);
+                        }
+                    });
+                    footerHolder.mGoogleCalendarBTN.setImageDrawable(mViewCalendarDrawable);
+                }else{
+                    footerHolder.mGoogleCalendarBTN.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            mOnButtonClickListener.onButtonClick(groupPosition, childPosition, ADD_EVENT);
+                        }
+                    });
+                    footerHolder.mGoogleCalendarBTN.setImageDrawable(mAddCalendarDrawable);
+                }
+
+                if(footerData.isBeingWatched()){
+                    footerHolder.mCourseWatchBTN.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            mOnButtonClickListener.onButtonClick(groupPosition, childPosition, REMOVE_WATCH);
+                        }
+                    });
+                    footerHolder.mCourseWatchBTN.setImageDrawable(mEyeOpenDrawable);
+                }else{
+                    footerHolder.mCourseWatchBTN.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            mOnButtonClickListener.onButtonClick(groupPosition, childPosition, ADD_WATCH);
+                        }
+                    });
+                    footerHolder.mCourseWatchBTN.setImageDrawable(mEyeClosedDrawable);
+                }
+
+                    footerHolder.mGoogleMapsDirectionsBTN.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mOnButtonClickListener.onButtonClick(groupPosition);
+                        mOnButtonClickListener.onButtonClick(groupPosition, childPosition, DIRECTION);
                     }
                 });
+
+
+
 
                 footerHolder.mClassNumber.setText(String.valueOf(footerData.getClassNumber()));
                 break;
@@ -370,7 +425,7 @@ public class CourseScheduleAdapter
 
 
     public interface onButtonClickListener{
-        void onButtonClick(int pos);
+        void onButtonClick(int groupPos, int childPos, int type);
     }
 
 }

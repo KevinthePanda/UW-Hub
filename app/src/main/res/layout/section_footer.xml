@@ -11,13 +11,11 @@
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
         android:paddingTop="8dp"
-        android:paddingBottom="8dp"
         android:clickable="true"
         android:background="@color/bg_item_normal_state">
         <TextView
+            android:paddingLeft="16dp"
             android:id="@+id/class_number_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -35,14 +33,55 @@
             android:gravity="right"
             android:text="2331"
             android:fontFamily="sans-serif-medium"
-            android:paddingRight="8dp"/>
+            android:paddingRight="24dp"/>
 
-        <ImageButton
-            android:id="@+id/add_google_calendar_event"
-            android:layout_width="wrap_content"
+
+        <LinearLayout
+            android:layout_marginTop="8dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="@color/gray"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_calendar_plus"
-            android:layout_below="@id/class_number_label"
-            android:layout_centerHorizontal="true"/>
+            android:weightSum="3"
+            android:orientation="horizontal"
+            android:layout_below="@id/class_number">
+            <RelativeLayout
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:id="@+id/google_calendar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_calendar_plus"
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:id="@+id/google_maps_directions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_google_maps"
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:id="@+id/watch_course_section"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_eye_off"
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
+
+        </LinearLayout>
+
     </RelativeLayout>
 </android.support.v7.widget.CardView>
