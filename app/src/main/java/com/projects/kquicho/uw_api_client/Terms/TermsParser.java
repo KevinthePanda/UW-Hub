@@ -1,5 +1,12 @@
 package com.projects.kquicho.uw_api_client.Terms;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.CalendarContract;
 import android.support.v4.util.Pair;
+import android.util.Log;
 
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.MetaData;
@@ -11,6 +18,7 @@ import com.projects.kquicho.uw_api_client.Course.Reserve;
 import com.projects.kquicho.uw_api_client.Course.ScheduleData;
 import com.projects.kquicho.uw_api_client.Course.UWClass;
 import com.projects.kquicho.uwatm8.AbstractExpandableData;
+import com.projects.kquicho.uwatm8.CourseDBHelper;
 import com.projects.kquicho.uwatm8.CourseEnrollmentData;
 import com.projects.kquicho.uwatm8.CourseSectionClassData;
 import com.projects.kquicho.uwatm8.CourseSectionData;
@@ -26,7 +34,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Locale;
 
 public class TermsParser extends UWParser {
@@ -103,7 +110,6 @@ public class TermsParser extends UWParser {
     }
 
     // /terms/list
-    private String currentTerm = null;
     private String nextTerm = null;
 
     // /terms/{term}/examschedule variables
@@ -125,6 +131,7 @@ public class TermsParser extends UWParser {
     private ArrayList<Pair<AbstractExpandableData.GroupData, ArrayList<AbstractExpandableData.ChildData>>> courseSchedule = null;
 
 
+    private String currentTerm;
 
     private ParseType parseType = ParseType.EXAM_SCHEDULE;
 
@@ -150,7 +157,7 @@ public class TermsParser extends UWParser {
                 parseSubjectScheduleJSON();
                 break;
             case CATALOG_SCHEDULE:
-                parseCourseScheduleJSON();
+                //parseCourseScheduleJSON();
                 break;
             case TERM_COURSES:
                 parseTermCoursesJSON();
@@ -158,7 +165,18 @@ public class TermsParser extends UWParser {
         }
     }
 
-    private void parseTermListJSON(){
+    public void parseJSON(Context context) {
+        if(apiResult == null || apiResult.getResultJSON() == null) return;
+        switch (parseType){
+            case CATALOG_SCHEDULE:
+                parseCourseScheduleJSON(context);
+                break;
+        }
+
+    }
+
+
+        private void parseTermListJSON(){
         try {
             JSONObject termListObject = apiResult.getResultJSON().getJSONObject(DATA_TAG);
             currentTerm = termListObject.getString(CURRENT_TERM_TAG);
@@ -243,7 +261,6 @@ public class TermsParser extends UWParser {
             for(int i = 0; i < courseScheduleArray.length(); i++){
                 JSONObject courseScheduleObject = courseScheduleArray.getJSONObject(i);
                 CourseSchedule courseSchedule = new CourseSchedule();
-
                 courseSchedule.setNote(courseScheduleObject.getString(NOTE_TAG));
                 courseSchedule.setSection(courseScheduleObject.getString(SECTION_TAG));
                 courseSchedule.setCampus(courseScheduleObject.getString(CAMPUS_TAG));
@@ -306,23 +323,35 @@ public class TermsParser extends UWParser {
         }
     }
 
-    private void parseCourseScheduleJSON(){
+    private void parseCourseScheduleJSON(Context context){
         try {
+            Log.i("test", "start");
             courseSchedule = new ArrayList<>();
             JSONArray courseScheduleArray = apiResult.getResultJSON().getJSONArray(DATA_TAG);
+            CourseDBHelper dbHelper = CourseDBHelper.getInstance(context);
+
             for(int i = 0; i < courseScheduleArray.length(); i++){
                 JSONObject courseSectionObject = courseScheduleArray.getJSONObject(i);
-                CourseSectionData.Builder courseSectionBuilder = new CourseSectionData.Builder                        ();
+
+                String section = courseSectionObject.getString(SECTION_TAG);
+                int classNumber = courseSectionObject.getInt(CLASS_NUMBER_TAG);
+                String courseID = section + " " + courseSectionObject.getString(SUBJECT_TAG) +
+                        courseSectionObject.getString(CATALOG_NUMBER_TAG)
+                        + String.valueOf(courseSectionObject.getInt(TERM_TAG));
+
+                String eventID = dbHelper.checkForCourseEvent(courseID);
+                boolean isBeingWatched = dbHelper.checkForCourseWatch(courseID);
+
+                Log.i("test", eventID + "");
+                CourseSectionData.Builder courseSectionBuilder = new CourseSectionData.Builder();
                 String campus = courseSectionObject.getString(CAMPUS_TAG);
                 int enrollmentCapacity = courseSectionObject.getInt(ENROLLMENT_CAPACITY_TAG);
                 int enrollmentTotal = courseSectionObject.getInt(ENROLLMENT_TOTAL_TAG);
                 courseSectionBuilder
-                        .section(courseSectionObject.getString(SECTION_TAG))
+                        .section(section)
                         .campus(campus)
                         .enrollmentCapacity(enrollmentCapacity)
                         .enrollmentTotal(enrollmentTotal);
-
-
 
 
                 DateFormat dateFormat = new SimpleDateFormat("MM/dd", Locale.CANADA);
@@ -350,11 +379,52 @@ public class TermsParser extends UWParser {
 
 
                     if(j == 0){
+                        String startTime = dateObject.getString(START_TIME_TAG);
+                        String endTime = dateObject.getString(END_TIME_TAG);
+                        if(eventID != null){
+                             final String[] INSTANCE_PROJECTION = new String[] {
+                                    CalendarContract.Instances.EVENT_ID,      // 0
+                            };
+
+
+                            Calendar beginTime = Calendar.getInstance();
+                            beginTime.set(2016, 4, 2, 0, 0);
+                            long startMillis = beginTime.getTimeInMillis();
+                            Calendar finishTime = Calendar.getInstance();
+                            finishTime.set(2016, 4, 2, 23, 0);
+                            long endMillis = finishTime.getTimeInMillis();
+                            Cursor cur = null;
+                            ContentResolver cr = context.getContentResolver();
+
+                            String selection = CalendarContract.Instances.EVENT_ID + " = ?";
+                            String[] selectionArgs = new String[] {eventID};
+
+                            Uri.Builder builder = CalendarContract.Instances.CONTENT_URI.buildUpon();
+                            ContentUris.appendId(builder, startMillis);
+                            ContentUris.appendId(builder, endMillis);
+
+                            cur =  cr.query(builder.build(),
+                                    INSTANCE_PROJECTION,
+                                    selection,
+                                    selectionArgs,
+                                    null);
+                            Log.i("test", "Checking if events exists");
+
+                            if (cur.getCount() == 0) {
+                                dbHelper.deleteCourseEvent(eventID);
+                                eventID = null;
+                                Log.i("test", "event no longer exists");
+                            }
+                            cur.close();
+
+                        }
+
                         courseSectionBuilder
-                                .startTime(dateObject.getString(START_TIME_TAG))
-                                .endTime(dateObject.getString(END_TIME_TAG))
+                                .startTime(startTime)
+                                .endTime(endTime)
                                 .weekdays(dateObject.getString(WEEKDAYS_TAG) + startDate)
-                                .date(dateObject.getString(START_DATE_TAG));
+                                .date(dateObject.getString(START_DATE_TAG))
+                                .eventID(eventID);
 
                         courseSectionBuilder.building(locationObject.getString(BUILDING_TAG));
                         courseSectionBuilder.room(locationObject.getString(ROOM_TAG));
@@ -385,49 +455,30 @@ public class TermsParser extends UWParser {
 
                 //enrollment
 
-                childDataArrayList.add(new CourseEnrollmentData(enrollmentCapacity,
-                        enrollmentTotal, ""));
+                CourseEnrollmentData defaultEnrollmentData = new CourseEnrollmentData(enrollmentCapacity,
+                        enrollmentTotal, "");
+                childDataArrayList.add(defaultEnrollmentData);
+
                 //reserves
                 JSONArray reservesArray = courseSectionObject.getJSONArray(RESERVES_TAG);
-                ArrayList<AbstractExpandableData.ChildData> reserves = new ArrayList<>();
                 for(int j = 0; j < reservesArray.length(); j++){
                     JSONObject reservesObject = reservesArray.getJSONObject(j);
                     CourseEnrollmentData enrollmentData = new CourseEnrollmentData(
                             reservesObject.getInt(ENROLLMENT_CAPACITY_TAG), reservesObject.getInt(ENROLLMENT_TOTAL_TAG),
                             reservesObject.getString(RESERVE_GROUP_TAG));
+
                     childDataArrayList.add(enrollmentData);
                 }
 
-                childDataArrayList.add(new CourseSectionFooterData(courseSectionObject.getInt(CLASS_NUMBER_TAG)));
+                childDataArrayList.add(new CourseSectionFooterData(classNumber, eventID, isBeingWatched));
                 courseSchedule.add(new Pair<AbstractExpandableData.GroupData, ArrayList<AbstractExpandableData.ChildData>>(
                         courseSectionData, childDataArrayList));
             }
+            Log.i("test", "end");
 
         } catch (JSONException e){
             e.printStackTrace();
         }
-    }
-
-    public static String getFormattedDate(String date, String time) {
-        String dtStart = date;
-        Calendar calendar = new GregorianCalendar();
-        calendar.clear();
-        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy"); // This should be MMM and not MM according to the date format 08-aug-2013
-        try {
-            Date dateObject = format.parse(dtStart);
-            calendar.setTime(dateObject);
-            String[] hoursMins = time.split(":");
-            int hours = Integer.valueOf(hoursMins[0]);
-            int minutes = Integer.valueOf(hoursMins[1]);
-            calendar.set(Calendar.HOUR_OF_DAY, hours);
-            calendar.set(Calendar.MINUTE, minutes);
-            calendar.set(Calendar.SECOND, 0);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        return outputFormat.format(calendar.getTime());
     }
 
     private void parseTermCoursesJSON(){
@@ -704,6 +755,7 @@ public class TermsParser extends UWParser {
     }
 
     public String getEndPoint(String term, String subject, String catalogNumber){
+        currentTerm = term;
         return String.format(CATALOG_END_POINT, term, subject, catalogNumber);
     }
 

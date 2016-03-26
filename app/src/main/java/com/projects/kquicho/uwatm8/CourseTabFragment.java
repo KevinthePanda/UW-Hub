@@ -103,7 +103,7 @@ public class CourseTabFragment extends Fragment{
                 case 0:
                     return CourseDetailsFragment.newInstance(mSubject, mCatalogNumber);
                 case 1:
-                    return  CourseScheduleFragment.newInstance(mSubject, mCatalogNumber, mTitle);
+                    return  CourseScheduleFragment.newInstance(mSubject, mCatalogNumber);
                 default:
                     return null;
             }

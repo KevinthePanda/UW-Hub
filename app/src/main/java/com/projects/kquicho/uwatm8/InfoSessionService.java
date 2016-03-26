@@ -17,7 +17,7 @@ public class InfoSessionService extends IntentService {
 
 
     public InfoSessionService(){
-        super("InfoSessionService");
+        super(TAG);
     }
 
     @Override
@@ -47,6 +47,6 @@ public class InfoSessionService extends IntentService {
 
         builder.setContentIntent(contentIntent);
         notificationManager.notify(id, builder.build());
-        Log.d("AlarmService", "Notification sent.");
+        Log.d(TAG, "Notification sent.");
     }
 }

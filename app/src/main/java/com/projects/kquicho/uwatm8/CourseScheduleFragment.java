@@ -1,18 +1,14 @@
 package com.projects.kquicho.uwatm8;
 
-import android.accounts.AccountManager;
-import android.app.Activity;
-import android.app.Dialog;
-import android.content.Context;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.drawable.NinePatchDrawable;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.provider.CalendarContract;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -22,49 +18,20 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.DateTime;
-import com.google.api.client.util.ExponentialBackOff;
-import com.google.api.services.calendar.CalendarScopes;
-import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventAttendee;
-import com.google.api.services.calendar.model.EventDateTime;
-import com.google.api.services.calendar.model.EventReminder;
-import com.google.api.services.calendar.model.Events;
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.ItemShadowDecorator;
-import com.h6ah4i.android.widget.advrecyclerview.decoration.SimpleListDividerDecorator;
 import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager;
 import com.h6ah4i.android.widget.advrecyclerview.utils.WrapperAdapterUtils;
+import com.projects.kquicho.uw_api_client.Building.BuildingParser;
+import com.projects.kquicho.uw_api_client.Building.UWBuilding;
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.JSONDownloader;
 import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
-import com.projects.kquicho.uw_api_client.Course.CourseSchedule;
 import com.projects.kquicho.uw_api_client.Terms.TermsParser;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.UUID;
 
 /**
  * Created by Kevin Quicho on 3/16/2016.
@@ -72,20 +39,13 @@ import java.util.UUID;
 public class CourseScheduleFragment extends Fragment implements JSONDownloader.onDownloadListener,
         RecyclerViewExpandableItemManager.OnGroupCollapseListener,
         RecyclerViewExpandableItemManager.OnGroupExpandListener,
-        CourseScheduleAdapter.onButtonClickListener{
-
-    private GoogleAccountCredential mCredential;
-    static final int REQUEST_ACCOUNT_PICKER = 1000;
-    static final int REQUEST_AUTHORIZATION = 1001;
-    static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
-    private static final String PREF_ACCOUNT_NAME = "accountName";
-    private static final String[] SCOPES = { CalendarScopes.CALENDAR  };
+        CourseScheduleAdapter.onButtonClickListener,
+        AsyncHandler.AsyncCRUDListener{
 
     private static final String SAVED_STATE_EXPANDABLE_ITEM_MANAGER = "RecyclerViewExpandableItemManager";
     public static final String TAG = "courseScheduleFragment";
     public static final String SUBJECT_TAG = "subject";
     public static final String CATALOG_NUMBER_TAG = "catalogNumber";
-    public static final String TITLE_TAG = "title";
 
     private CourseScheduleData mData;
     private CourseScheduleAdapter mAdapter;
@@ -95,25 +55,22 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     private RecyclerView.Adapter mWrappedAdapter;
 
 
-
+    private String mCurrentTerm = "1165";
     private String mSubject;
     private String mCatalogNumber;
-    private String mTitle;
     private TermsParser mTermsParser = new TermsParser();
-    private String mTermListUrl;
-    private Map<String, ArrayList<CourseSchedule>> mSchedules;
-    private String mCurrentScheduleUrl;
-    private String mNextScheduleUrl;
-    private String mCurrentTerm;
-    private String mNextTerm;
-    private LinearLayout mContainer;
+    private String mCourseScheduleURL;
+    private BuildingParser mBuildingParser = new BuildingParser();
+    private String mBuildingURL;
+    private Long mLastEventID = null;
+    private AsyncHandler mHandler;
+    private CourseDBHelper mDBHelper;
 
-    public static CourseScheduleFragment newInstance(String subject, String catalogNumber, String title) {
+    public static CourseScheduleFragment newInstance(String subject, String catalogNumber) {
 
         Bundle args = new Bundle();
         args.putString(SUBJECT_TAG, subject);
         args.putString(CATALOG_NUMBER_TAG, catalogNumber);
-        args.putString(TITLE_TAG, title);
         CourseScheduleFragment fragment = new CourseScheduleFragment();
         fragment.setArguments(args);
         return fragment;
@@ -125,13 +82,9 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         Bundle args = getArguments();
         mSubject = args.getString(SUBJECT_TAG);
         mCatalogNumber = args.getString(CATALOG_NUMBER_TAG);
-        mTitle = args.getString(TITLE_TAG);
-        mSchedules = new TreeMap<>();
 
-        SharedPreferences settings = getActivity().getPreferences(Context.MODE_PRIVATE);
-        mCredential = GoogleAccountCredential.usingOAuth2(getActivity().getApplicationContext(),Arrays.asList(SCOPES))
-                .setBackOff(new ExponentialBackOff())
-                .setSelectedAccountName(settings.getString(PREF_ACCOUNT_NAME, null));
+        mHandler = new AsyncHandler(getActivity().getContentResolver(), this);
+        mDBHelper = CourseDBHelper.getInstance(getActivity().getApplicationContext());
     }
 
     @Override
@@ -141,99 +94,9 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        if (isGooglePlayServicesAvailable()) {
-            refreshResults();
-        } else {
-          //  mOutputText.setText("Google Play Services required: " +
-           //        "after installing, close and relaunch this app.");
-        }
-    }
+    public void onStart(){
+        super.onStart();
 
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data){
-        super.onActivityResult(requestCode, resultCode, data);
-        switch(requestCode) {
-            case REQUEST_GOOGLE_PLAY_SERVICES:
-                if (resultCode != Activity.RESULT_OK) {
-                    isGooglePlayServicesAvailable();
-                }
-                break;
-            case REQUEST_ACCOUNT_PICKER:
-                if (resultCode == Activity.RESULT_OK && data != null &&
-                        data.getExtras() != null) {
-                    String accountName =
-                            data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-                    if (accountName != null) {
-                        mCredential.setSelectedAccountName(accountName);
-                        SharedPreferences settings =
-                                getActivity().getPreferences(Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor = settings.edit();
-                        editor.putString(PREF_ACCOUNT_NAME, accountName);
-                        editor.apply();
-                    }
-                } else if (resultCode == Activity.RESULT_CANCELED) {
-                    //mOutputText.setText("Account unspecified.");
-                }
-                break;
-            case REQUEST_AUTHORIZATION:
-                if (resultCode != Activity.RESULT_OK) {
-                    chooseAccount();
-                }
-                break;
-        }
-
-        super.onActivityResult(requestCode, resultCode, data);
-
-    }
-
-    private void refreshResults() {
-        if (mCredential.getSelectedAccountName() == null) {
-            chooseAccount();
-        } else {
-            if (isDeviceOnline()) {
-              //  new MakeRequestTask(mCredential).execute();
-            } else {
-               // mOutputText.setText("No network connection available.");
-            }
-        }
-    }
-
-    private void chooseAccount() {
-        startActivityForResult(
-                mCredential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
-    }
-
-    private boolean isDeviceOnline() {
-        ConnectivityManager connMgr =
-                (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        return (networkInfo != null && networkInfo.isConnected());
-    }
-
-
-
-    private boolean isGooglePlayServicesAvailable() {
-        final int connectionStatusCode =
-                GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity());
-        if (GooglePlayServicesUtil.isUserRecoverableError(connectionStatusCode)) {
-            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode);
-            return false;
-        } else if (connectionStatusCode != ConnectionResult.SUCCESS ) {
-            return false;
-        }
-        return true;
-    }
-
-    void showGooglePlayServicesAvailabilityErrorDialog(
-            final int connectionStatusCode) {
-        Dialog dialog = GooglePlayServicesUtil.getErrorDialog(
-                connectionStatusCode,
-                getActivity(),
-                REQUEST_GOOGLE_PLAY_SERVICES);
-        dialog.show();
     }
 
 
@@ -265,15 +128,13 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         } else {
             mRecyclerView.addItemDecoration(new ItemShadowDecorator((NinePatchDrawable) ContextCompat.getDrawable(getContext(), R.drawable.material_shadow_z1)));
         }
-        mRecyclerView.addItemDecoration(new SimpleListDividerDecorator(ContextCompat.getDrawable(getContext(), R.drawable.list_divider_h), true));
         mRecyclerViewExpandableItemManager.attachRecyclerView(mRecyclerView);
 
 
         mTermsParser.setParseType(TermsParser.ParseType.CATALOG_SCHEDULE.ordinal());
-        mTermListUrl = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint("1165",mSubject, mCatalogNumber));
-        mContainer = (LinearLayout)view.findViewById(R.id.container);
+        mCourseScheduleURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint("1165",mSubject, mCatalogNumber));
 
-        JSONDownloader downloader = new JSONDownloader(mTermListUrl);
+        JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
         downloader.setOnDownloadListener(this);
         downloader.start();
 
@@ -287,24 +148,39 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
 
     @Override
     public void onDownloadComplete(APIResult  apiResult) {
-        mTermsParser.setAPIResult(apiResult);
-        mTermsParser.parseJSON();
-        mData = new CourseScheduleData(mTermsParser.getCourseSchedule());
+        if(apiResult.getUrl().equals(mCourseScheduleURL)) {
+            mTermsParser.setAPIResult(apiResult);
+            mTermsParser.parseJSON(getActivity().getApplicationContext());
+            mData = new CourseScheduleData(mTermsParser.getCourseSchedule());
 
-        android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+            android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
 
-        final CourseScheduleAdapter.onButtonClickListener onButtonClickListener = this;
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                mAdapter = new CourseScheduleAdapter(mData, ContextCompat.getDrawable(getContext(), R.drawable.enrollment_status_open),
-                        ContextCompat.getDrawable(getContext(), R.drawable.enrollment_status_full), onButtonClickListener);
-                mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
-                mRecyclerView.setAdapter(mWrappedAdapter);
+            final CourseScheduleAdapter.onButtonClickListener onButtonClickListener = this;
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    mAdapter = new CourseScheduleAdapter(mData, getContext(),
+                            onButtonClickListener);
+                    mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
+                    mRecyclerView.setAdapter(mWrappedAdapter);
+                }
+            };
+            handler.post(runnable);
+
+        }else{
+            mBuildingParser.setAPIResult(apiResult);
+            mBuildingParser.parseJSON();
+
+            UWBuilding building = mBuildingParser.getBuildingCodeBuilding();
+
+            Uri gmmIntentUri = Uri.parse("geo:0,0?q=" + String.valueOf(building.getLatitude()) + ","
+                    + String.valueOf(building.getLongitude()) + "(" + building.getBuildingCode() + ")");
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                startActivity(mapIntent);
             }
-        };
-        handler.post(runnable);
-
+        }
         Log.i(TAG, "completed ");
 
     }
@@ -368,256 +244,168 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     }
 
     @Override
-    public void onButtonClick(int pos) {
-        CourseSectionData sectionData = (CourseSectionData)mData.getGroupItem(pos);
-        Log.i("test", "onButtonClick");
-        new MakeRequestTask(mCredential).execute(sectionData.getSection(), sectionData.getBuilding() + " - " + sectionData.getRoom(),
-                sectionData.getStartTime(), sectionData.getEndTime(), sectionData.getDate(), sectionData.getWeekdays());
+    public void onButtonClick(int groupPosition, int childPosition, int type) {
+        CourseSectionData sectionData = (CourseSectionData)mData.getGroupItem(groupPosition);
+        switch (type){
 
-    }
-
-
-    private class MakeRequestTask extends AsyncTask<String, Void, String> {
-        private com.google.api.services.calendar.Calendar mService = null;
-        private Exception mLastError = null;
-        private String mLastEventId = null;
-
-        public MakeRequestTask(GoogleAccountCredential credential) {
-            HttpTransport transport = AndroidHttp.newCompatibleTransport();
-            JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-            mService = new com.google.api.services.calendar.Calendar.Builder(
-                    transport, jsonFactory, credential)
-                    .setApplicationName("UWatM8")
-                    .build();
-        }
-
-        /**
-         * Background task to call Google Calendar API.
-         * @param params no parameters needed for this task.
-         */
-        @Override
-        protected String doInBackground(String... params) {
-            try {
-               //return getDataFromApi();
-                createEvent(params[0], params[1], params[2], params[3], params[4], params[5]);
-                return params[0];
-            } catch (Exception e) {
-                mLastError = e;
-                cancel(true);
-                return null;
-            }
-        }
-
-        /**
-         * Fetch a list of the next 10 events from the primary calendar.
-         * @return List of Strings describing returned events.
-         * @throws IOException
-         */
-        private List<String> getDataFromApi() throws IOException {
-            // List the next 10 events from the primary calendar.
-            DateTime now = new DateTime(System.currentTimeMillis());
-            List<String> eventStrings = new ArrayList<String>();
-            Events events = mService.events().list("primary")
-                    .setMaxResults(10)
-                    .setTimeMin(now)
-                    .setOrderBy("startTime")
-                    .setSingleEvents(true)
-                    .execute();
-            List<Event> items = events.getItems();
-
-            for (Event event : items) {
-                DateTime start = event.getStart().getDateTime();
-                if (start == null) {
-                    // All-day events don't have start times, so just use
-                    // the start date.
-                    start = event.getStart().getDate();
-                }
-                eventStrings.add(
-                        String.format("%s (%s)", event.getSummary(), start));
-            }
-            return eventStrings;
-        }
-
-        private void createEvent(String section, String location, String startTime, String endTime, String date, String weedays) throws IOException{
-            UUID id = UUID.randomUUID();
-            mLastEventId = id.toString().toLowerCase().replace("-", "");
-            Event event = new Event()
-                    .setSummary(mSubject + " " + mCatalogNumber + " - " + section)
-                    .setLocation(location)
-                    .setId(mLastEventId);
-
-            Log.i("test", mLastEventId + "");
-            if(date.equals("null")){
-                date = "05/02/2016";
-            }else{
-                date += "/2016";
-            }
-
-
-            int dow = 0;
-            switch (weedays.charAt(0)){
-                case 'M':
-                    dow = 0;
-                    break;
-                case 'T':
-                    if(weedays.charAt(1) != 'h'){
-                        dow = 1;
+            case CourseScheduleAdapter.ADD_EVENT:
+                String weekdays =  sectionData.getWeekdays();
+                String recurDays = "";
+                for(int i = 0; i < weekdays.length(); i++){
+                    char c = weekdays.charAt(i);
+                    String day = "";
+                    if(c == 'T' && weekdays.charAt(i +1) == 'h'){
+                        day = "TH";
+                        i++;
                     }else{
-                        dow = 3;
-                    }
-                    break;
-                case 'W':
-                    dow = 2;
-                    break;
-                case 'F':
-                    dow = 4;
-                    break;
-
-            }
-            String startS = getFormattedDate(date, dow, startTime);
-            String endS = getFormattedDate(date, dow, endTime);
-
-            DateTime startDateTime = new DateTime(startS + "-04:00");
-            EventDateTime start = new EventDateTime()
-                    .setDateTime(startDateTime)
-                    .setTimeZone("America/Toronto");
-            event.setStart(start);
-
-            DateTime endDateTime = new DateTime(endS + "-04:00");
-            EventDateTime end = new EventDateTime()
-                    .setDateTime(endDateTime)
-                    .setTimeZone("America/Toronto");
-            event.setEnd(end);
-
-            String recurDays = "";
-            for(int i = 0; i < weedays.length(); i++){
-                char c = weedays.charAt(i);
-                String day = "";
-                if(c == 'T' && weedays.charAt(i +1) == 'h'){
-                    day = "TH";
-                    i++;
-                }else{
-                    switch (c){
-                        case 'M':
-                            day = "MO";
-                            break;
-                        case 'T':
-                            day = "TU";
-                            break;
-                        case 'W':
-                            day = "WE";
-                            break;
-                        case'F':
-                            day = "FR";
-                            break;
-                    }
-                }
-
-                if(recurDays.equals("")){
-                    recurDays = day;
-                }else{
-                    recurDays += "," + day;
-                }
-            }
-            Log.i("test", recurDays);
-
-            String[] recurrence = new String[] {"RRULE:FREQ=WEEKLY;UNTIL=20160726T170000Z;BYDAY=" + recurDays};
-            event.setRecurrence(Arrays.asList(recurrence));
-
-            EventReminder[] reminderOverrides = new EventReminder[] {
-                    new EventReminder().setMethod("email").setMinutes(24 * 60),
-                    new EventReminder().setMethod("popup").setMinutes(10),
-            };
-            Event.Reminders reminders = new Event.Reminders()
-                    .setUseDefault(false)
-                    .setOverrides(Arrays.asList(reminderOverrides));
-            event.setReminders(reminders);
-
-            String calendarId = mCredential.getSelectedAccountName();
-            event = mService.events().insert(calendarId, event).execute();
-            System.out.printf("Event created: %s\n", event.getHtmlLink());
-
-        }
-
-        private  String getFormattedDate(String date, int dow, String time) {
-            String dtStart = date;
-            Calendar calendar = new GregorianCalendar();
-            calendar.clear();
-            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-            SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy"); // This should be MMM and not MM according to the date format 08-aug-2013
-            try {
-                Date dateObject = format.parse(dtStart);
-                calendar.setTime(dateObject);
-                String[] hoursMins = time.split(":");
-                int hours = Integer.valueOf(hoursMins[0]);
-                int minutes = Integer.valueOf(hoursMins[1]);
-                calendar.set(Calendar.HOUR_OF_DAY, hours);
-                calendar.set(Calendar.MINUTE, minutes);
-                calendar.set(Calendar.SECOND, 0);
-                calendar.add(Calendar.DAY_OF_MONTH, + dow);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-
-            return outputFormat.format(calendar.getTime());
-        }
-
-        @Override
-        protected void onPreExecute() {
-            //mOutputText.setText("");
-            //mProgress.show();
-        }
-
-        @Override
-        protected void onPostExecute(final String output) {
-            Log.i("test", "onPostExecute");
-            Snackbar.make(mRecyclerView, output +" added to Google Calendar", Snackbar.LENGTH_LONG)
-                    .setAction("Undo", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            undoCreateEvent(output);
+                        switch (c){
+                            case 'M':
+                                day = "MO";
+                                break;
+                            case 'T':
+                                day = "TU";
+                                break;
+                            case 'W':
+                                day = "WE";
+                                break;
+                            case'F':
+                                day = "FR";
+                                break;
                         }
-                    })
-                    .show();
-
-        }
-
-        private void undoCreateEvent(final String section){
-            new AsyncTask<String, Void, String>(){
-
-                @Override
-                protected String doInBackground(String... params) {
-                    try {
-                        mService.events().delete(mCredential.getSelectedAccountName(), mLastEventId).execute();
-                    }catch (IOException e){
-                        e.printStackTrace();
                     }
-                    return null;
+
+                    if(recurDays.equals("")){
+                        recurDays = day;
+                    }else{
+                        recurDays += "," + day;
+                    }
                 }
 
-                @Override
-                protected void onPostExecute(String output){
-                    Snackbar.make(mRecyclerView, section + " removed from Google Calendar", Snackbar.LENGTH_LONG).show();
-                }
-            }.execute(mLastEventId);
+
+
+                String startTimeS = sectionData.getStartTime();
+                String endTimeS = sectionData.getEndTime();
+                String[] hoursMinsStart = startTimeS.split(":");
+                String[] hoursMinsEnd = endTimeS.split(":");
+
+                int hourStart = Integer.valueOf(hoursMinsStart[0]);
+                int minStart = Integer.valueOf(hoursMinsStart[1]);
+                int hourEnd = Integer.valueOf(hoursMinsEnd[0]);
+                int minEnd = Integer.valueOf(hoursMinsEnd[1]);
+
+                int duration = ((hourEnd * 60) + minEnd)  - ((hourStart * 60) + minStart);
+                int hDuration = (duration / 60);
+                int mDuration = (duration % 60);
+
+
+
+                Calendar beginTime = Calendar.getInstance();
+                beginTime.set(2016, 4, 2, hourStart, minStart);
+
+                ContentValues values = new ContentValues();
+                values.put(CalendarContract.Events.DTSTART, beginTime.getTimeInMillis());
+                values.put(CalendarContract.Events.TITLE,  mSubject + " " + mCatalogNumber + " - " + sectionData.getSection());
+                values.put(CalendarContract.Events.CALENDAR_ID, 1);
+                values.put(CalendarContract.Events.RRULE, "FREQ=WEEKLY;UNTIL=20160726T170000Z;WKST=SU;BYDAY=" + recurDays);
+                values.put(CalendarContract.Events.EVENT_TIMEZONE, "America/Toronto");
+                values.put(CalendarContract.Events.EVENT_LOCATION, sectionData.getBuilding() + " - " + sectionData.getRoom());
+                Log.i("test", hDuration + " " + mDuration);
+                values.put(CalendarContract.Events.DURATION, "PT" + String.valueOf(hDuration) +
+                        "H" + String.valueOf(mDuration) + "M0S");
+                Cookie cookie = new Cookie(sectionData.getSection()+ " " + mSubject + mCatalogNumber + mCurrentTerm,
+                        groupPosition, childPosition);
+                mHandler.startInsert(0,cookie , CalendarContract.Events.CONTENT_URI, values);
+
+                break;
+            case CourseScheduleAdapter.DIRECTION:
+                mBuildingParser.setParseType(BuildingParser.ParseType.BUILDING_CODE.ordinal());
+                mBuildingURL = UWOpenDataAPI.buildURL(mBuildingParser.getEndPoint(((CourseSectionData)mData.getGroupItem(groupPosition)).getBuilding()));
+
+                JSONDownloader downloader = new JSONDownloader(mBuildingURL);
+                downloader.setOnDownloadListener(this);
+                downloader.start();
+                break;
+            case CourseScheduleAdapter.VIEW_EVENT:
+                // A date-time specified in milliseconds since the epoch.
+
+                Uri uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, Long.valueOf(sectionData.getEventID()));
+                Intent intent = new Intent(Intent.ACTION_VIEW)
+                        .setData(uri);
+                startActivity(intent);
+                break;
+            case CourseScheduleAdapter.ADD_WATCH:
+                mDBHelper.addCourseWatch(sectionData.getSection()+ " " + mSubject + mCatalogNumber + mCurrentTerm,
+                        sectionData.getSection() + " - " + mSubject + " " + mCatalogNumber,
+                        "Section for " + mCurrentTerm + " now has open slots");
+                ((CourseSectionFooterData)mData.getChildItem(groupPosition, childPosition)).setBeingWatched(true);
+                mRecyclerViewExpandableItemManager.notifyChildItemChanged(groupPosition, childPosition);
+                break;
+            case CourseScheduleAdapter.REMOVE_WATCH:
+                mDBHelper.deleteCourseWatch(sectionData.getSection() + " " + mSubject + mCatalogNumber + mCurrentTerm);
+                ((CourseSectionFooterData)mData.getChildItem(groupPosition, childPosition)).setBeingWatched(false);
+                mRecyclerViewExpandableItemManager.notifyChildItemChanged(groupPosition, childPosition);
+                break;
         }
-        @Override
-        protected void onCancelled() {
-            Log.i("test", mLastError.getLocalizedMessage());
 
-            if (mLastError != null) {
-                if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
-                    showGooglePlayServicesAvailabilityErrorDialog(
-                            ((GooglePlayServicesAvailabilityIOException) mLastError)
-                                    .getConnectionStatusCode());
-                } else if (mLastError instanceof UserRecoverableAuthIOException) {
-                    startActivityForResult(
-                            ((UserRecoverableAuthIOException) mLastError).getIntent(),
-                            CourseScheduleFragment.REQUEST_AUTHORIZATION);
-                } else {
-                }
-            } else {
-            }
+    }
+
+    @Override
+    public void onInsertComplete(int token, final Object cookie, Uri uri) {
+        switch (token){
+            case 0:
+                final Cookie cookieObject = (Cookie)cookie;
+                final String[] cookieArr = cookieObject.mText.split(" ");
+                final String section = cookieArr[0] + " " + cookieArr[1];
+                mLastEventID = Long.parseLong(uri.getLastPathSegment());
+                ((CourseSectionFooterData)mData.getChildItem(cookieObject.mGroupPos, cookieObject.mChildPos)).setEventID(String.valueOf(mLastEventID));
+                ((CourseSectionData)mData.getGroupItem(cookieObject.mGroupPos)).setEventID(String.valueOf(mLastEventID));
+                mRecyclerViewExpandableItemManager.notifyChildItemChanged(cookieObject.mGroupPos, cookieObject.mChildPos);
+                mDBHelper.addGoogleCalendarEvent(cookieObject.mText, String.valueOf(mLastEventID));
+
+                Snackbar.make(mRecyclerView, section +" added to Google Calendar", Snackbar.LENGTH_LONG)
+                        .setAction("Undo", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Uri deleteUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, mLastEventID);
+                                Cookie deleteCookie = new Cookie(section, cookieObject.mGroupPos, cookieObject.mChildPos);
+                                mHandler.startDelete(0, deleteCookie, deleteUri, null, null);
+                            }
+                        })
+                        .show();
+
+                Log.i(TAG, cookie + " Event created");
+                break;
         }
     }
+
+    @Override
+    public void onDeleteComplete(int token, Object cookie, int result) {
+        switch (token){
+            case 0:
+                Cookie cookieObject = (Cookie)cookie;
+                ((CourseSectionFooterData)mData.getChildItem(cookieObject.mGroupPos, cookieObject.mChildPos)).setEventID(null);
+                ((CourseSectionData)mData.getGroupItem(cookieObject.mGroupPos)).setEventID(null);
+                mRecyclerViewExpandableItemManager.notifyChildItemChanged(cookieObject.mGroupPos, cookieObject.mChildPos);
+
+                mDBHelper.deleteCourseEvent(String.valueOf(mLastEventID));
+                Snackbar.make(mRecyclerView, cookieObject.mText + " removed from Google Calendar", Snackbar.LENGTH_LONG)
+                        .show();
+
+                Log.i(TAG, cookie + " Event removed");
+                break;
+        }
+    }
+
+    public class Cookie{
+        String mText;
+        int mGroupPos;
+        int mChildPos;
+
+        public Cookie(String text, int groupPos, int childPos){
+            mText = text;
+            mGroupPos = groupPos;
+            mChildPos = childPos;
+        }
+    }
+
 }
