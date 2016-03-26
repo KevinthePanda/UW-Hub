@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    card_view:cardBackgroundColor="#E6E6E6"
+    card_view:cardElevation="2dp"
+    android:foreground="?android:attr/selectableItemBackground">
+    <RelativeLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:clickable="true"
+        android:background="@color/bg_item_normal_state">
+        <TextView
+            android:id="@+id/enrollment_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium"
+            android:textStyle="italic"
+            android:text="Enrollment"
+            android:layout_centerVertical="true"/>
+        <TextView
+            android:id="@+id/enrollment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:paddingRight="8dp"/>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:progress="0"
+            android:progressDrawable="@drawable/circular_progress_bar"
+            android:layout_toLeftOf="@id/enrollment"
+            android:paddingRight="4dp"/>
+    </RelativeLayout>
+</android.support.v7.widget.CardView>

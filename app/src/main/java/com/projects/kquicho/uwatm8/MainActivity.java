@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
     final private int PERMISSIONS_REQUEST_GET_ACCOUNTS = 0;
+    final private int PERMISSIONS_REQUEST_WRITE_CALENDAR = 1;
     private DrawerLayout mDrawerLayout;
     private Toolbar mToolbar;
     private NavigationView mNavDrawer;
@@ -132,6 +133,20 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_CALENDAR)
+                != PackageManager.PERMISSION_GRANTED) {
+
+
+            // No explanation needed, we can request the permission.
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_CALENDAR},
+                    PERMISSIONS_REQUEST_WRITE_CALENDAR);
+
+        }
+
+
     }
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -152,9 +167,21 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return;
             }
+            case PERMISSIONS_REQUEST_WRITE_CALENDAR:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-            // other 'case' lines to check for other
-            // permissions this app might request
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+
+
         }
     }
 

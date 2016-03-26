@@ -15,8 +15,11 @@ public class CourseSectionData extends AbstractExpandableData.GroupData {
     private String mRoom = null;
     private String mInstructor = null;
     private String mDate = null;
+    private String mEventID = null;
 
-    private CourseSectionData(String section, String campus, int enrollmentCapacity, int enrollmentTotal, String startTime, String endTime, String weekdays, String building, String room, String instructor, String date) {
+    private CourseSectionData(String section, String campus, int enrollmentCapacity, int enrollmentTotal,
+                              String startTime, String endTime, String weekdays, String building,
+                              String room, String instructor, String date, String eventID) {
         mSection = section;
         mCampus = campus;
         mEnrollmentCapacity = enrollmentCapacity;
@@ -28,13 +31,13 @@ public class CourseSectionData extends AbstractExpandableData.GroupData {
         mRoom = room;
         mInstructor = instructor;
         mDate = date == null ? "" : date;
+        mEventID = eventID;
     }
 
 
     public String getSection() {
         return mSection;
     }
-
     public String getCampus() {
         return mCampus;
     }
@@ -75,6 +78,15 @@ public class CourseSectionData extends AbstractExpandableData.GroupData {
         return mDate;
     }
 
+
+    public String getEventID() {
+        return mEventID;
+    }
+    public void setEventID(String eventID) {
+        mEventID = eventID;
+    }
+
+
     public static class Builder{
         private String mSection = null;
         private String mCampus = null;
@@ -87,6 +99,7 @@ public class CourseSectionData extends AbstractExpandableData.GroupData {
         private String mRoom = null;
         private String mInstructor = null;
         private String mDate = null;
+        private String mEventID = null;
 
         public Builder section(String section){
             mSection = section;
@@ -143,9 +156,15 @@ public class CourseSectionData extends AbstractExpandableData.GroupData {
             return this;
         }
 
+        public Builder eventID(String eventID){
+            mEventID = eventID;
+            return this;
+        }
+
+
         public CourseSectionData createCourseSectionData(){
             return new CourseSectionData(mSection, mCampus, mEnrollmentCapacity, mEnrollmentTotal,
-                    mStartTime, mEndTime, mWeekdays, mBuilding, mRoom, mInstructor, mDate);
+                    mStartTime, mEndTime, mWeekdays, mBuilding, mRoom, mInstructor, mDate, mEventID);
         }
     }
 
