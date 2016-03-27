@@ -1,10 +1,14 @@
 package com.projects.kquicho.uwatm8;
 
+import android.app.ActionBar;
+import android.app.Notification;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -51,6 +55,11 @@ public class CoursesFragment extends Fragment implements JSONDownloader.onDownlo
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         mSubject = getArguments().getString(SUBJECT);
+        android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if(actionBar != null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayShowHomeEnabled(true);
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.projects.kquicho.uwatm8;
 
+import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -88,6 +89,13 @@ public class CourseWatchService extends IntentService {
         if(parse.getIsEnrollmentOpen(courseWatchDBModel.getSection())){
             CourseDBHelper dbHelper = CourseDBHelper.getInstance(getApplicationContext());
             dbHelper.deleteCourseWatch(courseWatchDBModel.getCourseID());
+            Intent deleteAlarmIntent = new Intent(getApplicationContext(), CourseWatchAlarmReceiver.class);
+            final PendingIntent deletePIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                    courseWatchDBModel.getID(), deleteAlarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            AlarmManager deleteAlarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            deleteAlarm.cancel(deletePIntent);
+
+            Log.i("test",courseWatchDBModel.getID() + " yesysey" );
             sendNotification(courseWatchDBModel.getTitle(), courseWatchDBModel.getMessage());
         }
 
