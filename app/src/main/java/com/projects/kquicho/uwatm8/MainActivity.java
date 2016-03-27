@@ -192,7 +192,4 @@ public class MainActivity extends AppCompatActivity {
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
-    public void setToolbarTitle(String title){
-        mToolbar.setTitle(title);
-    }
 }
