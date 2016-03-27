@@ -45,6 +45,7 @@ public class TermsParser extends UWParser {
     private static final String SUBJECT_END_POINT = "terms/%s/%s/schedule"; // /terms/{term}/{subject}/schedule
     private static final String CATALOG_END_POINT = "terms/%s/%s/%s/schedule"; // /terms/{term}/{subject}/{catalog_number}/schedule
     private static final String TERM_COURSES_END_POINT = "terms/%s/courses"; // /terms/{term}/courses
+    private static final String OPEN_ENROLLMENT_END_POINT = "terms/%s/schedule"; // /terms/{term}/{subject}/{catalog_number}/schedule
 
     // JSON Object leaf node tags
     private static final String COURSE_ID_TAG = "course_id";
@@ -558,6 +559,25 @@ public class TermsParser extends UWParser {
         return courseSchedule;
     }
 
+    public boolean getIsEnrollmentOpen(String selectedSection){
+        try {
+            JSONArray courseScheduleArray = apiResult.getResultJSON().getJSONArray(DATA_TAG);
+            for(int i = 0; i < courseScheduleArray.length(); i++) {
+                JSONObject courseSectionObject = courseScheduleArray.getJSONObject(i);
+
+                String section = courseSectionObject.getString(SECTION_TAG);
+                if (selectedSection.equals(section)) {
+                    int enrollmentCapacity = courseSectionObject.getInt(ENROLLMENT_CAPACITY_TAG);
+                    int enrollmentTotal = courseSectionObject.getInt(ENROLLMENT_TOTAL_TAG);
+                    return enrollmentTotal < enrollmentCapacity;
+                }
+            }
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private UWClass parseSingleClass(JSONObject classObject) throws JSONException {
         UWClass uwClass = new UWClass();
 
@@ -761,5 +781,9 @@ public class TermsParser extends UWParser {
 
     public String getTermCoursesEndPoint(String term){
         return String.format(TERM_COURSES_END_POINT, term);
+    }
+
+    public String getCheckOpenEnrollmentEndPoint(String url){
+        return String.format(OPEN_ENROLLMENT_END_POINT, url);
     }
 }

@@ -1,7 +1,9 @@
 package com.projects.kquicho.uwatm8;
 
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -15,6 +17,7 @@ import java.util.List;
  */
 public class CourseDBHelper extends SQLiteOpenHelper {
     public final static String TAG = "CourseDBHelper";
+    private Context mContext;
 
     private static CourseDBHelper sInstance;
 
@@ -35,6 +38,8 @@ public class CourseDBHelper extends SQLiteOpenHelper {
     private static final String KEY_COURSE_EVENT_ID = "eventId";
 
     // Course Watch
+    private static final String KEY_COURSE_WATCH_URL = "url";
+    private static final String KEY_COURSE_WATCH_SECTION = "section";
     private static final String KEY_COURSE_WATCH_TITLE = "title";
     private static final String KEY_COURSE_WATCH_MESSAGE = "msg";
 
@@ -50,6 +55,8 @@ public class CourseDBHelper extends SQLiteOpenHelper {
             "(" +
             KEY_COURSE_ID + " INTEGER PRIMARY KEY," + // Define a primary key
             KEY_COURSE_SECTION_ID + " TEXT," +
+            KEY_COURSE_WATCH_URL + " TEXT," +
+            KEY_COURSE_WATCH_SECTION + " TEXT," +
             KEY_COURSE_WATCH_TITLE + " TEXT," +
             KEY_COURSE_WATCH_MESSAGE + " TEXT" +
             ")";
@@ -68,6 +75,7 @@ public class CourseDBHelper extends SQLiteOpenHelper {
 
     private CourseDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        mContext = context;
     }
 
     // Called when the database connection is being configured.
@@ -118,24 +126,45 @@ public class CourseDBHelper extends SQLiteOpenHelper {
             db.endTransaction();
         }
     }
-    public void addCourseWatch(String courseId, String title, String msg){
+    public int addCourseWatch(CourseWatchDBModel data){
         // Create and/or open the database for writing
         SQLiteDatabase db = getWritableDatabase();
+
+
+        String count = "SELECT count(*) FROM " + TABLE_COURSE_ENROLLMENT_WATCH;
+        Cursor cursor = db.rawQuery(count, null);
+        cursor.moveToFirst();
+        int icount = cursor.getInt(0);
+        if(icount == 0){
+            ComponentName receiver = new ComponentName(mContext, CourseWatchBootReceiver.class);
+            PackageManager pm = mContext.getPackageManager();
+
+            pm.setComponentEnabledSetting(receiver,
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                    PackageManager.DONT_KILL_APP);
+            Log.d(TAG, "Enabling CourseWatchBootReceiver");
+        }
+        cursor.close();
 
         db.beginTransaction();
         try {
 
             ContentValues values = new ContentValues();
-            values.put(KEY_COURSE_SECTION_ID, courseId);
-            values.put(KEY_COURSE_WATCH_TITLE, title);
-            values.put(KEY_COURSE_WATCH_MESSAGE, msg);
+            values.put(KEY_COURSE_SECTION_ID, data.getCourseID());
+            values.put(KEY_COURSE_WATCH_URL, data.getURL());
+            values.put(KEY_COURSE_WATCH_SECTION, data.getSection());
+            values.put(KEY_COURSE_WATCH_TITLE, data.getTitle());
+            values.put(KEY_COURSE_WATCH_MESSAGE, data.getMessage());
 
-            db.insertOrThrow(TABLE_COURSE_ENROLLMENT_WATCH, null, values);
+            long ret = db.insertOrThrow(TABLE_COURSE_ENROLLMENT_WATCH, null, values);
             db.setTransactionSuccessful();
+            return (int)ret;
         } catch (Exception e) {
             Log.d(TAG, "Error while trying to add post to database");
+            return 0;
         } finally {
             db.endTransaction();
+
         }
     }
 
@@ -170,11 +199,67 @@ public class CourseDBHelper extends SQLiteOpenHelper {
                 new String[]{eventId});
     }
 
-    public void deleteCourseWatch(String courseId){
+    public int deleteCourseWatch(String courseId){
         SQLiteDatabase db = getWritableDatabase();
 
-        db.delete(TABLE_COURSE_ENROLLMENT_WATCH, KEY_COURSE_SECTION_ID + " = ?",
-                new String[]{courseId });
+        Log.i("test", "deleting course with id: " + courseId);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_COURSE_ENROLLMENT_WATCH + " WHERE " +
+                KEY_COURSE_SECTION_ID + "='" + courseId + "'", null);
+        if(cursor.moveToFirst()){
+            int id = cursor.getInt(cursor.getColumnIndex(KEY_COURSE_ID));
+            db.delete(TABLE_COURSE_ENROLLMENT_WATCH, KEY_COURSE_SECTION_ID + " = ?",
+                    new String[]{courseId });
+
+
+            String count = "SELECT count(*) FROM " + TABLE_COURSE_ENROLLMENT_WATCH;
+            Cursor countCursor = db.rawQuery(count, null);
+            countCursor.moveToFirst();
+            int icount = countCursor.getInt(0);
+            if(icount == 0){
+                ComponentName receiver = new ComponentName(mContext, CourseWatchBootReceiver.class);
+                PackageManager pm = mContext.getPackageManager();
+
+                pm.setComponentEnabledSetting(receiver,
+                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                        PackageManager.DONT_KILL_APP);
+                Log.d(TAG, "Disabling CourseWatchBootReceiver");
+            }
+            countCursor.close();
+
+            return id;
+
+        }else{
+            return 0;
+        }
+    }
+
+
+    public List<CourseWatchDBModel> getAllCourseWatches(){
+        List<CourseWatchDBModel> courseWatchDBModels = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_COURSE_ENROLLMENT_WATCH, null);
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+
+                    String courseID = cursor.getString(cursor.getColumnIndex(KEY_COURSE_SECTION_ID));
+                    String url = cursor.getString(cursor.getColumnIndex(KEY_COURSE_WATCH_URL));
+                    String section = cursor.getString(cursor.getColumnIndex(KEY_COURSE_WATCH_SECTION));
+                    String title = cursor.getString(cursor.getColumnIndex(KEY_COURSE_WATCH_TITLE));
+                    String message = cursor.getString(cursor.getColumnIndex(KEY_COURSE_WATCH_MESSAGE));
+                    int id = cursor.getInt(cursor.getColumnIndex(KEY_COURSE_ID));
+                    CourseWatchDBModel newCourseWatch = new CourseWatchDBModel(courseID, section, url, title, message, id);
+                    courseWatchDBModels.add(newCourseWatch);
+                } while(cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to get info sessions from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        return courseWatchDBModels;
     }
 
 
