@@ -18,18 +18,19 @@ public class CourseWatchBootReceiver  extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "onReceive");
         if(intent.getAction().equals("android.intent.action.BOOT_COMPLETED")){
-            InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(context);
-            List<InfoSessionDBModel> infoSessionDBModels = dbHelper.getAllInfoSessions();
+            CourseDBHelper dbHelper = CourseDBHelper.getInstance(context);
+            List<CourseWatchDBModel> dbModels = dbHelper.getAllCourseWatches();
 
-            for(InfoSessionDBModel infoSessionDBModel : infoSessionDBModels) {
-                Intent i = new Intent(context.getApplicationContext(), InfoSessionAlarmReceiver.class);
-                i.putExtra(InfoSessionAlarmReceiver.INFO_SESSION_MODEL, infoSessionDBModel);
+            for(CourseWatchDBModel dbModel : dbModels) {
+                Intent i = new Intent(context.getApplicationContext(), CourseWatchAlarmReceiver.class);
+                i.putExtra(CourseWatchAlarmReceiver.COURSE_WATCH_DB_MODEL, dbModel);
 
                 final PendingIntent pIntent = PendingIntent.getBroadcast(context,
-                        infoSessionDBModel.getId(), i, PendingIntent.FLAG_UPDATE_CURRENT);
+                        dbModel.getID(), i, PendingIntent.FLAG_UPDATE_CURRENT);
 
                 AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-                alarm.set(AlarmManager.RTC_WAKEUP, infoSessionDBModel.getTime(), pIntent);
+                alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 30000,
+                        AlarmManager.INTERVAL_HOUR, pIntent);
             }
         }
     }

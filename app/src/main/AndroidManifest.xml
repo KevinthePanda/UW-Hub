@@ -20,11 +20,23 @@
         <service
             android:name=".InfoSessionService"
             android:exported="false"/>
+        <service
+            android:name=".CourseWatchService"
+            android:exported="false"/>
         <receiver
             android:name=".InfoSessionAlarmReceiver"
             android:process=":remote"/>
+        <receiver
+            android:name=".CourseWatchAlarmReceiver"
+            android:process=":remote"/>
         <receiver android:name=".InfoSessionBootReceiver"
             android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".CourseWatchBootReceiver"
+                  android:enabled="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
