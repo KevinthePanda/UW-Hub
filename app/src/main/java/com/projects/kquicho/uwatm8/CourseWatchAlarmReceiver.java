@@ -10,14 +10,14 @@ import android.util.Log;
  */
 public class CourseWatchAlarmReceiver extends BroadcastReceiver {
     public final static String TAG = "CourseWatchReceiver";
+    public final static String COURSE_WATCH_DB_MODEL = CourseWatchService.COURSE_WATCH_DB_MODEL;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "onReceive");
         Intent intentService = new Intent(context, CourseWatchService.class);
-        intentService.putExtra(CourseWatchService.ID, intent.getIntExtra(CourseWatchService.ID, 1));
-        intentService.putExtra(CourseWatchService.TITLE, intent.getStringExtra(CourseWatchService.TITLE));
-        intentService.putExtra(CourseWatchService.MESSAGE, intent.getStringExtra(CourseWatchService.MESSAGE));
+        CourseWatchDBModel courseWatchDBModel = intent.getParcelableExtra(COURSE_WATCH_DB_MODEL);
+        intentService.putExtra(COURSE_WATCH_DB_MODEL, courseWatchDBModel);
         context.startService(intentService);
     }
 }

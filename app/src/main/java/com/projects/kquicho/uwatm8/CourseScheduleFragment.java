@@ -1,7 +1,10 @@
 package com.projects.kquicho.uwatm8;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.NinePatchDrawable;
 import android.net.Uri;
@@ -334,16 +337,37 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                 startActivity(intent);
                 break;
             case CourseScheduleAdapter.ADD_WATCH:
-                mDBHelper.addCourseWatch(sectionData.getSection()+ " " + mSubject + mCatalogNumber + mCurrentTerm,
-                        sectionData.getSection() + " - " + mSubject + " " + mCatalogNumber,
-                        "Section for " + mCurrentTerm + " now has open slots");
+                CourseWatchDBModel data = new CourseWatchDBModel(sectionData.getSection(), mCurrentTerm,
+                        mSubject, mCatalogNumber);
+                data.setID(mDBHelper.addCourseWatch(data));
                 ((CourseSectionFooterData)mData.getChildItem(groupPosition, childPosition)).setBeingWatched(true);
                 mRecyclerViewExpandableItemManager.notifyChildItemChanged(groupPosition, childPosition);
+
+                Intent alarmIntent = new Intent(getActivity().getApplicationContext(), CourseWatchAlarmReceiver.class);
+                alarmIntent.putExtra(CourseWatchAlarmReceiver.COURSE_WATCH_DB_MODEL, data);
+
+                final PendingIntent pIntent = PendingIntent.getBroadcast(getActivity().getApplicationContext(),
+                        data.getID(),alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                AlarmManager alarm = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+                //set the alarm an hour before the start time
+                alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 300000,
+                        AlarmManager.INTERVAL_HOUR, pIntent);
+                //http://www.fileformat.info/tip/java/date2millis.htm
+                Log.d(TAG, "Setting alarm for " + data.getID() + " " + data.getCourseID());
+
                 break;
             case CourseScheduleAdapter.REMOVE_WATCH:
-                mDBHelper.deleteCourseWatch(sectionData.getSection() + " " + mSubject + mCatalogNumber + mCurrentTerm);
+                int id = mDBHelper.deleteCourseWatch(sectionData.getSection() + " " + mSubject + mCatalogNumber + mCurrentTerm);
                 ((CourseSectionFooterData)mData.getChildItem(groupPosition, childPosition)).setBeingWatched(false);
                 mRecyclerViewExpandableItemManager.notifyChildItemChanged(groupPosition, childPosition);
+
+                Intent deleteAlarmIntent = new Intent(getActivity().getApplicationContext(), CourseWatchAlarmReceiver.class);
+                final PendingIntent deletePIntent = PendingIntent.getBroadcast(getActivity().getApplicationContext(),
+                        id, deleteAlarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                AlarmManager deleteAlarm = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+                deleteAlarm.cancel(deletePIntent);
+
                 break;
         }
 
