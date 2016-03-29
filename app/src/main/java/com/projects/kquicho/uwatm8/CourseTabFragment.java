@@ -16,7 +16,7 @@ import android.view.ViewGroup;
 /**
  * Created by Kevin Quicho on 3/16/2016.
  */
-public class CourseTabFragment extends Fragment{
+public class CourseTabFragment extends Fragment implements MainActivity.FragmentOnBackClickInterface{
     public static final String TAG = "courseTabFragment";
     public static final String SUBJECT_TAG = "subject";
     public static final String CATALOG_NUMBER_TAG = "catalogNumber";
@@ -47,7 +47,8 @@ public class CourseTabFragment extends Fragment{
        // ((MainActivity)getActivity()).setToolbarTitle(mSubject + " " + mCatalogNumber);
         android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if(actionBar != null){
-            actionBar.setTitle(mSubject + " " + mCatalogNumber);actionBar.setSubtitle(mTitle);
+            actionBar.setTitle(mSubject + " " + mCatalogNumber);
+            actionBar.setSubtitle(mTitle);
         }
     }
 
@@ -86,6 +87,14 @@ public class CourseTabFragment extends Fragment{
         });
 
         return inflatedView;
+    }
+
+    @Override
+    public void onFragmentBackPressed() {
+        android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if(actionBar != null){
+            actionBar.setSubtitle(null);
+        }
     }
 
     public class PagerAdapter extends FragmentStatePagerAdapter {
