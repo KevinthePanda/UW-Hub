@@ -23,6 +23,7 @@ public class GroupSubjectAdapter
 
     private GroupSubjectData mData;
 
+
     public static abstract class MyBaseViewHolder extends AbstractExpandableItemViewHolder {
         public View mContainer;
 

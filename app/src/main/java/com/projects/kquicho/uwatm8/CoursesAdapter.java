@@ -50,7 +50,7 @@ public class CoursesAdapter extends RecyclerView.Adapter<CoursesAdapter.CourseVi
     public CourseViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
-        View view = inflater.inflate(R.layout.courses_row, parent, false);
+        View view = inflater.inflate(R.layout.catalog_number_row, parent, false);
 
         return  new CourseViewHolder(view);
     }

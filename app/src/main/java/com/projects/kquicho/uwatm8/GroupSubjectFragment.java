@@ -8,8 +8,10 @@ import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +36,7 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
 
     public static final String TAG = "GroupSubjectFragment";
     private static final String SAVED_STATE_EXPANDABLE_ITEM_MANAGER = "RecyclerViewExpandableItemManager";
-
+    private static final String TITLE = "Courses";
     private GroupSubjectData mData;
     private GroupSubjectAdapter mAdapter;
     private RecyclerView mRecyclerView;
@@ -43,7 +45,18 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
     private RecyclerView.Adapter mWrappedAdapter;
     private CodesParser mCodesParser = new CodesParser();
     private String mCodeUrl;
+    private SearchView.OnQueryTextListener mOnQueryTextListener = new SearchView.OnQueryTextListener() {
+        @Override
+        public boolean onQueryTextSubmit(String query) {
 
+            return true;
+        }
+
+        @Override
+        public boolean onQueryTextChange(String newText) {
+            return false;
+        }
+    };
 
 
     public GroupSubjectFragment(){
@@ -104,7 +117,6 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
                 mRecyclerViewExpandableItemManager.collapseAll();
             }
         });
-
 
     }
 
@@ -193,11 +205,11 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
     }
 
     private void adjustScrollPositionOnGroupExpanded(int groupPosition) {
-        int childItemHeight = 43;
+        int childItemHeight = (int) (getActivity().getResources().getDisplayMetrics().density * 55);
         int topMargin = (int) (getActivity().getResources().getDisplayMetrics().density * 16); // top-spacing: 16dp
         int bottomMargin = topMargin; // bottom-spacing: 16dp
 
-        mRecyclerViewExpandableItemManager.scrollToGroup(groupPosition, childItemHeight, topMargin, bottomMargin);
+        mRecyclerViewExpandableItemManager.scrollToGroup(groupPosition, childItemHeight, 0, 0);
     }
 
     private boolean supportsViewElevation() {
@@ -208,11 +220,12 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
     @Override
     public void onSubjectClick (String subject) {
         android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-        CoursesFragment fragment = CoursesFragment.newInstance(subject);
+        CatalogNumberFragment fragment = CatalogNumberFragment.newInstance(subject, TITLE);
+
         ft
-                .add(R.id.fragment_container, fragment)
+                .add(R.id.fragment_container, fragment,CatalogNumberFragment.TAG)
                 .hide(this)
-                .addToBackStack(CoursesFragment.TAG)
+                .addToBackStack(CatalogNumberFragment.TAG)
                 .commit();
     }
 }
