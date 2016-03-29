@@ -8,12 +8,18 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -24,8 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private Toolbar mToolbar;
     private NavigationView mNavDrawer;
-    private ActionBarDrawerToggle mDrawerToggle;
-
+    private MenuArrowDrawable mMenuArrowDrawable;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,11 +42,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Our drawer layout root
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerToggle = setupDrawerToggle();
 
-        // Tie DrawerLayout events to the ActionBarToggle
-        mDrawerLayout.addDrawerListener(mDrawerToggle);
-
+        mMenuArrowDrawable = new MenuArrowDrawable(this);
+        mToolbar.setNavigationIcon(mMenuArrowDrawable);
 
         //Find our drawer view
         mNavDrawer = (NavigationView) findViewById(R.id.nvView);
@@ -51,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
         mNavDrawer.getMenu().performIdentifierAction(R.id.nav_home, 0);
     }
 
-    private ActionBarDrawerToggle setupDrawerToggle() {
-        return new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.drawer_open,  R.string.drawer_close);
+    public void animateMenuArrowDrawable(boolean menuToArrow){
+        mMenuArrowDrawable.animateDrawable(menuToArrow);
     }
 
     private void setupDrawerContent(NavigationView navigationView) {
@@ -108,17 +111,41 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                if(mMenuArrowDrawable.getPosition() == 0) {
+                    mDrawerLayout.openDrawer(GravityCompat.START);
+                }else{
+                    onBackPressed();
+                }
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
+    public void onBackPressed(){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        int count = fragmentManager.getBackStackEntryCount();
+        Fragment currentFragment = null;
+        if(count > 0) {
+            String fragmentTag = fragmentManager.getBackStackEntryAt(count - 1).getName();
+            currentFragment = getSupportFragmentManager().findFragmentByTag(fragmentTag);
+        }
+
+        //nothing else in back stack || nothing in back stack is instance of our interface
+        if (currentFragment == null || !(currentFragment instanceof FragmentOnBackClickInterface)) {
+            Log.i("test", "Wtf");
+            super.onBackPressed();
+        } else {
+            ((FragmentOnBackClickInterface) currentFragment).onFragmentBackPressed();
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     protected void onPostCreate(Bundle savedInstanceState){
         super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-        mDrawerToggle.syncState();
 
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.GET_ACCOUNTS)
@@ -188,8 +215,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // Pass any configuration change to the drawer toggles
-        mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+
+
+    public interface FragmentOnBackClickInterface {
+        void onFragmentBackPressed();
     }
 
 }
