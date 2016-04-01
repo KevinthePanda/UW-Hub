@@ -199,7 +199,6 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
                 } else if (subject.equals(mPreviousSearchSubject) && mPreviousCourses != null) {
                     MatrixCursor matrixCursor = convertToCursor(mPreviousCourses, number);
                     mSearchViewAdapter.changeCursor(matrixCursor);
-                    searchView.setSuggestionsAdapter(mSearchViewAdapter);
                 } else {
                     mSearchViewAdapter.changeCursor(null);
                 }
@@ -207,39 +206,32 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
             }
         });
 
-        searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
-            @Override
-            public boolean onSuggestionSelect(int position) {
-                return false;
-            }
+        mSearchViewAdapter = new SearchCourseResultsAdapter(this.getActivity(), R.layout.catalog_number_row, null, columns, null, -1000,
+                new SearchCourseResultsAdapter.onSuggestionClickListener() {
+                    @Override
+                    public void onSuggestionClick(String catalogNumber, String title){
+                        Log.i("test", "onSuggestionClick");
+                        searchView.clearFocus();
+                        mDimOverlay.setVisibility(View.GONE);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
+                        }
+                        actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.theme_primary));
 
-            @Override
-            public boolean onSuggestionClick(int position) {
-                Log.i("test", "onSuggestionClick");
-                searchView.clearFocus();
-                mDimOverlay.setVisibility(View.GONE);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
-                }
-                actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.theme_primary));
+                        android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                        CourseTabFragment fragment = CourseTabFragment.newInstance(mPreviousSearchSubject,
+                                catalogNumber, title, TITLE);
 
-                Cursor cursor = (Cursor) mSearchViewAdapter.getItem(position);
-                android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                CourseTabFragment fragment = CourseTabFragment.newInstance(mPreviousSearchSubject,
-                        cursor.getString(1).split(" ")[1], cursor.getString(2), TITLE);
-
-                ft
-                        .add(R.id.fragment_container, fragment, CourseTabFragment.TAG)
-                        .hide(thisFragment)
-                        .addToBackStack(CatalogNumberFragment.TAG)
-                        .commit();
-                return true;
-            }
-        });
-        mSearchViewAdapter = new SearchCourseResultsAdapter(this.getActivity(), R.layout.catalog_number_row, null, columns,null, -1000);
+                        ft
+                                .add(R.id.fragment_container, fragment, CourseTabFragment.TAG)
+                                .hide(thisFragment)
+                                .addToBackStack(CourseTabFragment.TAG)
+                                .commit();
+                    }
+                });
         searchView.setSuggestionsAdapter(mSearchViewAdapter);
 
-        searchView.getSuggestionsAdapter();
+        Log.i("suggestion",searchView.getSuggestionsAdapter() + "");
         super.onCreateOptionsMenu(menu, inflater);
     }
 
