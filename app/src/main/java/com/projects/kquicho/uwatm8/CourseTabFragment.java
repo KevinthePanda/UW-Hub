@@ -90,15 +90,22 @@ public class CourseTabFragment extends Fragment implements MainActivity.Fragment
             }
         });
 
+        if(mCallingFragmentTitle.equals(GroupSubjectFragment.TITLE)){
+            ((MainActivity) getActivity()).setMenuArrowDrawable(true);
+
+        }
         return inflatedView;
     }
 
     @Override
     public void onFragmentBackPressed() {
+        Log.i("test", "OnFragment");
         android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if(actionBar != null){
             actionBar.setSubtitle(null);
+            actionBar.setTitle(mCallingFragmentTitle);
         }
+
 
         if(mCallingFragmentTitle.equals(GroupSubjectFragment.TITLE)){
             ((MainActivity) getActivity()).animateMenuArrowDrawable(false);
