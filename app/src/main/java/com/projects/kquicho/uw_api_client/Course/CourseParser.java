@@ -108,7 +108,7 @@ public class CourseParser extends UWParser{
     }
 
     // /courses/{subject} - list of courses by subject variables
-    private ArrayList<Course> mCourses = new ArrayList<>();
+    private ArrayList<Course> mCourses;
 
     // /courses/{subject}/{catalog_number} variables
     private CourseDetails mCourseDetail = null;
@@ -166,6 +166,7 @@ public class CourseParser extends UWParser{
     }
 
     private void parseCoursesJSON() {
+        mCourses = new ArrayList<>();
         try {
             JSONArray coursesArray = mApiResult.getResultJSON().getJSONArray(DATA_TAG);
             for (int i = 0; i < coursesArray.length(); i++) {

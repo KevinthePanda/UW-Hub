@@ -28,4 +28,10 @@
         app:layout_anchorGravity="bottom|right|end"
         app:layout_behavior="com.projects.kquicho.uwatm8.ScrollAwareFABBehavior"
         app:backgroundTint="@color/theme_primary" />
+    <FrameLayout
+        android:id="@+id/dim_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background_dim_overlay"
+        android:visibility="gone"/>
 </android.support.design.widget.CoordinatorLayout>

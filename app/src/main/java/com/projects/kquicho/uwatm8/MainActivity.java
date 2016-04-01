@@ -1,6 +1,8 @@
 package com.projects.kquicho.uwatm8;
 
 import android.Manifest;
+import android.app.SearchManager;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.support.design.widget.NavigationView;
@@ -54,8 +56,14 @@ public class MainActivity extends AppCompatActivity {
         mNavDrawer.getMenu().performIdentifierAction(R.id.nav_home, 0);
     }
 
+
     public void animateMenuArrowDrawable(boolean menuToArrow){
         mMenuArrowDrawable.animateDrawable(menuToArrow);
+    }
+
+    public void setMenuArrowDrawable(boolean menuToArrow){
+        float progress = menuToArrow ? 1: 0;
+        mMenuArrowDrawable.setProgress(progress);
     }
 
     private void setupDrawerContent(NavigationView navigationView) {
@@ -144,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPostCreate(Bundle savedInstanceState){
+    protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
         if (ContextCompat.checkSelfPermission(this,
