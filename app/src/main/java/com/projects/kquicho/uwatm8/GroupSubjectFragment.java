@@ -1,6 +1,10 @@
 package com.projects.kquicho.uwatm8;
 
 
+
+import android.animation.LayoutTransition;
+import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -8,14 +12,20 @@ import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.LinearLayout;
 
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
@@ -27,6 +37,12 @@ import com.projects.kquicho.uw_api_client.Codes.CodesParser;
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.JSONDownloader;
 import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
+import com.projects.kquicho.uw_api_client.Course.Course;
+import com.projects.kquicho.uw_api_client.Course.CourseParser;
+
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class GroupSubjectFragment extends Fragment implements JSONDownloader.onDownloadListener,
@@ -36,7 +52,7 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
 
     public static final String TAG = "GroupSubjectFragment";
     private static final String SAVED_STATE_EXPANDABLE_ITEM_MANAGER = "RecyclerViewExpandableItemManager";
-    private static final String TITLE = "Courses";
+    public static final String TITLE = "Courses";
     private GroupSubjectData mData;
     private GroupSubjectAdapter mAdapter;
     private RecyclerView mRecyclerView;
@@ -45,22 +61,24 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
     private RecyclerView.Adapter mWrappedAdapter;
     private CodesParser mCodesParser = new CodesParser();
     private String mCodeUrl;
-    private SearchView.OnQueryTextListener mOnQueryTextListener = new SearchView.OnQueryTextListener() {
-        @Override
-        public boolean onQueryTextSubmit(String query) {
-
-            return true;
-        }
-
-        @Override
-        public boolean onQueryTextChange(String newText) {
-            return false;
-        }
-    };
-
+    private CourseParser mCoursesParser = new CourseParser();
+    private String mCourseUrl;
+    private String mPreviousSearchSubject = "";
+    private SearchCourseResultsAdapter mSearchViewAdapter;
+    private ArrayList<Course> mPreviousCourses;
+    private View mDimOverlay;
+    private MenuItem mSearchItem;
+    private FloatingActionButton mFab;
 
     public GroupSubjectFragment(){
         super();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+
     }
 
     @Override
@@ -68,11 +86,168 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
         return inflater.inflate(R.layout.fragment_group_subject, parent, false);
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.main, menu);
+        final MenuItem searchItem = menu.findItem(R.id.action_search);
+        final android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        final Window window = getActivity().getWindow();
+
+        final SearchView searchView = new SearchView(actionBar.getThemedContext());
+        mSearchItem = searchItem;
+        MenuItemCompat.setShowAsAction(searchItem, MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW | MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
+        MenuItemCompat.setActionView(searchItem, searchView);
+
+        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.search_view));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_accent));
+                }
+
+
+                mDimOverlay.setVisibility(View.VISIBLE);
+                mFab.setVisibility(View.GONE);
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.theme_primary));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
+                }
+                mDimOverlay.setVisibility(View.GONE);
+                mFab.setVisibility(View.VISIBLE);
+                return true;
+            }
+        });
+
+        final Fragment thisFragment = this;
+
+
+        final JSONDownloader.onDownloadListener onDownloadListener = this;
+        searchView.setQueryHint(getString(R.string.search_courses));
+
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                ArrayList<Course> newCourseList = new ArrayList<>();
+
+                if (mSearchViewAdapter == null) {
+                    return false;
+                }
+                for (int i = 0; i < mSearchViewAdapter.getCount(); i++) {
+                    Cursor cursor = (Cursor) mSearchViewAdapter.getItem(i);
+                    Course newCourse = new Course();
+                    newCourse.setCatalogNumber(cursor.getString(1).split(" ")[1]);
+                    newCourse.setTitle(cursor.getString(2));
+                    newCourseList.add(newCourse);
+                    cursor.close();
+                }
+
+                searchView.clearFocus();
+                mDimOverlay.setVisibility(View.GONE);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
+                }
+                actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.theme_primary));
+
+                android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                CatalogNumberFragment fragment = CatalogNumberFragment.newInstance(mPreviousSearchSubject, newCourseList, TITLE);
+
+                ft
+                        .add(R.id.fragment_container, fragment, CatalogNumberFragment.TAG)
+                        .hide(thisFragment)
+                        .addToBackStack(CatalogNumberFragment.TAG)
+                        .commit();
+
+
+                // workaround to avoid issues with some emulators and keyboard devices firing twice if a keyboard enter is used
+                // see https://code.google.com/p/android/issues/detail?id=24599
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // perform query here
+                if (newText.length() < 2) {
+                    return true;
+                }
+                String subject = "";
+                String number = "";
+                for (char c : newText.toCharArray()) {
+                    if (Character.isLetter(c)) {
+                        subject += c;
+                    } else if (Character.isDigit(c)) {
+                        number += c;
+                    }
+                }
+                subject = subject.toUpperCase();
+
+                if (subject.length() >= 2 && !subject.equals(mPreviousSearchSubject)) {
+                    mCoursesParser.setParseType(CourseParser.ParseType.COURSES.ordinal());
+                    mCourseUrl = UWOpenDataAPI.buildURL(String.format(mCoursesParser.getEndPoint(), subject));
+
+                    JSONDownloader downloader = new JSONDownloader(mCourseUrl);
+                    downloader.setOnDownloadListener(onDownloadListener);
+                    downloader.start();
+                    mPreviousSearchSubject = subject;
+                    mSearchViewAdapter.changeCursor(null);
+                } else if (subject.equals(mPreviousSearchSubject) && mPreviousCourses != null) {
+                    MatrixCursor matrixCursor = convertToCursor(mPreviousCourses, number);
+                    mSearchViewAdapter.changeCursor(matrixCursor);
+                    searchView.setSuggestionsAdapter(mSearchViewAdapter);
+                } else {
+                    mSearchViewAdapter.changeCursor(null);
+                }
+                return true;
+            }
+        });
+
+        searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
+            @Override
+            public boolean onSuggestionSelect(int position) {
+                return false;
+            }
+
+            @Override
+            public boolean onSuggestionClick(int position) {
+                Log.i("test", "onSuggestionClick");
+                searchView.clearFocus();
+                mDimOverlay.setVisibility(View.GONE);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
+                }
+                actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.theme_primary));
+
+                Cursor cursor = (Cursor) mSearchViewAdapter.getItem(position);
+                android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                CourseTabFragment fragment = CourseTabFragment.newInstance(mPreviousSearchSubject,
+                        cursor.getString(1).split(" ")[1], cursor.getString(2), TITLE);
+
+                ft
+                        .add(R.id.fragment_container, fragment, CourseTabFragment.TAG)
+                        .hide(thisFragment)
+                        .addToBackStack(CatalogNumberFragment.TAG)
+                        .commit();
+                return true;
+            }
+        });
+        mSearchViewAdapter = new SearchCourseResultsAdapter(this.getActivity(), R.layout.catalog_number_row, null, columns,null, -1000);
+        searchView.setSuggestionsAdapter(mSearchViewAdapter);
+
+        searchView.getSuggestionsAdapter();
+        super.onCreateOptionsMenu(menu, inflater);
+    }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
 
+        mDimOverlay = view.findViewById(R.id.dim_overlay);
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
 
@@ -108,13 +283,20 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
         downloader.setOnDownloadListener(this);
         downloader.start();
 
-        FloatingActionButton fab = (FloatingActionButton)view.findViewById(R.id.fab);
+        mFab = (FloatingActionButton)view.findViewById(R.id.fab);
 
 
-        fab.setOnClickListener(new View.OnClickListener() {
+        mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mRecyclerViewExpandableItemManager.collapseAll();
+            }
+        });
+
+        mDimOverlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mSearchItem.collapseActionView();
             }
         });
 
@@ -125,7 +307,6 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
     public void onDownloadFail(String givenURL, int index) {
         Log.e(TAG, "Download failed.. url = " + givenURL);
     }
-
     @Override
     public void onDownloadComplete(APIResult apiResult) {
         if(apiResult.getUrl().equals(mCodeUrl)){
@@ -155,6 +336,24 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
                 handler.post(runnable);
                 Log.i(TAG, "complete");
             }
+        }else{
+            mCoursesParser.setAPIResult(apiResult);
+            mCoursesParser.parseJSON();
+            mPreviousCourses = mCoursesParser.getCourses();
+            if(mPreviousCourses != null && mPreviousCourses.size() > 0){
+                final MatrixCursor matrixCursor = convertToCursor(mPreviousCourses);
+                android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        mSearchViewAdapter.changeCursor(matrixCursor);
+
+                    }
+                };
+                handler.post(runnable);
+            }
+
+            Log.i(TAG, "complete");
         }
     }
 
@@ -214,6 +413,48 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
 
     private boolean supportsViewElevation() {
         return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP);
+    }
+    public static String[] columns = new String[]{"_id","catalogNumber", "title"};
+
+    private MatrixCursor convertToCursor(List<Course> courseResults) {
+        MatrixCursor cursor = new MatrixCursor(columns);
+        int i = 0;
+        for (Course courseResult : courseResults) {
+            String[] temp = new String[3];
+            i = i + 1;
+            temp[0] = Integer.toString(i);
+            temp[1] = mPreviousSearchSubject + " " + courseResult.getCatalogNumber();
+            temp[2] = courseResult.getTitle();
+            cursor.addRow(temp);
+        }
+        return cursor;
+    }
+    private MatrixCursor convertToCursor(List<Course> courseResults, String number) {
+        MatrixCursor cursor = new MatrixCursor(columns);
+        int i = 0;
+        for (Course courseResult : courseResults) {
+            String catalogNumber = courseResult.getCatalogNumber();
+            int j = 0;
+            boolean shouldAdd = catalogNumber.length() >= number.length();
+            if(shouldAdd) {
+                for (char c : number.toCharArray()) {
+                    if (c != catalogNumber.charAt(j)){
+                        shouldAdd = false;
+                        break;
+                    }
+                    j++;
+                }
+                if(shouldAdd) {
+                    String[] temp = new String[3];
+                    i = i + 1;
+                    temp[0] = Integer.toString(i);
+                    temp[1] = mPreviousSearchSubject + " " + catalogNumber;
+                    temp[2] = courseResult.getTitle();
+                    cursor.addRow(temp);
+                }
+            }
+        }
+        return cursor;
     }
 
 
