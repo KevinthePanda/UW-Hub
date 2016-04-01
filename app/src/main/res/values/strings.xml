@@ -33,4 +33,6 @@
     <string name="main_campus">Main Campus</string>
     <string name="currently_not_offered">Currently not being offered</string>
 
+    <string name="search_courses">Search Courses - eg. CS 135</string>
+
 </resources>

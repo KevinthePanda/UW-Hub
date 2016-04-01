@@ -1,9 +1,12 @@
 package com.projects.kquicho.uw_api_client.Course;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by Kevin Quicho on 3/14/2016.
  */
-public class Course {
+public class Course implements Parcelable{
     private String mCourseId = null;
     private String mSubject = null;
     private String mCatalogNumber = null;
@@ -75,4 +78,36 @@ public class Course {
     }
 
 
+    public Course(){
+
+    }
+
+    public Course(Parcel in){
+        mCatalogNumber = in.readString();
+        mTitle = in.readString();
+    }
+
+
+    public static final Parcelable.Creator CREATOR
+            = new Parcelable.Creator() {
+        public Course createFromParcel(Parcel in) {
+            return new Course(in);
+        }
+
+        public Course[] newArray(int size) {
+            return new Course[size];
+        }
+    };
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mCatalogNumber);
+        dest.writeString(mTitle);
+    }
 }

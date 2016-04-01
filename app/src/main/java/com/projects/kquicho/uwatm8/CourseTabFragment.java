@@ -21,17 +21,20 @@ public class CourseTabFragment extends Fragment implements MainActivity.Fragment
     public static final String SUBJECT_TAG = "subject";
     public static final String CATALOG_NUMBER_TAG = "catalogNumber";
     public static final String TITLE_TAG = "title";
+    public static final String CALLING_FRAGMENT_TITLE = "callingFragmentTitle";
     private String mSubject;
     private String mCatalogNumber;
     private String mTitle;
+    private String mCallingFragmentTitle = null;
 
 
-    public static CourseTabFragment newInstance(String subject, String catalogNumber, String title) {
+    public static CourseTabFragment newInstance(String subject, String catalogNumber, String title, String callingFragmentTitle) {
 
         Bundle args = new Bundle();
         args.putString(SUBJECT_TAG, subject);
         args.putString(CATALOG_NUMBER_TAG, catalogNumber);
         args.putString(TITLE_TAG, title);
+        args.putString(CALLING_FRAGMENT_TITLE, callingFragmentTitle);
         CourseTabFragment fragment = new CourseTabFragment();
         fragment.setArguments(args);
         return fragment;
@@ -44,7 +47,8 @@ public class CourseTabFragment extends Fragment implements MainActivity.Fragment
         mSubject = args.getString(SUBJECT_TAG);
         mCatalogNumber = args.getString(CATALOG_NUMBER_TAG);
         mTitle = args.getString(TITLE_TAG);
-       // ((MainActivity)getActivity()).setToolbarTitle(mSubject + " " + mCatalogNumber);
+        mCallingFragmentTitle = args.getString(CALLING_FRAGMENT_TITLE);
+
         android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if(actionBar != null){
             actionBar.setTitle(mSubject + " " + mCatalogNumber);
@@ -94,6 +98,10 @@ public class CourseTabFragment extends Fragment implements MainActivity.Fragment
         android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if(actionBar != null){
             actionBar.setSubtitle(null);
+        }
+
+        if(mCallingFragmentTitle.equals(GroupSubjectFragment.TITLE)){
+            ((MainActivity) getActivity()).animateMenuArrowDrawable(false);
         }
     }
 
