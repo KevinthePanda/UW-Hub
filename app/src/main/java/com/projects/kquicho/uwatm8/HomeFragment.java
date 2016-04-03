@@ -90,7 +90,7 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         // swipe manager
         mRecyclerViewSwipeManager = new RecyclerViewSwipeManager();
 
-        mAdapter = new UWParserAdapter(mData);
+        mAdapter = new UWParserAdapter(mData, getContext());
 
         mWrappedAdapter = mRecyclerViewDragDropManager.createWrappedAdapter(mAdapter);      // wrap for dragging
         mWrappedAdapter = mRecyclerViewSwipeManager.createWrappedAdapter(mWrappedAdapter);      // wrap for swiping

@@ -7,12 +7,14 @@
     card_view:cardCornerRadius="6dp"
     card_view:cardElevation="8dp"
     android:foreground="?android:attr/selectableItemBackground"
-    android:layout_margin="16dp">
+    android:layout_marginBottom="16dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#888888">
+        android:background="#888888"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
         <Button
             android:id="@+id/remove_widget"
             style="@style/Widget.AppCompat.Button.Small"
@@ -20,7 +22,6 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:layout_marginRight="16dp"
             android:text="@string/remove"/>
     </RelativeLayout>
 
@@ -28,8 +29,8 @@
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingBottom="8dp">
         <TextView
             android:id="@+id/header"
             android:layout_width="match_parent"
@@ -37,17 +38,16 @@
             android:text="@string/info_sessions"
             android:background="?attr/colorPrimary"
             android:layout_alignParentTop="true"
-            android:paddingTop="8dp"
+            android:textSize="24sp"
+            android:layout_margin="8dp"
             android:paddingLeft="8dp"
-            android:textSize="25sp"
             android:fontFamily="sans-serif-medium"/>
         <TextView
             android:id="@+id/company_1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20sp"
-            android:paddingTop="8dp"
-            android:paddingLeft="8dp"
+            android:paddingLeft="16dp"
             android:fontFamily="sans-serif"
             android:text="OANDA"/>
         <TextView
@@ -55,8 +55,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20sp"
-            android:paddingTop="8dp"
-            android:paddingLeft="8dp"
+            android:paddingLeft="16dp"
             android:fontFamily="sans-serif"
             android:text="OANDA"/>
         <TextView
@@ -64,8 +63,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20sp"
-            android:paddingTop="8dp"
-            android:paddingLeft="8dp"
+            android:paddingLeft="16dp"
             android:fontFamily="sans-serif"
             android:text="OANDA"/>
     </LinearLayout>

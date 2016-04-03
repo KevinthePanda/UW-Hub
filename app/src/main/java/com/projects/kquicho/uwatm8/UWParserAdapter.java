@@ -1,7 +1,9 @@
 package com.projects.kquicho.uwatm8;
 
 
+import android.content.Context;
 import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -9,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemAdapter;
@@ -32,6 +35,7 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         implements DraggableItemAdapter<RecyclerView.ViewHolder>,
         SwipeableItemAdapter<RecyclerView.ViewHolder> {
 
+    Context mContext;
     private final String TAG = "UWParserAdapter";
     
     private interface Draggable extends DraggableItemConstants {
@@ -42,8 +46,9 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private ArrayList<UWData> mData;
     private final int WEATHER = 0, INFO_SESSIONS = 1;
 
-    public UWParserAdapter(ArrayList<UWData> data){
+    public UWParserAdapter(ArrayList<UWData> data, Context context){
         mData = data;
+        mContext = context;
         setHasStableIds(true);
     }
 
@@ -67,24 +72,44 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     public static class WeatherViewHolder extends DraggableSwipeableHolder {
-        public TextView currentTemp;
+        public TextView mCurrentTemp;
+        public TextView mHighTemp;
+        public TextView mLowTemp;
+        public TextView mWindSpeed;
+        public TextView mHumidity;
+        public TextView mPrecip15Min;
+        public TextView mPrecip1Hr;
+        public TextView mPrecip24Hr;
+        public TextView m15Min;
+        public TextView m1Hr;
+        public TextView m24Hr;
 
         public WeatherViewHolder(View itemView) {
             super(itemView);
-            currentTemp = (TextView) itemView.findViewById(R.id.current_temp);
+            mCurrentTemp = (TextView) itemView.findViewById(R.id.current_temp);
+            mHighTemp = (TextView) itemView.findViewById(R.id.high_temp);
+            mLowTemp = (TextView) itemView.findViewById(R.id.low_temp);
+            mWindSpeed = (TextView) itemView.findViewById(R.id.wind_speed);
+            mHumidity = (TextView) itemView.findViewById(R.id.humidity);
+            mPrecip15Min = (TextView) itemView.findViewById(R.id.precip_15min);
+            mPrecip1Hr = (TextView) itemView.findViewById(R.id.precip_1hr);
+            mPrecip24Hr = (TextView) itemView.findViewById(R.id.precip_24hr);
+            m15Min = (TextView) itemView.findViewById(R.id.min_15);
+            m1Hr = (TextView) itemView.findViewById(R.id.hr_1);
+            m24Hr = (TextView) itemView.findViewById(R.id.hr_24);
         }
     }
 
     public static class InfoSessionViewHolder extends DraggableSwipeableHolder {
-        public TextView company1;
-        public TextView company2;
-        public TextView company3;
+        public TextView mCompany1;
+        public TextView mCompany2;
+        public TextView mCompany3;
 
         public InfoSessionViewHolder(View itemView) {
             super(itemView);
-            company1 = (TextView) itemView.findViewById(R.id.company_1);
-            company2 = (TextView) itemView.findViewById(R.id.company_2);
-            company3 = (TextView) itemView.findViewById(R.id.company_3);
+            mCompany1 = (TextView) itemView.findViewById(R.id.company_1);
+            mCompany2 = (TextView) itemView.findViewById(R.id.company_2);
+            mCompany3 = (TextView) itemView.findViewById(R.id.company_3);
         }
     }
 
@@ -219,16 +244,50 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private void configureWeatherViewHolder(WeatherViewHolder viewHolder, int position){
         UWParser parser = mData.get(position).getParser();
 
-        // Set item views based on the data model
-        TextView textView = viewHolder.currentTemp;
-        double temp = ((WeatherParser)parser).getCurrentTemperature();
-        if(temp >= 0){
-            textView.setTextColor(Color.GREEN);
-        }else{
-            textView.setTextColor(Color.RED);
-        }
+        WeatherParser weatherParser = (WeatherParser)parser;
+        double temp = weatherParser.getCurrentTemperature();
+        double highTemp = weatherParser.getTemperature24hrMax();
+        double lowTemp = weatherParser.getTemperature24hrMin();
 
-        textView.setText(temp + "°C");
+        String highTempS = highTemp + "°";
+        String lowTempS = lowTemp + "°";
+
+
+        double lengthDiff = highTempS.length() - lowTempS.length();
+
+        if(lengthDiff > 0){
+            Log.i("test", "1");
+            for(int i = 0; i < lengthDiff; i++){
+                lowTempS = " " + lowTempS;
+            }
+        }else if(lengthDiff < 0){
+            Log.i("test", "2");
+            for(int i = 0; i < (lengthDiff * -1); i++){
+                highTempS = " " + highTempS;
+            }
+        }
+        viewHolder.mCurrentTemp.setText(temp + "°");
+        viewHolder.mHighTemp.setText(highTempS);
+        viewHolder.mLowTemp.setText(lowTempS);
+        viewHolder.mWindSpeed.setText(String.valueOf(weatherParser.getWindSpeed()));
+        viewHolder.mHumidity.setText(String.valueOf(weatherParser.getRelativeHumidityPercent()));
+        viewHolder.mPrecip15Min.setText(String.valueOf(weatherParser.getPrecipitation15min()));
+        viewHolder.mPrecip1Hr.setText(String.valueOf(weatherParser.getPrecipitation1hr()));
+        viewHolder.mPrecip24Hr.setText(String.valueOf(weatherParser.getPrecipitation24hr()));
+
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)viewHolder.m15Min.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        viewHolder.m15Min.setLayoutParams(layoutParams);
+
+        layoutParams = (RelativeLayout.LayoutParams)viewHolder.m1Hr.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        viewHolder.m1Hr.setLayoutParams(layoutParams);
+
+        layoutParams = (RelativeLayout.LayoutParams)viewHolder.m24Hr.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        viewHolder.m24Hr.setLayoutParams(layoutParams);
+
+
 
     }
 
@@ -236,18 +295,18 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         ResourcesParser parser = (ResourcesParser)mData.get(position).getParser();
 
         // Set item views based on the data model
-        TextView company1 = viewHolder.company1;
-        TextView company2 = viewHolder.company2;
-        TextView company3 = viewHolder.company3;
+        TextView mCompany1 = viewHolder.mCompany1;
+        TextView mCompany2 = viewHolder.mCompany2;
+        TextView mCompany3 = viewHolder.mCompany3;
 
         ArrayList<InfoSession> infoSessions = parser.getInfoSessions();
         if(infoSessions.size() >= 3) {
             String employer1 = parser.getInfoSessions().get(0).getEmployer();
             String employer2 = parser.getInfoSessions().get(1).getEmployer();
             String employer3 = parser.getInfoSessions().get(2).getEmployer();
-            company1.setText(employer1);
-            company2.setText(employer2);
-            company3.setText(employer3);
+            mCompany1.setText(employer1);
+            mCompany2.setText(employer2);
+            mCompany3.setText(employer3);
         }
     }
 

@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     card_view:cardBackgroundColor="#E6E6E6"
     card_view:cardCornerRadius="6dp"
     card_view:cardElevation="8dp"
     android:foreground="?android:attr/selectableItemBackground"
-    android:layout_margin="16dp">
+    android:layout_marginBottom="16dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#888888">
+        android:background="#888888"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
 
         <Button
             android:id="@+id/remove_widget"
@@ -22,47 +23,234 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:layout_marginRight="16dp"
             android:text="@string/remove"/>
 
     </RelativeLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:clickable="true">
+        android:clickable="true"
+        android:paddingBottom="8dp"
+        android:orientation="vertical">
         <TextView
             android:id="@+id/header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/weather"
             android:background="?attr/colorPrimary"
-            android:layout_alignParentTop="true"
-            android:paddingTop="8dp"
+            android:textSize="24sp"
+            android:layout_margin="8dp"
             android:paddingLeft="8dp"
-            android:textSize="25sp"
+            android:paddingRight="8dp"
             android:fontFamily="sans-serif-medium"/>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/header"
-            android:orientation="horizontal"
-            android:layout_toRightOf="@id/drag_handle">
-            <com.projects.kquicho.uwatm8.DummyThermometer xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="50dp"
-                android:layout_height="110dp"  />
+        <RelativeLayout
+            android:id="@+id/row_1"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:paddingRight="8dp">
+            <ImageView
+                android:id="@+id/ic_thermometer"
+                android:layout_width="35dp"
+                android:layout_height="match_parent"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_thermometer"/>
             <TextView
                 android:id="@+id/current_temp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingTop="18dp"
-                android:text="6"
-                android:textSize="25dp"
-                android:fontFamily="sans-serif" />
-        </LinearLayout>
+                android:paddingRight="4dp"
+                android:text="6°"
+                android:textSize="30dp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif"
+                android:layout_toRightOf="@id/ic_thermometer"
+                android:layout_centerVertical="true"
+                />
+            <TextView
+                android:id="@+id/high_temp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="9°"
+                android:textSize="15dp"
+                android:fontFamily="sans-serif"
+                android:layout_alignParentTop="true"
+                android:layout_toRightOf="@id/current_temp"/>
+            <TextView
+                android:id="@+id/low_temp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2°"
+                android:textSize="15dp"
+                android:fontFamily="sans-serif"
+                android:layout_alignParentBottom="true"
+                android:layout_toRightOf="@id/current_temp"/>
+            <TextView
+                android:id="@+id/humidity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="11.4"
+                android:textSize="20dp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"/>
 
-    </RelativeLayout>
+            <ImageView
+                android:id="@+id/ic_humidity"
+                android:layout_width="35dp"
+                android:layout_height="match_parent"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_water_percent"
+                android:layout_toLeftOf="@id/humidity"/>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true">
+                <ImageView
+                    android:id="@+id/ic_weather_windy"
+                    android:layout_width="35dp"
+                    android:layout_height="match_parent"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_weather_windy"/>
+                <TextView
+                    android:id="@+id/wind_speed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingRight="16dp"
+                    android:text="11.4"
+                    android:textSize="20dp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif"
+                    android:layout_centerVertical="true"
+                    android:layout_toRightOf="@id/ic_weather_windy"/>
+
+            </RelativeLayout>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/row_2"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:paddingRight="8dp"
+            android:layout_marginTop="8dp">
+            <ImageView
+                android:id="@+id/ic_precip"
+                android:layout_width="35dp"
+                android:layout_height="match_parent"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_umbrella_outline"
+                android:paddingLeft="4dp"/>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_toRightOf="@id/ic_precip"
+                android:layout_marginLeft="8dp">
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true">
+                    <TextView
+                        android:id="@+id/precip_15min"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20dp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif"
+                        android:text="0.0"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="15dp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif"
+                        android:text=" mm"
+                        android:layout_alignBaseline="@id/precip_15min"
+                        android:layout_toRightOf="@id/precip_15min"/>
+                    <TextView
+                        android:id="@+id/min_15"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="15dp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif"
+                        android:text="15 min"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@id/precip_15min"/>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true">
+                    <TextView
+                        android:id="@+id/precip_1hr"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20dp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif"
+                        android:text="0.0"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="15dp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif"
+                        android:text=" mm"
+                        android:layout_alignBaseline="@id/precip_1hr"
+                        android:layout_toRightOf="@id/precip_1hr"/>
+                    <TextView
+                        android:id="@+id/hr_1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="15dp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif"
+                        android:text="1 hr"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@id/precip_1hr"/>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:paddingRight="4dp">
+                    <TextView
+                        android:id="@+id/precip_24hr"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20dp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif"
+                        android:text="0.0"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="15dp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif"
+                        android:text=" mm"
+                        android:layout_alignBaseline="@id/precip_24hr"
+                        android:layout_toRightOf="@id/precip_24hr"/>
+                    <TextView
+                        android:id="@+id/hr_24"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="15dp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif"
+                        android:text="24 hr"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@id/precip_24hr"/>
+                </RelativeLayout>
+
+            </RelativeLayout>
+
+        </RelativeLayout>
+
+    </LinearLayout>
 
 </android.support.v7.widget.CardView>
