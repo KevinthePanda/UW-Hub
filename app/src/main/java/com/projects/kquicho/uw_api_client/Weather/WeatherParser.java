@@ -20,7 +20,7 @@ public class WeatherParser extends UWParser {
     private static final String OBSERVATION_TIME_TAG = "observation_time";
     private static final String TEMPERATURE_CURRENT_C_TAG = "temperature_current_c";
     private static final String HUMIDEX_C_TAG = "humidex_c";
-    private static final String WINDCHILL_TAG = "windchill";
+    private static final String WINDCHILL_TAG = "windchill_c";
     private static final String TEMPERATURE_24HR_MAX_C_TAG = "temperature_24hr_max_c";
     private static final String TEMPERATURE_24HR_MIN_C_TAG = "temperature_24hr_min_c";
     private static final String PRECIPITATION_15MIN_MM_TAG = "precipitation_15min_mm";

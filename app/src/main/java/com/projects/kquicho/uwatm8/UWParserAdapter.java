@@ -28,6 +28,8 @@ import com.projects.kquicho.uw_api_client.Resources.InfoSession;
 import com.projects.kquicho.uw_api_client.Resources.ResourcesParser;
 import com.projects.kquicho.uw_api_client.Weather.WeatherParser;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -77,13 +79,12 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public TextView mLowTemp;
         public TextView mWindSpeed;
         public TextView mHumidity;
-        public TextView mPrecip15Min;
-        public TextView mPrecip1Hr;
-        public TextView mPrecip24Hr;
-        public TextView m15Min;
-        public TextView m1Hr;
-        public TextView m24Hr;
-
+        public TextView mPrecip;
+        public TextView mWindChill;
+        public TextView mCurrentTempPrefix;
+        public TextView mHighTempPrefix;
+        public TextView mLowTempPrefix;
+        public TextView mWindChillPrefix;
         public WeatherViewHolder(View itemView) {
             super(itemView);
             mCurrentTemp = (TextView) itemView.findViewById(R.id.current_temp);
@@ -91,12 +92,12 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             mLowTemp = (TextView) itemView.findViewById(R.id.low_temp);
             mWindSpeed = (TextView) itemView.findViewById(R.id.wind_speed);
             mHumidity = (TextView) itemView.findViewById(R.id.humidity);
-            mPrecip15Min = (TextView) itemView.findViewById(R.id.precip_15min);
-            mPrecip1Hr = (TextView) itemView.findViewById(R.id.precip_1hr);
-            mPrecip24Hr = (TextView) itemView.findViewById(R.id.precip_24hr);
-            m15Min = (TextView) itemView.findViewById(R.id.min_15);
-            m1Hr = (TextView) itemView.findViewById(R.id.hr_1);
-            m24Hr = (TextView) itemView.findViewById(R.id.hr_24);
+            mPrecip = (TextView) itemView.findViewById(R.id.precip);
+            mWindChill = (TextView) itemView.findViewById(R.id.wind_chill_temp);
+            mCurrentTempPrefix = (TextView) itemView.findViewById(R.id.current_temp_prefix);
+            mHighTempPrefix = (TextView) itemView.findViewById(R.id.high_temp_prefix);
+            mLowTempPrefix = (TextView) itemView.findViewById(R.id.low_temp_prefix);
+            mWindChillPrefix = (TextView) itemView.findViewById(R.id.wind_chill_temp_prefix);
         }
     }
 
@@ -241,53 +242,57 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     }
 
+    public void setTempField(TextView textView, TextView prefix, double temp){
+        textView.setText(String.valueOf(Math.abs(temp)));
+        if(temp < 0){
+            prefix.setVisibility(View.VISIBLE);
+        }else{
+            prefix.setVisibility(View.GONE);
+        }
+    }
     private void configureWeatherViewHolder(WeatherViewHolder viewHolder, int position){
         UWParser parser = mData.get(position).getParser();
 
         WeatherParser weatherParser = (WeatherParser)parser;
-        double temp = weatherParser.getCurrentTemperature();
-        double highTemp = weatherParser.getTemperature24hrMax();
-        double lowTemp = weatherParser.getTemperature24hrMin();
 
-        String highTempS = highTemp + "°";
-        String lowTempS = lowTemp + "°";
-
-
-        double lengthDiff = highTempS.length() - lowTempS.length();
-
-        if(lengthDiff > 0){
-            Log.i("test", "1");
-            for(int i = 0; i < lengthDiff; i++){
-                lowTempS = " " + lowTempS;
-            }
-        }else if(lengthDiff < 0){
-            Log.i("test", "2");
-            for(int i = 0; i < (lengthDiff * -1); i++){
-                highTempS = " " + highTempS;
-            }
-        }
-        viewHolder.mCurrentTemp.setText(temp + "°");
-        viewHolder.mHighTemp.setText(highTempS);
-        viewHolder.mLowTemp.setText(lowTempS);
+        setTempField(viewHolder.mCurrentTemp, viewHolder.mCurrentTempPrefix, weatherParser.getCurrentTemperature());
+        setTempField(viewHolder.mHighTemp, viewHolder.mHighTempPrefix, weatherParser.getTemperature24hrMax());
+        setTempField(viewHolder.mLowTemp, viewHolder.mLowTempPrefix, weatherParser.getTemperature24hrMin());
+        setTempField(viewHolder.mWindChill, viewHolder.mWindChillPrefix, weatherParser.getWindchill());
         viewHolder.mWindSpeed.setText(String.valueOf(weatherParser.getWindSpeed()));
         viewHolder.mHumidity.setText(String.valueOf(weatherParser.getRelativeHumidityPercent()));
-        viewHolder.mPrecip15Min.setText(String.valueOf(weatherParser.getPrecipitation15min()));
-        viewHolder.mPrecip1Hr.setText(String.valueOf(weatherParser.getPrecipitation1hr()));
-        viewHolder.mPrecip24Hr.setText(String.valueOf(weatherParser.getPrecipitation24hr()));
+        viewHolder.mPrecip.setText(String.valueOf(weatherParser.getPrecipitation24hr()));
 
-        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)viewHolder.m15Min.getLayoutParams();
+
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)viewHolder.mCurrentTemp.getLayoutParams();
         layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        viewHolder.m15Min.setLayoutParams(layoutParams);
+        viewHolder.mCurrentTemp.setLayoutParams(layoutParams);
 
-        layoutParams = (RelativeLayout.LayoutParams)viewHolder.m1Hr.getLayoutParams();
+        layoutParams = (RelativeLayout.LayoutParams)viewHolder.mHighTemp.getLayoutParams();
         layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        viewHolder.m1Hr.setLayoutParams(layoutParams);
+        viewHolder.mHighTemp.setLayoutParams(layoutParams);
 
-        layoutParams = (RelativeLayout.LayoutParams)viewHolder.m24Hr.getLayoutParams();
+        layoutParams = (RelativeLayout.LayoutParams)viewHolder.mLowTemp.getLayoutParams();
         layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        viewHolder.m24Hr.setLayoutParams(layoutParams);
+        viewHolder.mLowTemp.setLayoutParams(layoutParams);
+
+        layoutParams = (RelativeLayout.LayoutParams)viewHolder.mWindSpeed.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        viewHolder.mWindSpeed.setLayoutParams(layoutParams);
 
 
+        layoutParams = (RelativeLayout.LayoutParams)viewHolder.mHumidity.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        viewHolder.mHumidity.setLayoutParams(layoutParams);
+
+
+        layoutParams = (RelativeLayout.LayoutParams)viewHolder.mPrecip.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        viewHolder.mPrecip.setLayoutParams(layoutParams);
+
+        layoutParams = (RelativeLayout.LayoutParams)viewHolder.mWindChill.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        viewHolder.mWindChill.setLayoutParams(layoutParams);
 
     }
 
