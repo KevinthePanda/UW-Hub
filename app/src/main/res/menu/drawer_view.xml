@@ -2,27 +2,17 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_home"
-            android:icon="@android:drawable/ic_dialog_alert"
+            android:icon="@drawable/ic_home"
             android:title="@string/home"
             android:checked="true" />
         <item
             android:id="@+id/nav_info_sessions"
-            android:icon="@android:drawable/ic_dialog_alert"
+            android:icon="@drawable/ic_worker"
             android:title="@string/info_sessions" />
         <item
             android:id="@+id/nav_courses_fragment"
-            android:icon="@android:drawable/ic_dialog_alert"
+            android:icon="@drawable/ic_school"
             android:title="Courses" />
     </group>
 
-    <item android:title="Sub items">
-        <menu>
-            <item
-                android:icon="@android:drawable/ic_dialog_alert"
-                android:title="Sub item 1" />
-            <item
-                android:icon="@android:drawable/ic_dialog_alert"
-                android:title="Sub item 2" />
-        </menu>
-    </item>
 </menu>

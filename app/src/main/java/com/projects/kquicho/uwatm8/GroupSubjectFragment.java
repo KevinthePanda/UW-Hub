@@ -69,6 +69,7 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
     private View mDimOverlay;
     private MenuItem mSearchItem;
     private FloatingActionButton mFab;
+    private View mProgressBar;
 
     public GroupSubjectFragment(){
         super();
@@ -239,6 +240,7 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
     public void onViewCreated(View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
 
+        mProgressBar = view.findViewById(R.id.pbLoading);
         mDimOverlay = view.findViewById(R.id.dim_overlay);
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
@@ -271,6 +273,7 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
         mCodesParser.setParseType(CodesParser.ParseType.GROUPS_WITH_SUBJECTS.ordinal());
         mCodeUrl = UWOpenDataAPI.buildURL(mCodesParser.getEndPoint());
 
+        mProgressBar.setVisibility(View.VISIBLE);
         JSONDownloader downloader = new JSONDownloader(mCodeUrl);
         downloader.setOnDownloadListener(this);
         downloader.start();
@@ -320,6 +323,8 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
                 Runnable runnable = new Runnable() {
                     @Override
                     public void run() {
+                        mProgressBar.setVisibility(View.GONE);
+                        mFab.setVisibility(View.VISIBLE);
                         mAdapter = new GroupSubjectAdapter(mData, subjectClickListener);
                         mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
                         mRecyclerView.setAdapter(mWrappedAdapter);

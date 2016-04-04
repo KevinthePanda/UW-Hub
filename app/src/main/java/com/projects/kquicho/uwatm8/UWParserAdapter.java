@@ -32,6 +32,7 @@ import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         implements DraggableItemAdapter<RecyclerView.ViewHolder>,
@@ -103,14 +104,88 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public static class InfoSessionViewHolder extends DraggableSwipeableHolder {
         public TextView mCompany1;
+        public View mContainer1;
+        public TextView mDate1;
+        public TextView mTime1;
+        public TextView mLocation1;
+
         public TextView mCompany2;
+        public View mContainer2;
+        public TextView mDate2;
+        public TextView mTime2;
+        public TextView mLocation2;
+
         public TextView mCompany3;
+        public View mContainer3;
+        public TextView mDate3;
+        public TextView mTime3;
+        public TextView mLocation3;
+
+        public TextView mSavedCompany1;
+        public View mSavedContainer1;
+        public TextView mSavedDate1;
+        public TextView mSavedTime1;
+        public TextView mSavedLocation1;
+
+        public TextView mSavedCompany2;
+        public View mSavedContainer2;
+        public TextView mSavedDate2;
+        public TextView mSavedTime2;
+        public TextView mSavedLocation2;
+
+        public TextView mSavedCompany3;
+        public View mSavedContainer3;
+        public TextView mSavedDate3;
+        public TextView mSavedTime3;
+        public TextView mSavedLocation3;
+
+
+        public View mDivider;
+        public View mNoSessionsSaved;
+        public View mNoSessionsExist;
 
         public InfoSessionViewHolder(View itemView) {
             super(itemView);
             mCompany1 = (TextView) itemView.findViewById(R.id.company_1);
+            mContainer1 = itemView.findViewById(R.id.company_1_container);
+            mDate1 = (TextView) itemView.findViewById(R.id.date_1);
+            mTime1 = (TextView) itemView.findViewById(R.id.time_1);
+            mLocation1 = (TextView) itemView.findViewById(R.id.location_1);
+
             mCompany2 = (TextView) itemView.findViewById(R.id.company_2);
+            mContainer2 = itemView.findViewById(R.id.company_2_container);
+            mDate2 = (TextView) itemView.findViewById(R.id.date_2);
+            mTime2 = (TextView) itemView.findViewById(R.id.time_2);
+            mLocation2 = (TextView) itemView.findViewById(R.id.location_2);
+
             mCompany3 = (TextView) itemView.findViewById(R.id.company_3);
+            mContainer3 = itemView.findViewById(R.id.company_3_container);
+            mDate3 = (TextView) itemView.findViewById(R.id.date_3);
+            mTime3 = (TextView) itemView.findViewById(R.id.time_3);
+            mLocation3 = (TextView) itemView.findViewById(R.id.location_3);
+
+            mSavedCompany1 = (TextView) itemView.findViewById(R.id.saved_company_1);
+            mSavedContainer1 = itemView.findViewById(R.id.saved_company_1_container);
+            mSavedDate1 = (TextView) itemView.findViewById(R.id.saved_date_1);
+            mSavedTime1 = (TextView) itemView.findViewById(R.id.saved_time_1);
+            mSavedLocation1 = (TextView) itemView.findViewById(R.id.saved_location_1);
+
+            mSavedCompany2 = (TextView) itemView.findViewById(R.id.saved_company_2);
+            mSavedContainer2 = itemView.findViewById(R.id.saved_company_2_container);
+            mSavedDate2 = (TextView) itemView.findViewById(R.id.saved_date_2);
+            mSavedTime2 = (TextView) itemView.findViewById(R.id.saved_time_2);
+            mSavedLocation2 = (TextView) itemView.findViewById(R.id.saved_location_2);
+
+            mSavedCompany3 = (TextView) itemView.findViewById(R.id.saved_company_3);
+            mSavedContainer3 = itemView.findViewById(R.id.saved_company_3_container);
+            mSavedDate3 = (TextView) itemView.findViewById(R.id.saved_date_3);
+            mSavedTime3 = (TextView) itemView.findViewById(R.id.saved_time_3);
+            mSavedLocation3 = (TextView) itemView.findViewById(R.id.saved_location_3);
+
+            mDivider = itemView.findViewById(R.id.divider);
+            mNoSessionsSaved = itemView.findViewById(R.id.no_sessions_saved);
+            mNoSessionsExist = itemView.findViewById(R.id.no_sessions_exists);
+
         }
     }
 
@@ -298,21 +373,43 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private void configureInfoSessionViewHolder(InfoSessionViewHolder viewHolder, int position){
         ResourcesParser parser = (ResourcesParser)mData.get(position).getParser();
-
-        // Set item views based on the data model
-        TextView mCompany1 = viewHolder.mCompany1;
-        TextView mCompany2 = viewHolder.mCompany2;
-        TextView mCompany3 = viewHolder.mCompany3;
-
         ArrayList<InfoSession> infoSessions = parser.getInfoSessions();
         if(infoSessions.size() >= 3) {
             String employer1 = parser.getInfoSessions().get(0).getEmployer();
             String employer2 = parser.getInfoSessions().get(1).getEmployer();
             String employer3 = parser.getInfoSessions().get(2).getEmployer();
-            mCompany1.setText(employer1);
-            mCompany2.setText(employer2);
-            mCompany3.setText(employer3);
+            viewHolder.mCompany1.setText(employer1);
+            viewHolder.mCompany2.setText(employer2);
+            viewHolder.mCompany3.setText(employer3);
+
+            viewHolder.mDate1.setText(parser.getInfoSessions().get(0).getDate());
+            viewHolder.mDate2.setText(parser.getInfoSessions().get(1).getDate());
+            viewHolder.mDate3.setText(parser.getInfoSessions().get(2).getDate());
+
+            viewHolder.mLocation1.setText(parser.getInfoSessions().get(0).getBuildingCode() + " - " + parser.getInfoSessions().get(0).getBuildingRoom());
+            viewHolder.mLocation2.setText(parser.getInfoSessions().get(1).getBuildingCode() + " - " + parser.getInfoSessions().get(1).getBuildingRoom());
+            viewHolder.mLocation3.setText(parser.getInfoSessions().get(2).getBuildingCode() + " - " + parser.getInfoSessions().get(2).getBuildingRoom());
+
+            viewHolder.mTime1.setText(parser.getInfoSessions().get(0).getStart_time() + " - " + parser.getInfoSessions().get(0).getEnd_time());
+            viewHolder.mTime2.setText(parser.getInfoSessions().get(1).getStart_time() + " - " + parser.getInfoSessions().get(1).getEnd_time());
+            viewHolder.mTime3.setText(parser.getInfoSessions().get(2).getStart_time() + " - " + parser.getInfoSessions().get(2).getEnd_time());
         }
+        viewHolder.mNoSessionsExist.setVisibility(View.GONE);
+
+        InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(mContext);
+        List<InfoSessionDBModel> infoSessionDBModelList = dbHelper.getAllInfoSessions();
+
+        if(infoSessionDBModelList == null || infoSessionDBModelList.size() == 0){
+            viewHolder.mSavedContainer1.setVisibility(View.GONE);
+            viewHolder.mSavedContainer2.setVisibility(View.GONE);
+            viewHolder.mSavedContainer3.setVisibility(View.GONE);
+            viewHolder.mNoSessionsSaved.setVisibility(View.VISIBLE);
+        }else{
+            viewHolder.mNoSessionsSaved.setVisibility(View.GONE);
+
+        }
+
+
     }
 
     @Override

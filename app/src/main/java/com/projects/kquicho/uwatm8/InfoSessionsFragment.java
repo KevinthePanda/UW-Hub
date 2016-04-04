@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.SwipeDismissItemAnimator;
@@ -49,7 +50,9 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     private RecyclerViewSwipeManager mRecyclerViewSwipeManager;
     private RecyclerViewTouchActionGuardManager mRecyclerViewTouchActionGuardManager;
     private ResourcesParser mParser = new ResourcesParser();
-
+    private View mEmptyView;
+    private FloatingActionButton mFab;
+    private ProgressBar mProgressBar;
 
     public InfoSessionsFragment(){
         super();
@@ -65,6 +68,8 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     public void onViewCreated(View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
 
+        mProgressBar = (ProgressBar)view.findViewById(R.id.pbLoading);
+        mEmptyView = view.findViewById(R.id.empty_view);
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
 
@@ -100,14 +105,15 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
         String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
 
+        mProgressBar.setVisibility(View.VISIBLE);
         JSONDownloader downloader = new JSONDownloader(url);
         downloader.setOnDownloadListener(this);
         downloader.start();
 
-        FloatingActionButton fab = (FloatingActionButton)view.findViewById(R.id.fab);
+        mFab = (FloatingActionButton)view.findViewById(R.id.fab);
 
 
-        fab.setOnClickListener(new View.OnClickListener() {
+        mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mAdapter.fabClick();
@@ -138,7 +144,8 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
             } catch (ParseException exception) {
                 Log.e(TAG, "onReceive ParseException: " + exception.getMessage());
             }
-            if (date == null ||  date.getTime() < System.currentTimeMillis()) {
+           // if (date == null ||  date.getTime() < System.currentTimeMillis()) {
+            if (date == null) {
                 break;
             }
 
@@ -153,7 +160,15 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                mAdapter.notifyDataSetChanged();
+                mProgressBar.setVisibility(View.GONE);
+                if(mData == null || mData.size() == 0){
+                    mEmptyView.setVisibility(View.VISIBLE);
+                    mFab.setVisibility(View.GONE);
+                }else {
+                    mEmptyView.setVisibility(View.GONE);
+                    mFab.setVisibility(View.VISIBLE);
+                    mAdapter.notifyDataSetChanged();
+                }
             }
         };
         handler.post(runnable);

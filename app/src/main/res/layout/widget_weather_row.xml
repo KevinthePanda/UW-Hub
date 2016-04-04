@@ -14,8 +14,7 @@
         android:layout_height="match_parent"
         android:background="#888888"
         android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:visibility="gone">
+        android:paddingRight="16dp">
 
         <Button
             android:id="@+id/remove_widget"

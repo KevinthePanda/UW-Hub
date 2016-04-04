@@ -44,7 +44,8 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
     private CoursesAdapter mAdapter;
     private String mCallingFragmentTitle = null;
     private static boolean mIsFromSearch = false;
-
+    private View mEmptyView;
+    private View mProgressBar;
 
     public static CatalogNumberFragment newInstance(String subject, String callingFragmentTitle) {
         Bundle args = new Bundle();
@@ -93,6 +94,8 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
     public void onViewCreated(View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
 
+        mProgressBar = view.findViewById(R.id.pbLoading);
+        mEmptyView = view.findViewById(R.id.empty_view);
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
 
@@ -128,6 +131,7 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
         mCoursesParser.setParseType(CourseParser.ParseType.COURSES.ordinal());
         mUrl = UWOpenDataAPI.buildURL(String.format(mCoursesParser.getEndPoint(), mSubject));
 
+        mProgressBar.setVisibility(View.VISIBLE);
         JSONDownloader downloader = new JSONDownloader(mUrl);
         downloader.setOnDownloadListener(this);
         downloader.start();
@@ -151,8 +155,14 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                mAdapter = new CoursesAdapter(mData, courseClickListener);
-                mRecyclerView.setAdapter(mAdapter);
+                mProgressBar.setVisibility(View.GONE);
+                if(mData == null || mData.size() == 0){
+                    mEmptyView.setVisibility(View.VISIBLE);
+                }else {
+                    mEmptyView.setVisibility(View.GONE);
+                    mAdapter = new CoursesAdapter(mData, courseClickListener);
+                    mRecyclerView.setAdapter(mAdapter);
+                }
             }
         };
         handler.post(runnable);
