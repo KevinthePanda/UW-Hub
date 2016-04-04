@@ -37,6 +37,8 @@ public class CourseDetailsFragment extends Fragment implements JSONDownloader.on
     private String mUrl;
     private CourseDetails mCourseDetails;
     private View mView;
+    private View mProgressBar;
+    private View mContainer;
 
 
     public static CourseDetailsFragment newInstance(String subject, String catalogNumber) {
@@ -68,9 +70,12 @@ public class CourseDetailsFragment extends Fragment implements JSONDownloader.on
     public void onViewCreated(View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
         mView = view;
+        mContainer = view.findViewById(R.id.container);
+        mProgressBar = view.findViewById(R.id.pbLoading);
         mCoursesParser.setParseType(CourseParser.ParseType.COURSE_DETAILS.ordinal());
         mUrl = UWOpenDataAPI.buildURL(String.format(mCoursesParser.getEndPoint(), mSubject, mCatalogNumber));
 
+        mProgressBar.setVisibility(View.VISIBLE);
         JSONDownloader downloader = new JSONDownloader(mUrl);
         downloader.setOnDownloadListener(this);
         downloader.start();
@@ -94,6 +99,8 @@ public class CourseDetailsFragment extends Fragment implements JSONDownloader.on
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
+                mProgressBar.setVisibility(View.GONE);
+                mContainer.setVisibility(View.VISIBLE);
                 ExpandableTextView description = (ExpandableTextView)mView.findViewById(R.id.expandable_description);
                 TextView prerequisites = (TextView)mView.findViewById(R.id.prerequisites);
                 TextView antirequisites = (TextView)mView.findViewById(R.id.antirequisites);
@@ -201,57 +208,6 @@ public class CourseDetailsFragment extends Fragment implements JSONDownloader.on
                     mView.findViewById(R.id.title_consent).setVisibility(View.VISIBLE);
                     mView.findViewById(R.id.separator_consent).setVisibility(View.VISIBLE);
                 }
-               /* final ProgressBar progressBar = (ProgressBar) mView.findViewById(R.id.progressBar);
-                final TextView enrollmentTotal = (TextView) mView.findViewById(R.id.enrollment_total);
-
-                progressBar.setMax(300);
-                ObjectAnimator animation = ObjectAnimator.ofInt (progressBar, "progress", 0, 260); // see this max value coming back here, we animale towards that value
-                animation.setDuration(1000); //in milliseconds
-                animation.setInterpolator(new DecelerateInterpolator());
-                animation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animation) {
-                        Integer current = (Integer)animation.getAnimatedValue();
-                        enrollmentTotal.setText(current.toString());
-                    }
-                });
-                animation.start();
-
-                ArgbEvaluator evaluator = new ArgbEvaluator();
-                ValueAnimator animator = new ValueAnimator();
-                animator.setIntValues(Color.parseColor("#ff99cc00"), Color.parseColor("#ffff8800"));
-                animator.setEvaluator(evaluator);
-                animator.setDuration(1000);
-                animator.setInterpolator(new DecelerateInterpolator());
-                animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animation) {
-                        int color = (int) animation.getAnimatedValue();
-                        progressBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
-                    }
-                });
-                animator.start();
-
-
-                ValueAnimator textAnimator = new ValueAnimator();
-                textAnimator.setObjectValues("0", "260");
-                textAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    public void onAnimationUpdate(ValueAnimator animation) {
-                        enrollmentTotal.setText((CharSequence) animation.getAnimatedValue());
-                    }
-                });
-                textAnimator.setEvaluator(new TypeEvaluator<CharSequence>() {
-                    public CharSequence evaluate(float fraction,
-                                                 CharSequence startValue, CharSequence endValue) {
-                        return String.valueOf(Math.round(Integer.valueOf(endValue.toString()) * fraction)) + "/" + "300";
-                    }
-                });
-
-                textAnimator.setDuration(1000);
-                textAnimator.setInterpolator(new DecelerateInterpolator());
-                //textAnimator.start();*/
-
-
             }
         };
         handler.post(runnable);

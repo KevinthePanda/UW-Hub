@@ -68,6 +68,8 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     private Long mLastEventID = null;
     private AsyncHandler mHandler;
     private CourseDBHelper mDBHelper;
+    private View mEmptyView;
+    private View mProgressBar;
 
     public static CourseScheduleFragment newInstance(String subject, String catalogNumber) {
 
@@ -107,6 +109,8 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     public void onViewCreated(View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
 
+        mProgressBar = view.findViewById(R.id.pbLoading);
+        mEmptyView = view.findViewById(R.id.empty_view);
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
 
@@ -137,6 +141,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         mTermsParser.setParseType(TermsParser.ParseType.CATALOG_SCHEDULE.ordinal());
         mCourseScheduleURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint("1165",mSubject, mCatalogNumber));
 
+        mProgressBar.setVisibility(View.VISIBLE);
         JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
         downloader.setOnDownloadListener(this);
         downloader.start();
@@ -162,10 +167,16 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
             Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-                    mAdapter = new CourseScheduleAdapter(mData, getContext(),
-                            onButtonClickListener);
-                    mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
-                    mRecyclerView.setAdapter(mWrappedAdapter);
+                    mProgressBar.setVisibility(View.GONE);
+                    if(mData == null || mData.getGroupCount() == 0){
+                        mEmptyView.setVisibility(View.VISIBLE);
+                    }else {
+                        mEmptyView.setVisibility(View.GONE);
+                        mAdapter = new CourseScheduleAdapter(mData, getContext(),
+                                onButtonClickListener);
+                        mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
+                        mRecyclerView.setAdapter(mWrappedAdapter);
+                    }
                 }
             };
             handler.post(runnable);
@@ -312,7 +323,6 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                 values.put(CalendarContract.Events.RRULE, "FREQ=WEEKLY;UNTIL=20160726T170000Z;WKST=SU;BYDAY=" + recurDays);
                 values.put(CalendarContract.Events.EVENT_TIMEZONE, "America/Toronto");
                 values.put(CalendarContract.Events.EVENT_LOCATION, sectionData.getBuilding() + " - " + sectionData.getRoom());
-                Log.i("test", hDuration + " " + mDuration);
                 values.put(CalendarContract.Events.DURATION, "PT" + String.valueOf(hDuration) +
                         "H" + String.valueOf(mDuration) + "M0S");
                 Cookie cookie = new Cookie(sectionData.getSection()+ " " + mSubject + mCatalogNumber + mCurrentTerm,
