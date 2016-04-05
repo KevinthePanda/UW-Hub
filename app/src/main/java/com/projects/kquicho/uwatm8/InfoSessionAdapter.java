@@ -103,11 +103,9 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
                     int id = infoSession.getId();
 
                     InfoSessionDBModel infoSessionDBModel = new
-                            InfoSessionDBModel(infoSession.getId(), alarmTime,
-                            "Info Session - " + infoSession.getEmployer(),
-                            "From " + infoSession.getStart_time() + " - "
-                                    + infoSession.getEnd_time() + " at "
-                                    + infoSession.getBuildingCode() + " - " + infoSession.getBuildingRoom());
+                            InfoSessionDBModel(infoSession.getId(), alarmTime, infoSession.getEmployer(),
+                            infoSession.getBuildingCode() + " - " + infoSession.getBuildingRoom(),
+                            infoSession.getDate(),  infoSession.getDisplay_time_range());
                     mDBHelper.addInfoSession(infoSessionDBModel);
 
                     Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);

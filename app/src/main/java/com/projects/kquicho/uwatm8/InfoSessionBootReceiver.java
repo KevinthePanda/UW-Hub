@@ -26,7 +26,7 @@ public class InfoSessionBootReceiver  extends BroadcastReceiver{
                         infoSessionDBModel.getId(), i, PendingIntent.FLAG_UPDATE_CURRENT);
 
                 AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-                alarm.set(AlarmManager.RTC_WAKEUP, infoSessionDBModel.getTime(), pIntent);
+                alarm.set(AlarmManager.RTC_WAKEUP, infoSessionDBModel.getAlarmTime(), pIntent);
             }
         }
     }

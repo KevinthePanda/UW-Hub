@@ -380,10 +380,9 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             String employer1 = infoSessions.get(0).getEmployer();
             String employer2 = infoSessions.get(1).getEmployer();
             String employer3 = infoSessions.get(2).getEmployer();
-            InfoSession infoSession1 = infoSessions.get(0);
-            InfoSession infoSession2 = infoSessions.get(1);
-            InfoSession infoSession3 = infoSessions.get(2);
-            if(infoSession1 != null){
+            int size = infoSessions.size();
+            if(size >= 1){
+                InfoSession infoSession1 = infoSessions.get(0);
                 viewHolder.mContainer1.setVisibility(View.VISIBLE);
                 viewHolder.mCompany1.setText(employer1);
                 viewHolder.mDate1.setText(infoSessions.get(0).getDate());
@@ -392,7 +391,8 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             }else{
                 viewHolder.mContainer1.setVisibility(View.GONE);
             }
-            if(infoSession2 != null){
+            if(size >= 2){
+                InfoSession infoSession2 = infoSessions.get(1);
                 viewHolder.mContainer2.setVisibility(View.VISIBLE);
                 viewHolder.mCompany2.setText(employer2);
                 viewHolder.mDate2.setText(infoSessions.get(1).getDate());
@@ -402,7 +402,8 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 viewHolder.mContainer2.setVisibility(View.GONE);
             }
 
-            if(infoSession3 != null){
+            if(size >= 3){
+                InfoSession infoSession3 = infoSessions.get(2);
                 viewHolder.mContainer3.setVisibility(View.VISIBLE);
                 viewHolder.mCompany3.setText(employer3);
                 viewHolder.mDate3.setText(infoSessions.get(2).getDate());
@@ -418,8 +419,11 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             viewHolder.mContainer3.setVisibility(View.GONE);
         }
 
-        InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(mContext);
-        List<InfoSessionDBModel> infoSessionDBModelList = dbHelper.getAllInfoSessions();
+
+
+
+
+        List<InfoSessionDBModel> infoSessionDBModelList = parser.getHomeWidgetSavedInfoSessions();
 
         if(infoSessionDBModelList == null || infoSessionDBModelList.size() == 0){
             viewHolder.mSavedContainer1.setVisibility(View.GONE);
@@ -428,7 +432,43 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             viewHolder.mNoSessionsSaved.setVisibility(View.VISIBLE);
         }else{
             viewHolder.mNoSessionsSaved.setVisibility(View.GONE);
+            int size = infoSessionDBModelList.size();
+            if(size >= 1){
+                InfoSessionDBModel infoSession1 = infoSessionDBModelList.get(0);
+                viewHolder.mSavedContainer1.setVisibility(View.VISIBLE);
+                viewHolder.mSavedCompany1.setText(infoSession1.getEmployer());
+                viewHolder.mSavedDate1.setText(infoSession1.getDate());
+                viewHolder.mSavedLocation1.setText(infoSession1.getLocation());
+                viewHolder.mSavedTime1.setText(infoSession1.getTime());
+            }else{
+                viewHolder.mSavedContainer1.setVisibility(View.GONE);
+                viewHolder.mSavedContainer2.setVisibility(View.GONE);
+                viewHolder.mSavedContainer3.setVisibility(View.GONE);
+                return;
+            }
+            if(size >= 2){
+                InfoSessionDBModel infoSession2 = infoSessionDBModelList.get(1);
+                viewHolder.mSavedContainer2.setVisibility(View.VISIBLE);
+                viewHolder.mSavedCompany2.setText(infoSession2.getEmployer());
+                viewHolder.mSavedDate2.setText(infoSession2.getDate());
+                viewHolder.mSavedLocation2.setText(infoSession2.getLocation());
+                viewHolder.mSavedTime2.setText(infoSession2.getTime());
+            }else{
+                viewHolder.mSavedContainer2.setVisibility(View.GONE);
+                viewHolder.mSavedContainer3.setVisibility(View.GONE);
+                return;
+            }
 
+            if(size >= 3){
+                InfoSessionDBModel infoSession3 = infoSessionDBModelList.get(2);
+                viewHolder.mSavedContainer3.setVisibility(View.VISIBLE);
+                viewHolder.mSavedCompany3.setText(infoSession3.getEmployer());
+                viewHolder.mSavedDate3.setText(infoSession3.getDate());
+                viewHolder.mSavedLocation3.setText(infoSession3.getLocation());
+                viewHolder.mSavedTime3.setText(infoSession3.getTime());
+            }else{
+                viewHolder.mSavedContainer3.setVisibility(View.GONE);
+            }
         }
 
 

@@ -82,15 +82,6 @@
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
                 android:layout_below="@id/saved_company_1"/>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dip"
-                android:background="@color/gray"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp"
-                android:layout_below="@id/saved_location_1"/>
         </RelativeLayout>
         <RelativeLayout
             android:id="@+id/saved_company_2_container"
@@ -98,13 +89,24 @@
             android:layout_height="wrap_content"
             android:paddingRight="16dp"
             android:paddingLeft="16dp">
+            <View
+                android:id="@+id/saved_divider_2"
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:background="@color/gray"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:layout_alignParentTop="true"/>
             <TextView
                 android:id="@+id/saved_date_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
                 android:layout_alignParentRight="true"
-                android:fontFamily="sans-serif"/>
+                android:fontFamily="sans-serif"
+                android:layout_below="@id/saved_divider_2"/>
 
             <TextView
                 android:id="@+id/saved_company_2"
@@ -117,7 +119,8 @@
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:gravity="left"
-                android:layout_toLeftOf="@id/saved_date_2"/>
+                android:layout_toLeftOf="@id/saved_date_2"
+                android:layout_below="@id/saved_divider_2"/>
             <TextView
                 android:id="@+id/saved_time_2"
                 android:layout_width="wrap_content"
@@ -131,15 +134,6 @@
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
                 android:layout_below="@id/saved_company_2"/>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dip"
-                android:background="@color/gray"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp"
-                android:layout_below="@id/saved_location_2"/>
         </RelativeLayout>
 
         <RelativeLayout
@@ -148,13 +142,24 @@
             android:layout_height="wrap_content"
             android:paddingRight="16dp"
             android:paddingLeft="16dp">
+            <View
+                android:id="@+id/saved_divider_3"
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:background="@color/gray"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:layout_alignParentTop="true"/>
             <TextView
                 android:id="@+id/saved_date_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
                 android:layout_alignParentRight="true"
-                android:fontFamily="sans-serif"/>
+                android:fontFamily="sans-serif"
+                android:layout_below="@id/saved_divider_3"/>
             <TextView
                 android:id="@+id/saved_company_3"
                 android:layout_width="match_parent"
@@ -166,7 +171,8 @@
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:gravity="left"
-                android:layout_toLeftOf="@id/saved_date_3"/>
+                android:layout_toLeftOf="@id/saved_date_3"
+                android:layout_below="@id/saved_divider_3"/>
             <TextView
                 android:id="@+id/saved_time_3"
                 android:layout_width="wrap_content"
@@ -246,15 +252,6 @@
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
                 android:layout_below="@id/company_1"/>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dip"
-                android:background="@color/gray"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp"
-                android:layout_below="@id/location_1"/>
         </RelativeLayout>
 
         <RelativeLayout
@@ -263,13 +260,24 @@
             android:layout_height="wrap_content"
             android:paddingRight="16dp"
             android:paddingLeft="16dp">
+            <View
+                android:id="@+id/divider_2"
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:background="@color/gray"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+               android:layout_alignParentTop="true"/>
             <TextView
                 android:id="@+id/date_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
                 android:layout_alignParentRight="true"
-                android:fontFamily="sans-serif"/>
+                android:fontFamily="sans-serif"
+                android:layout_below="@id/divider_2"/>
 
             <TextView
                 android:id="@+id/company_2"
@@ -282,7 +290,8 @@
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:gravity="left"
-                android:layout_toLeftOf="@id/date_2"/>
+                android:layout_toLeftOf="@id/date_2"
+                android:layout_below="@id/divider_2"/>
             <TextView
                 android:id="@+id/time_2"
                 android:layout_width="wrap_content"
@@ -296,16 +305,6 @@
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
                 android:layout_below="@id/company_2"/>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dip"
-                android:background="@color/gray"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp"
-                android:layout_below="@id/location_2"/>
-
         </RelativeLayout>
 
         <RelativeLayout
@@ -314,13 +313,24 @@
             android:layout_height="wrap_content"
             android:paddingRight="16dp"
             android:paddingLeft="16dp">
+            <View
+                android:id="@+id/divider_3"
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:background="@color/gray"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:layout_alignParentTop="true"/>
             <TextView
                 android:id="@+id/date_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
                 android:layout_alignParentRight="true"
-                android:fontFamily="sans-serif"/>
+                android:fontFamily="sans-serif"
+                android:layout_below="@id/divider_3"/>
             <TextView
                 android:id="@+id/company_3"
                 android:layout_width="match_parent"
@@ -332,7 +342,8 @@
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:gravity="left"
-                android:layout_toLeftOf="@id/date_3"/>
+                android:layout_toLeftOf="@id/date_3"
+                android:layout_below="@id/divider_3"/>
             <TextView
                 android:id="@+id/time_3"
                 android:layout_width="wrap_content"

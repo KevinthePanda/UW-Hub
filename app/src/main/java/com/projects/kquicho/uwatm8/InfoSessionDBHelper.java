@@ -27,9 +27,11 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
     // Table Columns
     private static final String KEY_INFO_SESSIONS_ID = "id";
     private static final String KEY_INFO_SESSIONS_NAME_EVENT_ID = "eventId";
-    private static final String KEY_INFO_SESSIONS_TIME = "userId";
-    private static final String KEY_INFO_SESSIONS_TITLE = "title";
-    private static final String KEY_INFO_SESSIONS_MSG = "msg";
+    private static final String KEY_INFO_SESSIONS_ALARM_TIME = "alarmTime";
+    private static final String KEY_INFO_SESSIONS_EMPLOYER = "employer";
+    private static final String KEY_INFO_SESSIONS_LOCATION = "location";
+    private static final String KEY_INFO_SESSIONS_DATE = "date";
+    private static final String KEY_INFO_SESSIONS_TIME = "time";
 
     public static synchronized InfoSessionDBHelper getInstance(Context context){
         if(sInstance == null){
@@ -57,9 +59,11 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
                 "(" +
                     KEY_INFO_SESSIONS_ID + " INTEGER PRIMARY KEY," + // Define a primary key
                     KEY_INFO_SESSIONS_NAME_EVENT_ID + " INTEGER," +
-                    KEY_INFO_SESSIONS_TIME + " INTEGER," +
-                    KEY_INFO_SESSIONS_TITLE + " TEXT," +
-                    KEY_INFO_SESSIONS_MSG + " TEXT" +
+                    KEY_INFO_SESSIONS_ALARM_TIME + " INTEGER," +
+                    KEY_INFO_SESSIONS_EMPLOYER + " TEXT," +
+                    KEY_INFO_SESSIONS_LOCATION + " TEXT," +
+                    KEY_INFO_SESSIONS_DATE + " TEXT," +
+                    KEY_INFO_SESSIONS_TIME + " TEXT" +
                 ")";
 
         db.execSQL(CREATE_POSTS_TABLE);
@@ -103,9 +107,11 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
 
             ContentValues values = new ContentValues();
             values.put(KEY_INFO_SESSIONS_NAME_EVENT_ID, infoSession.getId());
+            values.put(KEY_INFO_SESSIONS_ALARM_TIME, infoSession.getAlarmTime());
+            values.put(KEY_INFO_SESSIONS_EMPLOYER, infoSession.getEmployer());
+            values.put(KEY_INFO_SESSIONS_LOCATION, infoSession.getLocation());
+            values.put(KEY_INFO_SESSIONS_DATE, infoSession.getDate());
             values.put(KEY_INFO_SESSIONS_TIME, infoSession.getTime());
-            values.put(KEY_INFO_SESSIONS_TITLE, infoSession.getTitle());
-            values.put(KEY_INFO_SESSIONS_MSG, infoSession.getMsg());
 
             db.insertOrThrow(TABLE_INFO_SESSIONS, null, values);
             db.setTransactionSuccessful();
@@ -125,9 +131,11 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
                 do {
                     InfoSessionDBModel newInfoSession = new InfoSessionDBModel();
                     newInfoSession.setId(cursor.getInt(cursor.getColumnIndex(KEY_INFO_SESSIONS_NAME_EVENT_ID)));
-                    newInfoSession.setTime(cursor.getLong(cursor.getColumnIndex(KEY_INFO_SESSIONS_TIME)));
-                    newInfoSession.setTitle(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_TITLE)));
-                    newInfoSession.setMsg(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_MSG)));
+                    newInfoSession.setAlarmTime(cursor.getLong(cursor.getColumnIndex(KEY_INFO_SESSIONS_ALARM_TIME)));
+                    newInfoSession.setEmployer(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_EMPLOYER)));
+                    newInfoSession.setLocation(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_LOCATION)));
+                    newInfoSession.setDate(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_DATE)));
+                    newInfoSession.setTime(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_TIME)));
                     infoSessions.add(newInfoSession);
                 } while(cursor.moveToNext());
             }
@@ -140,6 +148,34 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
         }
         return infoSessions;
     }
+
+    public ArrayList<InfoSessionDBModel> getHomeWidgetSavedInfoSessions() {
+        ArrayList<InfoSessionDBModel> infoSessions = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_INFO_SESSIONS + " ORDER BY " + KEY_INFO_SESSIONS_ALARM_TIME  +" ASC", null);
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    InfoSessionDBModel newInfoSession = new InfoSessionDBModel();
+                    newInfoSession.setId(cursor.getInt(cursor.getColumnIndex(KEY_INFO_SESSIONS_NAME_EVENT_ID)));
+                    newInfoSession.setAlarmTime(cursor.getLong(cursor.getColumnIndex(KEY_INFO_SESSIONS_ALARM_TIME)));
+                    newInfoSession.setEmployer(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_EMPLOYER)));
+                    newInfoSession.setLocation(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_LOCATION)));
+                    newInfoSession.setDate(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_DATE)));
+                    newInfoSession.setTime(cursor.getString(cursor.getColumnIndex(KEY_INFO_SESSIONS_TIME)));
+                    infoSessions.add(newInfoSession);
+                } while(cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.d(TAG, e.getMessage());
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        return infoSessions;
+    }
+
 
     public boolean checkForInfoSession(String id) {
         SQLiteDatabase db = getReadableDatabase();
