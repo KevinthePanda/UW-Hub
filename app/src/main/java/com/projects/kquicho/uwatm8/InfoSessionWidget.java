@@ -1,6 +1,7 @@
 package com.projects.kquicho.uwatm8;
 
 
+import android.content.Context;
 import android.util.Log;
 
 import com.projects.kquicho.uw_api_client.Core.APIResult;
@@ -17,18 +18,19 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
     private static ResourcesParser mParser;
     private static Integer mPosition;
     private UWClientResponseHandler mHandler;
+    private Context mContext;
 
-    public static InfoSessionWidget getInstance(UWClientResponseHandler handler) {
+    public static InfoSessionWidget getInstance(UWClientResponseHandler handler, Context context) {
         if(mInstance == null){
-            mInstance = new InfoSessionWidget(handler);
+            mInstance = new InfoSessionWidget(handler, context);
         }
         return mInstance;
     }
 
-    public static InfoSessionWidget getInstance(UWClientResponseHandler handler, Integer position) {
+    public static InfoSessionWidget getInstance(UWClientResponseHandler handler, Integer position, Context context) {
         if(mInstance == null){
             mPosition = position;
-            mInstance = new InfoSessionWidget(handler);
+            mInstance = new InfoSessionWidget(handler, context);
         }
         return mInstance;
     }
@@ -40,10 +42,11 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
     }
 
 
-    private InfoSessionWidget(UWClientResponseHandler handler) {
+    private InfoSessionWidget(UWClientResponseHandler handler, Context context) {
         mParser = new ResourcesParser();
         mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
         mHandler = handler;
+        mContext = context;
         String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
 
         Log.i("test", "start");
@@ -61,7 +64,7 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
     public void onDownloadComplete(APIResult apiResult) {
         mParser.setAPIResult(apiResult);
         //mParser.parseJSON();
-        mParser.parseHomeWidgetInfoSessions(new ArrayList<String>());
+        mParser.parseHomeWidgetInfoSessions(mContext);
         UWData data = new UWData(mParser, TAG);
         mHandler.onSuccess(data, mPosition);
         Log.i("test", "end");

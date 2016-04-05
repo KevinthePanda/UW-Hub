@@ -5,23 +5,77 @@ import android.os.Parcelable;
 
 public class InfoSessionDBModel implements Parcelable{
     private int mId;
-    private long mTime;
-    private String mTitle;
-    private String mMsg;
+    private long mAlarmTime;
+    private String mEmployer;
+    private String mLocation;
+    private String mDate;
+    private String mTime;
 
-    public InfoSessionDBModel(int id, long time, String title, String msg){
+    public InfoSessionDBModel(int id, long alarmTime, String employer, String location, String date, String time) {
         mId = id;
+        mAlarmTime = alarmTime;
+        mEmployer = employer;
+        mLocation = location;
+        mDate = date;
         mTime = time;
-        mTitle = title;
-        mMsg = msg;
     }
+
     public InfoSessionDBModel(){}
 
     public InfoSessionDBModel(Parcel in){
         mId = in.readInt();
-        mTime = in.readLong();
-        mTitle = in.readString();
-        mMsg = in.readString();
+        mAlarmTime = in.readLong();
+        mEmployer = in.readString();
+        mLocation = in.readString();
+        mDate = in.readString();
+        mTime = in.readString();
+    }
+
+    public long getAlarmTime() {
+        return mAlarmTime;
+    }
+
+    public void setAlarmTime(long alarmTime) {
+        mAlarmTime = alarmTime;
+    }
+
+    public String getEmployer() {
+        return mEmployer;
+    }
+
+    public void setEmployer(String employer) {
+        mEmployer = employer;
+    }
+
+    public String getLocation() {
+        return mLocation;
+    }
+
+    public void setLocation(String location) {
+        mLocation = location;
+    }
+
+    public String getDate() {
+        return mDate;
+    }
+
+    public void setDate(String date) {
+        mDate = date;
+    }
+
+    public void setTime(String time) {
+        mTime = time;
+    }
+
+    public String getTime() {
+        return mTime;
+    }
+
+    public int getId(){
+        return mId;
+    }
+    public void setId(int id){
+        mId = id;
     }
 
     public static final Parcelable.Creator CREATOR
@@ -36,35 +90,6 @@ public class InfoSessionDBModel implements Parcelable{
     };
 
 
-    public int getId(){
-        return mId;
-    }
-    public long getTime(){
-        return mTime;
-    }
-    public String getTitle(){
-        return mTitle;
-    }
-    public String getMsg(){
-        return mMsg;
-    }
-
-    public void setId(int id){
-        mId = id;
-    }
-    public void setTime(long time){
-        mTime = time;
-    }
-
-    public void setTitle(String title){
-        mTitle = title;
-    }
-
-    public void setMsg(String msg){
-        mMsg = msg;
-    }
-
-
     @Override
     public int describeContents() {
         return 0;
@@ -73,8 +98,10 @@ public class InfoSessionDBModel implements Parcelable{
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(mId);
-        dest.writeLong(mTime);
-        dest.writeString(mTitle);
-        dest.writeString(mMsg);
+        dest.writeLong(mAlarmTime);
+        dest.writeString(mEmployer);
+        dest.writeString(mLocation);
+        dest.writeString(mDate);
+        dest.writeString(mTime);
     }
 }
