@@ -1,6 +1,7 @@
 package com.projects.kquicho.uwatm8;
 
 
+import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -22,7 +23,21 @@ public class InfoSessionService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent){
-        sendNotification((InfoSessionDBModel)intent.getParcelableExtra(INFO_SESSION_MODEL));
+        InfoSessionDBModel infoSessionDBModel = intent.getParcelableExtra(INFO_SESSION_MODEL);
+        sendNotification(infoSessionDBModel);
+
+        InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(getApplicationContext());
+        dbHelper.addToRemove(infoSessionDBModel.getId(), infoSessionDBModel.getAlarmTime() +  3600000);
+
+        Intent newIntent = new Intent(getApplicationContext(), RemoveInfoSessionAlarmReceiver.class);
+        newIntent.putExtra(RemoveInfoSessionAlarmReceiver.ID, infoSessionDBModel.getId());
+
+        final PendingIntent pIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                infoSessionDBModel.getId(),newIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        //set the alarm an hour before the start time
+        alarm.set(AlarmManager.RTC_WAKEUP, infoSessionDBModel.getAlarmTime() +  3600000 , pIntent);
     }
 
     private void sendNotification(InfoSessionDBModel infoSessionDBModel){

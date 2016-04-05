@@ -272,7 +272,6 @@ public class ResourcesParser extends UWParser {
             InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(context);
             homeWidgetSavedInfoSessions = dbHelper.getHomeWidgetSavedInfoSessions();
 
-            dbHelper.close();
             homeWidgetInfoSessions = new ArrayList<>();
             JSONArray infosessionArray = apiResult.getResultJSON().getJSONArray(DATA_TAG);
             int infosessionArrayLength = infosessionArray.length();

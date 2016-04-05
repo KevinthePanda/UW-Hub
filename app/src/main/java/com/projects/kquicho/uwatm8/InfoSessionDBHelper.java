@@ -10,7 +10,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InfoSessionDBHelper extends SQLiteOpenHelper{
     public final static String TAG = "InfoSessionDBHelper";
@@ -23,6 +25,7 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
 
     // Table
     private static final String TABLE_INFO_SESSIONS = "infoSessions";
+    private static final String TABLE_TO_REMOVE = "toDelete";
 
     // Table Columns
     private static final String KEY_INFO_SESSIONS_ID = "id";
@@ -32,6 +35,7 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
     private static final String KEY_INFO_SESSIONS_LOCATION = "location";
     private static final String KEY_INFO_SESSIONS_DATE = "date";
     private static final String KEY_INFO_SESSIONS_TIME = "time";
+    
 
     public static synchronized InfoSessionDBHelper getInstance(Context context){
         if(sInstance == null){
@@ -55,7 +59,7 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
     // If a database already exists on disk with the same DATABASE_NAME, this method will NOT be called.
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_POSTS_TABLE = "CREATE TABLE " + TABLE_INFO_SESSIONS +
+        String CREATE_INFO_SESSIONS_TABLE = "CREATE TABLE " + TABLE_INFO_SESSIONS +
                 "(" +
                     KEY_INFO_SESSIONS_ID + " INTEGER PRIMARY KEY," + // Define a primary key
                     KEY_INFO_SESSIONS_NAME_EVENT_ID + " INTEGER," +
@@ -66,7 +70,16 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
                     KEY_INFO_SESSIONS_TIME + " TEXT" +
                 ")";
 
-        db.execSQL(CREATE_POSTS_TABLE);
+        String CREATE_TO_DELETE_TABLE = "CREATE TABLE " + TABLE_TO_REMOVE +
+                "(" +
+                KEY_INFO_SESSIONS_ID + " INTEGER PRIMARY KEY," + // Define a primary key
+                KEY_INFO_SESSIONS_NAME_EVENT_ID + " INTEGER," +
+                KEY_INFO_SESSIONS_ALARM_TIME + " INTEGER" +
+                ")";
+
+
+        db.execSQL(CREATE_INFO_SESSIONS_TABLE);
+        db.execSQL(CREATE_TO_DELETE_TABLE);
     }
 
     // Called when the database needs to be upgraded.
@@ -77,6 +90,7 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
         if (oldVersion != newVersion) {
             // Simplest implementation is to drop all old tables and recreate them
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_INFO_SESSIONS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TO_REMOVE);
             onCreate(db);
         }
     }
@@ -180,7 +194,7 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
     public boolean checkForInfoSession(String id) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_INFO_SESSIONS + " WHERE " +
-                KEY_INFO_SESSIONS_NAME_EVENT_ID + "='" + id +"'", null);
+                KEY_INFO_SESSIONS_NAME_EVENT_ID + "='" + id + "'", null);
         boolean doesExist =  cursor.moveToFirst();
         cursor.close();
         return doesExist;
@@ -208,6 +222,29 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
         cursor.close();
     }
 
+    public void deleteInfoSession(int id){
+        SQLiteDatabase db = getWritableDatabase();
+
+        db.delete(TABLE_INFO_SESSIONS, KEY_INFO_SESSIONS_NAME_EVENT_ID + " = ?",
+                new String[]{String.valueOf(id) });
+
+        String count = "SELECT count(*) FROM " + TABLE_INFO_SESSIONS;
+        Cursor cursor = db.rawQuery(count, null);
+        cursor.moveToFirst();
+        int icount = cursor.getInt(0);
+        if(icount == 0){
+            ComponentName receiver = new ComponentName(mContext, InfoSessionBootReceiver.class);
+            PackageManager pm = mContext.getPackageManager();
+
+            pm.setComponentEnabledSetting(receiver,
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    PackageManager.DONT_KILL_APP);
+            Log.d(TAG, "Disabling InfoSessionBootReceiver");
+        }
+        cursor.close();
+    }
+
+
     public void deleteAllInfoSessions() {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
@@ -221,5 +258,90 @@ public class InfoSessionDBHelper extends SQLiteOpenHelper{
             db.endTransaction();
         }
     }
+    
+    
+    public void addToRemove(int id, long time){
+        Log.d(TAG, "addToRemove");
+        // Create and/or open the database for writing
+        SQLiteDatabase db = getWritableDatabase();
+
+        String count = "SELECT count(*) FROM " + TABLE_TO_REMOVE;
+        Cursor cursor = db.rawQuery(count, null);
+        cursor.moveToFirst();
+        int icount = cursor.getInt(0);
+        if(icount == 0){
+            ComponentName receiver = new ComponentName(mContext, RemoveInfoSessionBootReceiver.class);
+            PackageManager pm = mContext.getPackageManager();
+
+            pm.setComponentEnabledSetting(receiver,
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                    PackageManager.DONT_KILL_APP);
+            Log.d(TAG, "Enabling RemoveInfoSessionBootReceiver");
+        }
+        cursor.close();
+
+        // It's a good idea to wrap our insert in a transaction. This helps with performance and ensures
+        // consistency of the database.
+        db.beginTransaction();
+        try {
+
+            ContentValues values = new ContentValues();
+            values.put(KEY_INFO_SESSIONS_NAME_EVENT_ID, id);
+            values.put(KEY_INFO_SESSIONS_ALARM_TIME, time);
+
+            db.insertOrThrow(TABLE_TO_REMOVE, null, values);
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to add id to database");
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    public void deleteToRemove(int id){
+        SQLiteDatabase db = getWritableDatabase();
+
+        db.delete(TABLE_TO_REMOVE, KEY_INFO_SESSIONS_NAME_EVENT_ID + " = ?",
+                new String[]{String.valueOf(id) });
+
+        String count = "SELECT count(*) FROM " + TABLE_TO_REMOVE;
+        Cursor cursor = db.rawQuery(count, null);
+        cursor.moveToFirst();
+        int icount = cursor.getInt(0);
+        if(icount == 0){
+            ComponentName receiver = new ComponentName(mContext, RemoveInfoSessionBootReceiver.class);
+            PackageManager pm = mContext.getPackageManager();
+
+            pm.setComponentEnabledSetting(receiver,
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    PackageManager.DONT_KILL_APP);
+            Log.d(TAG, "Disabling RemoveInfoSessionBootReceiver");
+        }
+        cursor.close();
+
+    }
+
+    public Map<Integer, Long> getAllToRemove(){
+        Map<Integer, Long> ids = new HashMap<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_TO_REMOVE, null);
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    ids.put(cursor.getInt(cursor.getColumnIndex(KEY_INFO_SESSIONS_NAME_EVENT_ID)),
+                            cursor.getLong(cursor.getColumnIndex(KEY_INFO_SESSIONS_ALARM_TIME)));
+                } while(cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to get to deleteids from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        return ids;
+
+    }
+
 
 }
