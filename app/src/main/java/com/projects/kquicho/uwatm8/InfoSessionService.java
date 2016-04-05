@@ -37,9 +37,9 @@ public class InfoSessionService extends IntentService {
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setContentTitle(infoSessionDBModel.getTitle())
+                .setContentTitle("Info Session w/ " + infoSessionDBModel.getEmployer())
                 .setSmallIcon(R.drawable.ic_launcher)
-                .setContentText(infoSessionDBModel.getMsg())
+                .setContentText(infoSessionDBModel.getTime() + " at " + infoSessionDBModel.getLocation())
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
                 .setOnlyAlertOnce(true);

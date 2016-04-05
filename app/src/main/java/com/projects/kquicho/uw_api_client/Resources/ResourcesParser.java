@@ -1,10 +1,13 @@
 package com.projects.kquicho.uw_api_client.Resources;
+import android.content.Context;
 import android.util.Log;
 
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.MetaData;
 import com.projects.kquicho.uw_api_client.Core.MetaDataParser;
 import com.projects.kquicho.uw_api_client.Core.UWParser;
+import com.projects.kquicho.uwatm8.InfoSessionDBHelper;
+import com.projects.kquicho.uwatm8.InfoSessionDBModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -166,6 +169,8 @@ public class ResourcesParser extends UWParser {
 
     private ArrayList<InfoSession> homeWidgetInfoSessions;
 
+    private ArrayList<InfoSessionDBModel> homeWidgetSavedInfoSessions;
+
     @Override
     public void parseJSON() {
         if(apiResult == null || apiResult.getResultJSON() == null) return;
@@ -257,9 +262,17 @@ public class ResourcesParser extends UWParser {
         return homeWidgetInfoSessions;
     }
 
-    public void parseHomeWidgetInfoSessions(ArrayList<String> savedIDs ){
+    public ArrayList<InfoSessionDBModel> getHomeWidgetSavedInfoSessions(){
+        return homeWidgetSavedInfoSessions;
+    }
+
+    public void parseHomeWidgetInfoSessions(Context context){
         try
         {
+            InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(context);
+            homeWidgetSavedInfoSessions = dbHelper.getHomeWidgetSavedInfoSessions();
+
+            dbHelper.close();
             homeWidgetInfoSessions = new ArrayList<>();
             JSONArray infosessionArray = apiResult.getResultJSON().getJSONArray(DATA_TAG);
             int infosessionArrayLength = infosessionArray.length();
@@ -267,10 +280,16 @@ public class ResourcesParser extends UWParser {
             for(int i = 0; i < infosessionArrayLength; i++){
                 InfoSession location = new InfoSession();
                 JSONObject jsonInfoSessionLocation = infosessionArray.getJSONObject(i);
-                if(savedIDs.contains(jsonInfoSessionLocation.getString(ID_TAG))){
+                boolean shouldContinue = false;
+                for(InfoSessionDBModel dbModel : homeWidgetSavedInfoSessions){
+                    if(dbModel.getId() == jsonInfoSessionLocation.getInt(ID_TAG)){
+                        shouldContinue = true;
+                        break;
+                    }
+                }
+                if(shouldContinue){
                     continue;
                 }
-
                 String rawDate = jsonInfoSessionLocation.getString(DATE_TAG);
                 String rawStartTime = jsonInfoSessionLocation.getString(START_TIME_TAG);
                 String rawEndTime = jsonInfoSessionLocation.getString(END_TIME_TAG);

@@ -123,7 +123,7 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
                 if(i == 0){
                     Log.i("Test", "0");
                     WeatherWidget.getInstance(this, 0);
-                    InfoSessionWidget.getInstance(this, 1);
+                    InfoSessionWidget.getInstance(this, 1, getActivity().getApplicationContext());
                 }
                 break;
             }
@@ -134,7 +134,7 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
                     break;
                 case InfoSessionWidget.TAG:
                     Log.i("Test", "InfoSessionWidget");
-                    InfoSessionWidget.getInstance(this, i);
+                    InfoSessionWidget.getInstance(this, getActivity().getApplicationContext());
                     break;
             }
         }
@@ -150,7 +150,7 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         view.findViewById(R.id.fab_sheet_info_session).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                InfoSessionWidget.getInstance(handler);
+                InfoSessionWidget.getInstance(handler, getActivity().getApplicationContext());
             }
         });
     }
