@@ -9,7 +9,13 @@ import com.projects.kquicho.uw_api_client.Core.UWParser;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by ZainH on 02/09/2015.
@@ -93,6 +99,7 @@ import java.util.ArrayList;
  *      * getGooseLocations()
  */
 public class ResourcesParser extends UWParser {
+    public static final String TAG = UWParser.class.toString();
     // end points
     private static final String TUTORS_END_POINT = "resources/tutors";
     private static final String PRINTERS_END_POINT = "resources/printers";
@@ -156,6 +163,8 @@ public class ResourcesParser extends UWParser {
 
     // /resources/goosewatch variables
     private ArrayList<GooseLocation> gooseLocations = new ArrayList<>();
+
+    private ArrayList<InfoSession> homeWidgetInfoSessions;
 
     @Override
     public void parseJSON() {
@@ -244,6 +253,81 @@ public class ResourcesParser extends UWParser {
         }
     }
 
+    public ArrayList<InfoSession> getHomeWidgetInfoSessions(){
+        return homeWidgetInfoSessions;
+    }
+
+    public void parseHomeWidgetInfoSessions(ArrayList<String> savedIDs ){
+        try
+        {
+            homeWidgetInfoSessions = new ArrayList<>();
+            JSONArray infosessionArray = apiResult.getResultJSON().getJSONArray(DATA_TAG);
+            int infosessionArrayLength = infosessionArray.length();
+
+            for(int i = 0; i < infosessionArrayLength; i++){
+                InfoSession location = new InfoSession();
+                JSONObject jsonInfoSessionLocation = infosessionArray.getJSONObject(i);
+                if(savedIDs.contains(jsonInfoSessionLocation.getString(ID_TAG))){
+                    continue;
+                }
+
+                String rawDate = jsonInfoSessionLocation.getString(DATE_TAG);
+                String rawStartTime = jsonInfoSessionLocation.getString(START_TIME_TAG);
+                String rawEndTime = jsonInfoSessionLocation.getString(END_TIME_TAG);
+
+                try {
+                    //check to see if infosession has not past
+                    DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CANADA);
+                    Date date = format.parse(rawDate + " " + rawStartTime);
+                    if(date == null || date.getTime() < System.currentTimeMillis()){
+                        continue;
+                    }
+
+                    //add date
+                    format = new SimpleDateFormat("yyyy-MM-dd", Locale.CANADA);
+                    date = format.parse(rawDate);
+                    format = new SimpleDateFormat("MMM d, yy", Locale.CANADA);
+                    location.setDate(format.format(date));
+
+                    //displayTime
+                    format = new SimpleDateFormat("HH:mm", Locale.CANADA);
+                    Date startDateTime = format.parse(rawStartTime);
+                    Date endDateTime = format.parse(rawEndTime);
+                    Date afterNoonDateTime = format.parse("12:00");
+                    DateFormat newFormat = new SimpleDateFormat("h:mm", Locale.CANADA);
+                    DateFormat newFormatWithSuffix = new SimpleDateFormat("h:mm a", Locale.CANADA);
+
+                    String displayTimeRange;
+                    boolean isStartAM = startDateTime.getTime() < afterNoonDateTime.getTime();
+                    boolean isEndAM = endDateTime.getTime() < afterNoonDateTime.getTime();
+                    if((isStartAM && isEndAM) || (!isStartAM && ! isEndAM)){
+                        displayTimeRange = newFormat.format(startDateTime) + " - "
+                                + newFormatWithSuffix.format(endDateTime);
+                    }else{
+                        displayTimeRange = newFormatWithSuffix.format(startDateTime) + " - "
+                                + newFormatWithSuffix.format(endDateTime);
+                    }
+
+                    location.setDisplay_time_range(displayTimeRange);
+
+                }catch (ParseException ex){
+                    Log.e(TAG, "onReceive ParseException: " + ex.getMessage());
+                }
+
+
+                location.setEmployer(jsonInfoSessionLocation.getString(EMPLOYER_TAG));
+                JSONObject jsonBuildingObject = jsonInfoSessionLocation.getJSONObject(BUILDING_TAG);
+                location.setBuildingCode(jsonBuildingObject.getString(CODE_TAG));
+                location.setBuildingRoom(jsonBuildingObject.getString(ROOM_TAG));
+                homeWidgetInfoSessions.add(location);
+                if(homeWidgetInfoSessions.size() == 3){
+                    return;
+                }
+            }
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
+    }
     private void parseInfoSessionsJSON(){
 
         try
@@ -261,14 +345,52 @@ public class ResourcesParser extends UWParser {
                 if(!jsonInfoSessionLocation.isNull(EMPLOYER_TAG))
                     location.setEmployer(jsonInfoSessionLocation.getString(EMPLOYER_TAG));
 
-                if(!jsonInfoSessionLocation.isNull(DATE_TAG))
-                    location.setDate(jsonInfoSessionLocation.getString(DATE_TAG));
+                if(!jsonInfoSessionLocation.isNull(DATE_TAG)) {
+                    String dateS = jsonInfoSessionLocation.getString(DATE_TAG);
+                    DateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.CANADA);
+                    try {
+                        Date date = format.parse(dateS);
+                        DateFormat newFormat = new SimpleDateFormat("MMM d, yy", Locale.CANADA);
+                        dateS = newFormat.format(date);
+                        location.setDate(dateS);
+                    }catch (ParseException ex){
+                        Log.e(TAG, "onReceive ParseException: " + ex.getMessage());
+                    }
 
-                if(!jsonInfoSessionLocation.isNull(START_TIME_TAG))
-                    location.setStart_time(jsonInfoSessionLocation.getString(START_TIME_TAG));
+                }
 
-                if(!jsonInfoSessionLocation.isNull(END_TIME_TAG))
-                    location.setEnd_time(jsonInfoSessionLocation.getString(END_TIME_TAG));
+                if(!jsonInfoSessionLocation.isNull(END_TIME_TAG) && !jsonInfoSessionLocation.isNull(START_TIME_TAG)) {
+                    String startTimeS = jsonInfoSessionLocation.getString(START_TIME_TAG);
+                    String endTimeS = jsonInfoSessionLocation.getString(END_TIME_TAG);
+                    location.setStart_time(startTimeS);
+                    location.setEnd_time(endTimeS);
+
+                    DateFormat format = new SimpleDateFormat("HH:mm", Locale.CANADA);
+                    try {
+                        Date startDateTime = format.parse(startTimeS);
+                        Date endDateTime = format.parse(endTimeS);
+                        Date afterNoonDateTime = format.parse("12:00");
+                        DateFormat newFormat = new SimpleDateFormat("h:mm", Locale.CANADA);
+                        DateFormat newFormatWithSuffix = new SimpleDateFormat("h:mm a", Locale.CANADA);
+
+                        String displayTimeRange;
+                        boolean isStartAM = startDateTime.getTime() < afterNoonDateTime.getTime();
+                        boolean isEndAM = endDateTime.getTime() < afterNoonDateTime.getTime();
+                        if((isStartAM && isEndAM) || (!isStartAM && ! isEndAM)){
+                            displayTimeRange = newFormat.format(startDateTime) + " - "
+                                    + newFormatWithSuffix.format(endDateTime);
+                        }else{
+                            displayTimeRange = newFormatWithSuffix.format(startDateTime) + " - "
+                                    + newFormatWithSuffix.format(endDateTime);
+                        }
+
+                        location.setDisplay_time_range(displayTimeRange);
+
+                    }catch (ParseException ex){
+                        Log.e(TAG, "onReceive ParseException: " + ex.getMessage());
+                    }
+                }
+
 
                 if(!jsonInfoSessionLocation.isNull(BUILDING_TAG)){
                     JSONObject jsonBuildingObject = jsonInfoSessionLocation.getJSONObject(BUILDING_TAG);

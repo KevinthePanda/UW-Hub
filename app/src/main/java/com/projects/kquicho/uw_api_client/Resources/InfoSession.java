@@ -7,6 +7,7 @@ public class InfoSession {
     private String date = null;
     private String start_time = null;
     private String end_time = null;
+    private String display_time_range = null;
     private String building_code = null;
     private String building_room = null;
     private String building_map_url = null;
@@ -14,6 +15,14 @@ public class InfoSession {
     private String audience = null;
     private String programs = null;
     private String description = null;
+
+    public String getDisplay_time_range() {
+        return display_time_range;
+    }
+
+    public void setDisplay_time_range(String display_time_range) {
+        this.display_time_range = display_time_range;
+    }
 
     public int getId() {
         return id;
