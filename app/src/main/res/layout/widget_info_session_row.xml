@@ -205,7 +205,7 @@
             android:textSize="20sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif"
-            android:text="No info sessions exist"/>
+            android:text="@string/no_info_sessions_available"/>
 
         <RelativeLayout
             android:id="@+id/company_1_container"

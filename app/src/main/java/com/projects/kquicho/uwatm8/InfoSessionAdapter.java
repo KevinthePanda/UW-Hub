@@ -159,7 +159,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
         InfoSession infoSession = data.getInfoSession();
         viewHolder.mCompany.setText(infoSession.getEmployer());
         viewHolder.mDate.setText(infoSession.getDate());
-        viewHolder.mTime.setText(infoSession.getStart_time() + " - " + infoSession.getEnd_time());
+        viewHolder.mTime.setText(infoSession.getDisplay_time_range());
         viewHolder.mLocation.setText(infoSession.getBuildingCode() + " - " + infoSession.getBuildingRoom());
 
         if(data.isAlertSet()){

@@ -19,8 +19,6 @@ import com.h6ah4i.android.widget.advrecyclerview.animator.SwipeDismissItemAnimat
 import com.h6ah4i.android.widget.advrecyclerview.decoration.SimpleListDividerDecorator;
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.RecyclerViewSwipeManager;
 import com.h6ah4i.android.widget.advrecyclerview.touchguard.RecyclerViewTouchActionGuardManager;
-import com.projects.kquicho.uw_api_client.Codes.CodesParser;
-import com.projects.kquicho.uw_api_client.Codes.Subject;
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.JSONDownloader;
 import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
@@ -36,7 +34,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.ListIterator;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 
 public class InfoSessionsFragment extends Fragment implements JSONDownloader.onDownloadListener {
@@ -134,7 +131,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         ArrayList<InfoSession> infoSessions = mParser.getInfoSessions();
         ListIterator li = infoSessions.listIterator(infoSessions.size());
         InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(getActivity().getApplicationContext());
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CANADA);
+        DateFormat format = new SimpleDateFormat("MMM d, yy HH:mm", Locale.CANADA);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         while (li.hasPrevious()){
             InfoSession infoSession = (InfoSession)li.previous();
@@ -151,7 +148,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
 
             boolean isAlertSet = dbHelper.checkForInfoSession(String.valueOf(infoSession.getId()));
 
-            mData.add(new InfoSessionData(infoSession, isAlertSet,  date.getTime()));
+            mData.add(new InfoSessionData(infoSession, isAlertSet, date.getTime()));
 
         }
         Collections.sort(mData, new CustonComparator());

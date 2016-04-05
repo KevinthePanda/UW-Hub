@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemConstants;
 import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange;
@@ -373,28 +374,49 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private void configureInfoSessionViewHolder(InfoSessionViewHolder viewHolder, int position){
         ResourcesParser parser = (ResourcesParser)mData.get(position).getParser();
-        ArrayList<InfoSession> infoSessions = parser.getInfoSessions();
-        if(infoSessions.size() >= 3) {
-            String employer1 = parser.getInfoSessions().get(0).getEmployer();
-            String employer2 = parser.getInfoSessions().get(1).getEmployer();
-            String employer3 = parser.getInfoSessions().get(2).getEmployer();
-            viewHolder.mCompany1.setText(employer1);
-            viewHolder.mCompany2.setText(employer2);
-            viewHolder.mCompany3.setText(employer3);
+        ArrayList<InfoSession> infoSessions = parser.getHomeWidgetInfoSessions();
+        if(infoSessions.size() != 0) {
+            viewHolder.mNoSessionsExist.setVisibility(View.GONE);
+            String employer1 = infoSessions.get(0).getEmployer();
+            String employer2 = infoSessions.get(1).getEmployer();
+            String employer3 = infoSessions.get(2).getEmployer();
+            InfoSession infoSession1 = infoSessions.get(0);
+            InfoSession infoSession2 = infoSessions.get(1);
+            InfoSession infoSession3 = infoSessions.get(2);
+            if(infoSession1 != null){
+                viewHolder.mContainer1.setVisibility(View.VISIBLE);
+                viewHolder.mCompany1.setText(employer1);
+                viewHolder.mDate1.setText(infoSessions.get(0).getDate());
+                viewHolder.mLocation1.setText(infoSessions.get(0).getBuildingCode() + " - " + infoSessions.get(0).getBuildingRoom());
+                viewHolder.mTime1.setText(infoSessions.get(0).getDisplay_time_range());
+            }else{
+                viewHolder.mContainer1.setVisibility(View.GONE);
+            }
+            if(infoSession2 != null){
+                viewHolder.mContainer2.setVisibility(View.VISIBLE);
+                viewHolder.mCompany2.setText(employer2);
+                viewHolder.mDate2.setText(infoSessions.get(1).getDate());
+                viewHolder.mLocation2.setText(infoSessions.get(1).getBuildingCode() + " - " + infoSessions.get(1).getBuildingRoom());
+                viewHolder.mTime2.setText(infoSessions.get(1).getDisplay_time_range());
+            }else{
+                viewHolder.mContainer2.setVisibility(View.GONE);
+            }
 
-            viewHolder.mDate1.setText(parser.getInfoSessions().get(0).getDate());
-            viewHolder.mDate2.setText(parser.getInfoSessions().get(1).getDate());
-            viewHolder.mDate3.setText(parser.getInfoSessions().get(2).getDate());
-
-            viewHolder.mLocation1.setText(parser.getInfoSessions().get(0).getBuildingCode() + " - " + parser.getInfoSessions().get(0).getBuildingRoom());
-            viewHolder.mLocation2.setText(parser.getInfoSessions().get(1).getBuildingCode() + " - " + parser.getInfoSessions().get(1).getBuildingRoom());
-            viewHolder.mLocation3.setText(parser.getInfoSessions().get(2).getBuildingCode() + " - " + parser.getInfoSessions().get(2).getBuildingRoom());
-
-            viewHolder.mTime1.setText(parser.getInfoSessions().get(0).getStart_time() + " - " + parser.getInfoSessions().get(0).getEnd_time());
-            viewHolder.mTime2.setText(parser.getInfoSessions().get(1).getStart_time() + " - " + parser.getInfoSessions().get(1).getEnd_time());
-            viewHolder.mTime3.setText(parser.getInfoSessions().get(2).getStart_time() + " - " + parser.getInfoSessions().get(2).getEnd_time());
+            if(infoSession3 != null){
+                viewHolder.mContainer3.setVisibility(View.VISIBLE);
+                viewHolder.mCompany3.setText(employer3);
+                viewHolder.mDate3.setText(infoSessions.get(2).getDate());
+                viewHolder.mLocation3.setText(infoSessions.get(2).getBuildingCode() + " - " + infoSessions.get(2).getBuildingRoom());
+                viewHolder.mTime3.setText(infoSessions.get(2).getDisplay_time_range());
+            }else{
+                viewHolder.mContainer3.setVisibility(View.GONE);
+            }
+        }else{
+            viewHolder.mNoSessionsExist.setVisibility(View.VISIBLE);
+            viewHolder.mContainer1.setVisibility(View.GONE);
+            viewHolder.mContainer2.setVisibility(View.GONE);
+            viewHolder.mContainer3.setVisibility(View.GONE);
         }
-        viewHolder.mNoSessionsExist.setVisibility(View.GONE);
 
         InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(mContext);
         List<InfoSessionDBModel> infoSessionDBModelList = dbHelper.getAllInfoSessions();

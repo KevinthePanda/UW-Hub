@@ -1,5 +1,4 @@
 <resources>
-
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/theme_primary</item>
@@ -68,6 +67,17 @@
 
     <style name="CourseDetailOptionalSeparator" parent="CourseDetailSeparator">
         <item name="android:visibility">gone</item>
+    </style>
+
+    <style name="TextViewBodyTitle">
+        <item name="android:textSize">20sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextViewBody">
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
 
 
