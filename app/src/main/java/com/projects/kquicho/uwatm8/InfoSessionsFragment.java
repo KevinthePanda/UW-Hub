@@ -1,6 +1,11 @@
 package com.projects.kquicho.uwatm8;
 
 
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -36,8 +41,11 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.TimeZone;
 
-public class InfoSessionsFragment extends Fragment implements JSONDownloader.onDownloadListener {
+public class InfoSessionsFragment extends Fragment implements JSONDownloader.onDownloadListener,
+        InfoSessionAdapter.onInfoSessionClickListener{
     final String TAG = "InfoSessionsFragment";
+    private final int ALERT_CHANGE_REQUEST = 1;
+    public static final String SHOULD_TOGGLE = "shouldToggle";
 
     private ArrayList<InfoSessionData> mData = new ArrayList<>();
     private InfoSessionAdapter mAdapter;
@@ -50,6 +58,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     private View mEmptyView;
     private FloatingActionButton mFab;
     private ProgressBar mProgressBar;
+    private int mCurrentInfoSessionPosition;
 
     public InfoSessionsFragment(){
         super();
@@ -81,7 +90,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         Drawable selected = ContextCompat.getDrawable(getActivity(), R.drawable.ic_star);
         Drawable unselected = ContextCompat.getDrawable(getActivity(), R.drawable.ic_star_outline);
         mAdapter = new InfoSessionAdapter(mData, selected, unselected, InfoSessionDBHelper.getInstance(getContext()),
-                getActivity());
+                getActivity(), this);
 
         mWrappedAdapter = mRecyclerViewSwipeManager.createWrappedAdapter(mAdapter);      // wrap for swiping
 
@@ -170,6 +179,31 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         };
         handler.post(runnable);
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == ALERT_CHANGE_REQUEST) {
+            if(resultCode == Activity.RESULT_OK) {
+                if (data.getBooleanExtra(SHOULD_TOGGLE, false)) {
+                    mAdapter.toggleSetAlert(mCurrentInfoSessionPosition);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onInfoSessionClick(InfoSessionData infoSessionData, int position) {
+        mCurrentInfoSessionPosition = position;
+        Intent intent = new Intent(getActivity(), InfoSessionActivity.class);
+        intent.putExtra(InfoSessionActivity.INFO_SESSION, infoSessionData.getInfoSession());
+        intent.putExtra(InfoSessionActivity.TIME, infoSessionData.getTime());
+        intent.putExtra(InfoSessionActivity.IS_ALARM_SET, infoSessionData.isAlertSet());
+
+        startActivityForResult(intent, ALERT_CHANGE_REQUEST);
+
+    }
+
     public class CustonComparator implements Comparator<InfoSessionData>{
         @Override
         public int compare(InfoSessionData o1, InfoSessionData o2) {
@@ -178,6 +212,5 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         }
 
     }
-
 }
 
