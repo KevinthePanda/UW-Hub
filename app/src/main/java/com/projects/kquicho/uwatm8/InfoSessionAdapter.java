@@ -33,16 +33,20 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
     private Drawable mUnselectedDrawable;
     private final InfoSessionDBHelper mDBHelper;
     private final Activity mActivity;
+    private static onInfoSessionClickListener mInfoSessionClickListener;
+    private boolean mIsShowingAll = true;
+
     private interface Swipeable extends SwipeableItemConstants {
     }
 
     public InfoSessionAdapter(ArrayList<InfoSessionData> data, Drawable selected, Drawable unselected,
-                              InfoSessionDBHelper dbHelper, Activity activity){
+                              InfoSessionDBHelper dbHelper, Activity activity, onInfoSessionClickListener onInfoSessionClickListener){
         mData = data;
         mSelectedDrawable = selected;
         mUnselectedDrawable = unselected;
         mDBHelper = dbHelper;
         mActivity = activity;
+        mInfoSessionClickListener = onInfoSessionClickListener;
         setHasStableIds(true);
     }
 
@@ -89,64 +93,69 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
         return new InfoSessionHolder(view);
     }
 
+    public void toggleSetAlert(int position){
+        final InfoSessionData data = mData.get(position);
+        if (data.toggleAlert()) {
+            InfoSession infoSession = data.getInfoSession();
+            long alarmTime = data.getTime() - 3600000;
+            int id = infoSession.getId();
+
+            InfoSessionDBModel infoSessionDBModel = new
+                    InfoSessionDBModel(infoSession.getId(), alarmTime, infoSession.getEmployer(),
+                    infoSession.getBuildingCode() + " - " + infoSession.getBuildingRoom(),
+                    infoSession.getDate(),  infoSession.getDisplay_time_range());
+            mDBHelper.addInfoSession(infoSessionDBModel);
+
+            Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);
+            intent.putExtra(InfoSessionAlarmReceiver.INFO_SESSION_MODEL, infoSessionDBModel);
+
+            final PendingIntent pIntent = PendingIntent.getBroadcast(mActivity,
+                    id,intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            AlarmManager alarm = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
+            //set the alarm an hour before the start time
+            alarm.set(AlarmManager.RTC_WAKEUP, alarmTime, pIntent);
+            //http://www.fileformat.info/tip/java/date2millis.htm
+            Log.d(TAG, "Setting alarm for " + id + " at " + alarmTime );
+        } else {
+            InfoSession infoSession = data.getInfoSession();
+            InfoSessionDBModel infoSessionDBModel = new InfoSessionDBModel();
+            infoSessionDBModel.setId(infoSession.getId());
+            mDBHelper.deleteInfoSession(infoSessionDBModel);
+
+            Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);
+            final PendingIntent pIntent = PendingIntent.getBroadcast(mActivity, infoSession.getId(),
+                    intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            AlarmManager alarm = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
+            alarm.cancel(pIntent);
+            if(!mIsShowingAll){
+                mData.remove(data);
+                notifyItemRemoved(position);
+                notifyItemRangeChanged(position, mData.size());
+            }
+        }
+        data.setPinned(false);
+        notifyItemChanged(position);
+    }
+
     @Override
     public void onBindViewHolder(final InfoSessionHolder viewHolder, final int position){
         final InfoSessionData data = mData.get(position);
         viewHolder.mSaveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (data.toggleAlert()) {
-                    viewHolder.mSaveIcon.setImageDrawable(mSelectedDrawable);
-                    viewHolder.mSaveBtn.setImageDrawable(mSelectedDrawable);
-                    InfoSession infoSession = data.getInfoSession();
-                    long alarmTime = data.getTime() - 3600000;
-                    int id = infoSession.getId();
-
-                    InfoSessionDBModel infoSessionDBModel = new
-                            InfoSessionDBModel(infoSession.getId(), alarmTime, infoSession.getEmployer(),
-                            infoSession.getBuildingCode() + " - " + infoSession.getBuildingRoom(),
-                            infoSession.getDate(),  infoSession.getDisplay_time_range());
-                    mDBHelper.addInfoSession(infoSessionDBModel);
-
-                    Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);
-                    intent.putExtra(InfoSessionAlarmReceiver.INFO_SESSION_MODEL, infoSessionDBModel);
-
-                    final PendingIntent pIntent = PendingIntent.getBroadcast(mActivity,
-                            id,intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-                    AlarmManager alarm = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
-                    //set the alarm an hour before the start time
-                    alarm.set(AlarmManager.RTC_WAKEUP, alarmTime, pIntent);
-                    //http://www.fileformat.info/tip/java/date2millis.htm
-                    Log.d(TAG, "Setting alarm for " + id + " at " + alarmTime );
-                } else {
-                    viewHolder.mSaveIcon.setImageDrawable(null);
-                    viewHolder.mSaveBtn.setImageDrawable(mUnselectedDrawable);
-                    InfoSession infoSession = data.getInfoSession();
-                    InfoSessionDBModel infoSessionDBModel = new InfoSessionDBModel();
-                    infoSessionDBModel.setId(infoSession.getId());
-                    mDBHelper.deleteInfoSession(infoSessionDBModel);
-
-                    Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);
-                    final PendingIntent pIntent = PendingIntent.getBroadcast(mActivity, infoSession.getId(),
-                            intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    AlarmManager alarm = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
-                    alarm.cancel(pIntent);
-                    if(!mIsShowingAll){
-                        mData.remove(data);
-                        notifyItemRemoved(position);
-                        notifyItemRangeChanged(position, mData.size());
-                    }
-                }
-                data.setPinned(false);
-                notifyItemChanged(position);
+                toggleSetAlert(position);
             }
         });
         viewHolder.mContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                data.setPinned(false);
-                notifyItemChanged(position);
+                if(data.isPinned()) {
+                    data.setPinned(false);
+                    notifyItemChanged(position);
+                }else{
+                    mInfoSessionClickListener.onInfoSessionClick(data, position);
+                }
             }
         });
         viewHolder.setMaxLeftSwipeAmount(-0.17f);
@@ -167,6 +176,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
             viewHolder.mSaveIcon.setImageDrawable(null);
             viewHolder.mSaveBtn.setImageDrawable(mUnselectedDrawable);
         }
+
     }
 
 
@@ -282,7 +292,8 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
             mAdapter = null;
         }
     }
-    private boolean mIsShowingAll = true;
+
+
     ArrayList<InfoSessionData> mDataFabCopy = new ArrayList<>();
     public boolean showOnlyFavourites() {
         boolean existsAlarmSet = false;
@@ -318,5 +329,9 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
         }else if(!mIsShowingAll && showAll()){
             mIsShowingAll = true;
         }
+    }
+
+    public interface onInfoSessionClickListener{
+        void onInfoSessionClick(InfoSessionData infoSessionData, int position);
     }
 }

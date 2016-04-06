@@ -1,6 +1,9 @@
 package com.projects.kquicho.uw_api_client.Resources;
 
-public class InfoSession {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class InfoSession implements Parcelable{
 
     private int id;
     private String employer = null;
@@ -15,6 +18,24 @@ public class InfoSession {
     private String audience = null;
     private String programs = null;
     private String description = null;
+    private double latitude =  0.0;
+    private double longitude =  0.0;
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
 
     public String getDisplay_time_range() {
         return display_time_range;
@@ -119,6 +140,63 @@ public class InfoSession {
     public void setDescription(String description) {
         this.description = description;
     }
+
     public InfoSession(){
+    }
+
+    public InfoSession(Parcel in){
+        id = in.readInt();
+        employer = in.readString();
+        date = in.readString();
+        start_time = in.readString();
+        end_time = in.readString();
+        display_time_range = in.readString();
+        building_code = in.readString();
+        building_room = in.readString();
+        building_map_url = in.readString();
+        website = in.readString();
+        audience = in.readString();
+        programs = in.readString();
+        description = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+    }
+
+
+    public static final Parcelable.Creator CREATOR
+            = new Parcelable.Creator() {
+        public InfoSession createFromParcel(Parcel in) {
+            return new InfoSession(in);
+        }
+
+        public InfoSession[] newArray(int size) {
+            return new InfoSession[size];
+        }
+    };
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeString(employer);
+        dest.writeString(date);
+        dest.writeString(start_time);
+        dest.writeString(end_time);
+        dest.writeString(display_time_range);
+        dest.writeString(building_code);
+        dest.writeString(building_room);
+        dest.writeString(building_map_url);
+        dest.writeString(website);
+        dest.writeString(audience);
+        dest.writeString(programs);
+        dest.writeString(description);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
+
     }
 }
