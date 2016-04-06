@@ -15,6 +15,7 @@ public class InfoSessionData {
         mTime = time;
     }
 
+
     public InfoSession getInfoSession(){
         return mInfoSession;
     }
@@ -42,4 +43,7 @@ public class InfoSessionData {
     public void setPinned(boolean pinned) {
         mPinned = pinned;
     }
+
+
+
 }

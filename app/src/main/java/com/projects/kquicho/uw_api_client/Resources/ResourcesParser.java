@@ -138,6 +138,7 @@ public class ResourcesParser extends UWParser {
     private static final String UPDATED_TAG = "updated";
     private static final String CODE_TAG = "code";
     private static final String MAP_URL_TAG = "map_url";
+    private static final String LINK_TAG = "link";
 
     // JSON Array tags
     private static final String DATA_TAG = "data";
@@ -420,6 +421,12 @@ public class ResourcesParser extends UWParser {
                     }
                     if(!jsonBuildingObject.isNull(MAP_URL_TAG)){
                         location.setBuildingMapUrl(jsonBuildingObject.getString(MAP_URL_TAG));
+                    }
+                    if(!jsonBuildingObject.isNull(LATITUDE_TAG)){
+                        location.setLatitude(jsonBuildingObject.getDouble(LATITUDE_TAG));
+                    }
+                    if(!jsonBuildingObject.isNull(LONGITUDE_TAG)){
+                        location.setLongitude(jsonBuildingObject.getDouble(LONGITUDE_TAG));
                     }
                 }
 
