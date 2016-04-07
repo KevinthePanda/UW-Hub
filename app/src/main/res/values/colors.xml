@@ -45,6 +45,6 @@ s
     <color name="theme_primary_dark">#E5C13F</color>
     <color name="gray">#D3D3D3</color>
     <color name="primaryTextColour">#212121</color>
-    <color name="theme_accent">#212121</color>
+    <color name="theme_accent">#E5C13F</color>
     <color name="green">#4CAF50</color>
 </resources>
