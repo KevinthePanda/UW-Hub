@@ -6,6 +6,8 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -14,6 +16,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.amulyakhare.textdrawable.TextDrawable;
+import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.SwipeableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.SwipeableItemConstants;
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultAction;
@@ -35,6 +40,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
     private final Activity mActivity;
     private static onInfoSessionClickListener mInfoSessionClickListener;
     private boolean mIsShowingAll = true;
+    ColorGenerator mColorGenerator = ColorGenerator.MATERIAL;
 
     private interface Swipeable extends SwipeableItemConstants {
     }
@@ -58,6 +64,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
         public TextView mDate;
         public TextView mTime;
         public TextView mLocation;
+        public ImageView mRoundedLetter;
 
         public InfoSessionHolder(View itemView){
             super(itemView);
@@ -68,6 +75,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
             mDate = (TextView)itemView.findViewById(R.id.date);
             mTime = (TextView)itemView.findViewById(R.id.time);
             mLocation = (TextView)itemView.findViewById(R.id.location);
+            mRoundedLetter = (ImageView)itemView.findViewById(R.id.rounded_letter);
         }
 
         @Override
@@ -177,6 +185,19 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
             viewHolder.mSaveBtn.setImageDrawable(mUnselectedDrawable);
         }
 
+        int color = mColorGenerator.getColor(infoSession.getEmployer());
+
+
+
+        TextDrawable drawable = TextDrawable.builder()
+                .beginConfig()
+                .textColor(Color.WHITE)
+                .useFont(Typeface.SANS_SERIF)
+                .toUpperCase()
+                .endConfig()
+                .buildRound(String.valueOf(infoSession.getEmployer().charAt(0)), color); // radius in px
+
+        viewHolder.mRoundedLetter.setImageDrawable(drawable);
     }
 
 

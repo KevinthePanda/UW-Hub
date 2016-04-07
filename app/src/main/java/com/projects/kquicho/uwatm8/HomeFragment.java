@@ -68,8 +68,8 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         Fab fab = (Fab) view.findViewById(R.id.fab);
         View sheetView = view.findViewById(R.id.fab_sheet);
         View overlay = view.findViewById(R.id.dim_overlay);
-        int sheetColor = getResources().getColor(R.color.background_fab_card);
-        int fabColor = getResources().getColor(R.color.theme_primary);
+        int sheetColor = ContextCompat.getColor(getActivity(), R.color.background_fab_card);
+        int fabColor = ContextCompat.getColor(getActivity(), R.color.theme_primary_dark);
 
         // Initialize material sheet FAB
         MaterialSheetFab materialSheetFab  = new MaterialSheetFab<>(fab, sheetView, overlay, sheetColor, fabColor);

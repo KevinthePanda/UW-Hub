@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
+<android.support.v7.widget.CardView
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    card_view:cardBackgroundColor="#E6E6E6"
     card_view:cardCornerRadius="6dp"
     card_view:cardElevation="8dp"
-    android:foreground="?android:attr/selectableItemBackground"
-    android:layout_marginTop="8dp">
+    android:foreground="?android:attr/selectableItemBackground">
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -22,78 +21,93 @@
             android:src="@drawable/ic_star_outline" />
     </RelativeLayout>
 
-    <RelativeLayout
+
+    <LinearLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
-        android:background="@drawable/bg_item_normal_state">
-        <TextView
-            android:id="@+id/company"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="OANDA"
-            android:layout_alignParentTop="true"
-            android:layout_marginBottom="4dp"
-            style="@style/TextViewBodyTitle"/>
+        android:background="@drawable/bg_item_normal_state"
+        android:orientation="horizontal">
+        <ImageView
+            android:id="@+id/rounded_letter"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginRight="16dp"
+            android:layout_gravity="center_vertical"/>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/company"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OANDA"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:layout_alignParentTop="true"
+                android:layout_marginBottom="4dp"
+                style="@style/TextViewBodyTitle"/>
 
-        <ImageView
-            android:id="@+id/saved_image"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true" />
+            <ImageView
+                android:id="@+id/saved_image"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentRight="true" />
 
-        <ImageView
-            android:id="@+id/ic_date"
-            android:layout_width="17dp"
-            android:layout_height="17dp"
-            android:src="@drawable/ic_calendar"
-            android:layout_alignLeft="@id/company"
-            android:layout_below="@id/company" />
-        <TextView
-            android:id="@+id/date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="23/06/2016"
-            android:layout_toRightOf="@id/ic_date"
-            android:layout_alignTop="@id/ic_date"
-            android:paddingLeft="3dp"
-            style="@style/TextViewBody"/>
-        <ImageView
-            android:id="@+id/ic_time"
-            android:layout_width="17dp"
-            android:layout_height="17dp"
-            android:src="@drawable/ic_clock"
-            android:layout_alignTop="@id/ic_date"
-            android:layout_marginLeft="16dp"
-            android:layout_toRightOf="@id/date" />
-        <TextView
-            android:id="@+id/time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="12:30PM - 1:30PM"
-            android:layout_toRightOf="@id/ic_time"
-            android:layout_alignBaseline="@id/date"
-            android:paddingLeft="3dp"
-            style="@style/TextViewBody"/>
-        <ImageView
-            android:id="@+id/ic_location"
-            android:layout_width="17dp"
-            android:layout_height="17dp"
-            android:src="@drawable/ic_map_marker"
-            android:layout_below="@id/ic_date"
-            android:layout_marginTop="8dp"
-            android:layout_alignLeft="@id/ic_date" />
-        <TextView
-            android:id="@+id/location"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="DC - 1302"
-            android:layout_alignTop="@id/ic_location"
-            android:layout_alignLeft="@id/date"
-            android:paddingLeft="3dp"
-            style="@style/TextViewBody"/>
-    </RelativeLayout>
+            <ImageView
+                android:id="@+id/ic_date"
+                android:layout_width="17dp"
+                android:layout_height="17dp"
+                android:src="@drawable/ic_calendar"
+                android:layout_alignLeft="@id/company"
+                android:layout_below="@id/company" />
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="23/06/2016"
+                android:layout_toRightOf="@id/ic_date"
+                android:layout_alignTop="@id/ic_date"
+                android:paddingLeft="3dp"
+                style="@style/TextViewBody"/>
+            <ImageView
+                android:id="@+id/ic_time"
+                android:layout_width="17dp"
+                android:layout_height="17dp"
+                android:src="@drawable/ic_clock"
+                android:layout_alignTop="@id/ic_date"
+                android:layout_marginLeft="16dp"
+                android:layout_toRightOf="@id/date" />
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12:30PM - 1:30PM"
+                android:layout_toRightOf="@id/ic_time"
+                android:layout_alignBaseline="@id/date"
+                android:paddingLeft="3dp"
+                style="@style/TextViewBody"/>
+            <ImageView
+                android:id="@+id/ic_location"
+                android:layout_width="17dp"
+                android:layout_height="17dp"
+                android:src="@drawable/ic_map_marker"
+                android:layout_below="@id/ic_date"
+                android:layout_marginTop="4dp"
+                android:layout_alignLeft="@id/ic_date" />
+            <TextView
+                android:id="@+id/location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DC - 1302"
+                android:layout_alignTop="@id/ic_location"
+                android:layout_alignLeft="@id/date"
+                android:paddingLeft="3dp"
+                style="@style/TextViewBody"/>
+        </RelativeLayout>
+    </LinearLayout>
+
 
 </android.support.v7.widget.CardView>
