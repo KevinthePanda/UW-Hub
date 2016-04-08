@@ -2,22 +2,27 @@ package com.projects.kquicho.uwatm8;
 
 
 import android.app.Activity;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.util.Pair;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.SwipeDismissItemAnimator;
@@ -42,15 +47,18 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public class InfoSessionsFragment extends Fragment implements JSONDownloader.onDownloadListener,
-        InfoSessionAdapter.onInfoSessionClickListener{
+        InfoSessionAdapter.onInfoSessionClickListener,
+        BottomSheetInfoSessionAdapter.onBottomSheetInfoSessionClickListener{
     final String TAG = "InfoSessionsFragment";
     private final int ALERT_CHANGE_REQUEST = 1;
     public static final String SHOULD_TOGGLE = "shouldToggle";
 
     private ArrayList<InfoSessionData> mData = new ArrayList<>();
+    private ArrayList<Pair<Integer,InfoSession>> mBottomSheetData = new ArrayList<>();
     private InfoSessionAdapter mAdapter;
     private RecyclerView mRecyclerView;
-    private RecyclerView.LayoutManager mLayoutManager;
+    private RecyclerView mBottomSheetRV;
+    private SnappingLinearLayoutManager mLayoutManager;
     private RecyclerView.Adapter mWrappedAdapter;
     private RecyclerViewSwipeManager mRecyclerViewSwipeManager;
     private RecyclerViewTouchActionGuardManager mRecyclerViewTouchActionGuardManager;
@@ -59,7 +67,10 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     private FloatingActionButton mFab;
     private ProgressBar mProgressBar;
     private int mCurrentInfoSessionPosition;
-
+    private BottomSheetBehavior mBottomSheetBehavior;
+    private BottomSheetInfoSessionAdapter mBottomSheetAdapter;
+    private TextView mBottomSheetEmployer;
+    private RelativeLayout mBottomSheetViewGroup;
     public InfoSessionsFragment(){
         super();
     }
@@ -77,7 +88,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         mProgressBar = (ProgressBar)view.findViewById(R.id.pbLoading);
         mEmptyView = view.findViewById(R.id.empty_view);
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
-        mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+        mLayoutManager = new SnappingLinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
 
         // touch guard manager  (this class is required to suppress scrolling while swipe-dismiss animation is running)
         mRecyclerViewTouchActionGuardManager = new RecyclerViewTouchActionGuardManager();
@@ -125,6 +136,15 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
                 mAdapter.fabClick();
             }
         });
+        mBottomSheetViewGroup = (RelativeLayout) view.findViewById(R.id.bottom_sheet);
+        mBottomSheetBehavior = BottomSheetBehavior.from(mBottomSheetViewGroup);
+        mBottomSheetRV = (RecyclerView)view.findViewById(R.id.bottom_recycler_view);
+        mBottomSheetEmployer = (TextView)view.findViewById(R.id.company);
+        mBottomSheetAdapter = new BottomSheetInfoSessionAdapter(mBottomSheetData, this);
+
+        mBottomSheetRV.setAdapter(mBottomSheetAdapter);
+        mBottomSheetRV.setLayoutManager(new LinearLayoutManager(getContext()));
+        mBottomSheetRV.addItemDecoration(new SimpleListDividerDecorator(ContextCompat.getDrawable(getContext(), R.drawable.list_divider_h), true));
     }
 
 
@@ -193,14 +213,53 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     }
 
     @Override
-    public void onInfoSessionClick(InfoSessionData infoSessionData, int position) {
+    public void onInfoSessionClick(InfoSessionData infoSessionData, int position, int type) {
         mCurrentInfoSessionPosition = position;
-        Intent intent = new Intent(getActivity(), InfoSessionActivity.class);
-        intent.putExtra(InfoSessionActivity.INFO_SESSION, infoSessionData.getInfoSession());
-        intent.putExtra(InfoSessionActivity.TIME, infoSessionData.getTime());
-        intent.putExtra(InfoSessionActivity.IS_ALARM_SET, infoSessionData.isAlertSet());
 
-        startActivityForResult(intent, ALERT_CHANGE_REQUEST);
+        switch (type) {
+            case InfoSessionAdapter.INFO_SESSION_CLICK:
+                Intent intent = new Intent(getActivity(), InfoSessionActivity.class);
+                intent.putExtra(InfoSessionActivity.INFO_SESSION, infoSessionData.getInfoSession());
+                intent.putExtra(InfoSessionActivity.TIME, infoSessionData.getTime());
+                intent.putExtra(InfoSessionActivity.IS_ALARM_SET, infoSessionData.isAlertSet());
+
+                startActivityForResult(intent, ALERT_CHANGE_REQUEST);
+                break;
+            case InfoSessionAdapter.ROUNDED_TEXT_VIEW_CLICK:
+                mBottomSheetData.clear();
+                int i = 0;
+                for(InfoSessionData data : mData){
+                    if(data.getInfoSession().getEmployer().equals(infoSessionData.getInfoSession().getEmployer())){
+                        Pair<Integer, InfoSession> pair = new Pair<>(i, data.getInfoSession());
+                        mBottomSheetData.add(pair);
+                    }
+                    i++;
+                }
+                mBottomSheetAdapter.notifyDataSetChanged();
+                mBottomSheetEmployer.setText(infoSessionData.getInfoSession().getEmployer());
+                mBottomSheetRV.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        mBottomSheetViewGroup.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                            }
+                        });
+                    }
+                });
+
+                break;
+
+        }
+
+    }
+
+    @Override
+    public void onBottomSheetInfoSessionClick(int position) {
+        Log.i(TAG, "onBottomSheetInfoSessionClick");
+        mRecyclerView.smoothScrollToPosition(position);
 
     }
 
@@ -212,5 +271,39 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         }
 
     }
+
+    public class SnappingLinearLayoutManager extends LinearLayoutManager {
+
+        public SnappingLinearLayoutManager(Context context, int orientation, boolean reverseLayout) {
+            super(context, orientation, reverseLayout);
+        }
+
+        @Override
+        public void smoothScrollToPosition(RecyclerView recyclerView, RecyclerView.State state,
+                                           int position) {
+            RecyclerView.SmoothScroller smoothScroller = new TopSnappedSmoothScroller(recyclerView.getContext());
+            smoothScroller.setTargetPosition(position);
+            startSmoothScroll(smoothScroller);
+        }
+
+        private class TopSnappedSmoothScroller extends LinearSmoothScroller {
+            public TopSnappedSmoothScroller(Context context) {
+                super(context);
+
+            }
+
+            @Override
+            public PointF computeScrollVectorForPosition(int targetPosition) {
+                return SnappingLinearLayoutManager.this
+                        .computeScrollVectorForPosition(targetPosition);
+            }
+
+            @Override
+            protected int getVerticalSnapPreference() {
+                return SNAP_TO_START;
+            }
+        }
+    }
+
 }
 
