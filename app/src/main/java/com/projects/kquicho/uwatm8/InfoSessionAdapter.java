@@ -33,6 +33,8 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
         implements SwipeableItemAdapter<InfoSessionAdapter.InfoSessionHolder>{
 
     private final String TAG = "InfoSessionAdapter";
+    public static final int INFO_SESSION_CLICK = 0;
+    public static final int ROUNDED_TEXT_VIEW_CLICK = 1;
     private ArrayList<InfoSessionData> mData;
     private Drawable mSelectedDrawable;
     private Drawable mUnselectedDrawable;
@@ -155,6 +157,17 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
                 toggleSetAlert(position);
             }
         });
+        viewHolder.mRoundedLetter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(data.isPinned()) {
+                    data.setPinned(false);
+                    notifyItemChanged(position);
+                }else{
+                    mInfoSessionClickListener.onInfoSessionClick(data, position, ROUNDED_TEXT_VIEW_CLICK);
+                }
+            }
+        });
         viewHolder.mContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -162,7 +175,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
                     data.setPinned(false);
                     notifyItemChanged(position);
                 }else{
-                    mInfoSessionClickListener.onInfoSessionClick(data, position);
+                    mInfoSessionClickListener.onInfoSessionClick(data, position, INFO_SESSION_CLICK);
                 }
             }
         });
@@ -353,6 +366,6 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
     }
 
     public interface onInfoSessionClickListener{
-        void onInfoSessionClick(InfoSessionData infoSessionData, int position);
+        void onInfoSessionClick(InfoSessionData infoSessionData, int position, int type);
     }
 }

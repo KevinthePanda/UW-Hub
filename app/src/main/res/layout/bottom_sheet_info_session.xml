@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:id="@+id/bottom_sheet"
+    android:layout_width="match_parent"
+    android:layout_height="556dp"
+    android:background="@android:color/white"
+    android:minHeight="120dp"
+    app:behavior_peekHeight="120dp"
+    android:gravity="center"
+
+    app:layout_behavior="@string/bottom_sheet_behavior">
+    <TextView
+        android:id="@+id/company"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        style="@style/TextViewBodyTitle"
+        android:text="Company"
+        android:layout_marginLeft="16dp"/>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/bottom_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipChildren="true"
+        android:clipToPadding="false"
+        android:scrollbarStyle="outsideOverlay"
+        android:scrollbars="vertical"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_below="@id/company"/>
+</RelativeLayout>
