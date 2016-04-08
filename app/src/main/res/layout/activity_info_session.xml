@@ -280,5 +280,4 @@
         android:layout_margin="16dp"
         android:clickable="true"
         app:backgroundTint="@color/theme_primary_dark"/>
-
 </android.support.design.widget.CoordinatorLayout>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/info_session_row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground">
+    <RelativeLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp">
+        <ImageView
+            android:id="@+id/ic_date"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:src="@drawable/ic_calendar"/>
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="23/06/2016"
+            android:layout_toRightOf="@id/ic_date"
+            android:layout_alignTop="@id/ic_date"
+            android:paddingLeft="3dp"
+            style="@style/TextViewBody"/>
+        <ImageView
+            android:id="@+id/ic_time"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:src="@drawable/ic_clock"
+            android:layout_alignTop="@id/ic_date"
+            android:layout_marginLeft="16dp"
+            android:layout_toRightOf="@id/date" />
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="12:30PM - 1:30PM"
+            android:layout_toRightOf="@id/ic_time"
+            android:layout_alignBaseline="@id/date"
+            android:paddingLeft="3dp"
+            style="@style/TextViewBody"/>
+        <ImageView
+            android:id="@+id/ic_location"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:src="@drawable/ic_map_marker"
+            android:layout_below="@id/ic_date"
+            android:layout_marginTop="4dp"
+            android:layout_alignLeft="@id/ic_date" />
+        <TextView
+            android:id="@+id/location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DC - 1302"
+            android:layout_alignTop="@id/ic_location"
+            android:layout_alignLeft="@id/date"
+            android:paddingLeft="3dp"
+            style="@style/TextViewBody"/>
+    </RelativeLayout>
+</android.support.v7.widget.CardView>
