@@ -1,6 +1,7 @@
 package com.projects.kquicho.uw_api_client.Resources;
 import android.content.Context;
 import android.util.Log;
+import android.view.ViewGroup;
 
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.MetaData;
@@ -349,6 +350,7 @@ public class ResourcesParser extends UWParser {
     }
     private void parseInfoSessionsJSON(){
 
+        Log.i(TAG, "start");
         try
         {
             JSONArray infosessionArray = apiResult.getResultJSON().getJSONArray(DATA_TAG);
@@ -361,8 +363,18 @@ public class ResourcesParser extends UWParser {
                 if(!jsonInfoSessionLocation.isNull(ID_TAG))
                     location.setId(Integer.parseInt(jsonInfoSessionLocation.getString(ID_TAG)));
 
-                if(!jsonInfoSessionLocation.isNull(EMPLOYER_TAG))
-                    location.setEmployer(jsonInfoSessionLocation.getString(EMPLOYER_TAG));
+                if(!jsonInfoSessionLocation.isNull(EMPLOYER_TAG)) {
+                    location.setIsCancelled(false);
+                    String company = jsonInfoSessionLocation.getString(EMPLOYER_TAG);
+                    if(company.contains("*CANCELLED - ")){
+                        company = company.replace("*CANCELLED - ", "");
+                        location.setIsCancelled(true);
+                    }else if(company.contains("*CANCELLED ")){
+                        company = company.replace("*CANCELLED ", "");
+                        location.setIsCancelled(true);
+                    }
+                    location.setEmployer(company);
+                }
 
                 if(!jsonInfoSessionLocation.isNull(DATE_TAG)) {
                     String dateS = jsonInfoSessionLocation.getString(DATE_TAG);
@@ -442,11 +454,15 @@ public class ResourcesParser extends UWParser {
                 if(!jsonInfoSessionLocation.isNull(DESCRIPTION_TAG))
                     location.setDescription(jsonInfoSessionLocation.getString(DESCRIPTION_TAG));
 
+                if(!jsonInfoSessionLocation.isNull(LINK_TAG))
+                    location.setLink(jsonInfoSessionLocation.getString(LINK_TAG));
+
                 infoSessions.add(location);
             }
         } catch (JSONException e){
             e.printStackTrace();
         }
+        Log.i(TAG, "end");
     }
 
     private void parseGooseWatchJSON(){

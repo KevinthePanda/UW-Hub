@@ -20,6 +20,24 @@ public class InfoSession implements Parcelable{
     private String description = null;
     private double latitude =  0.0;
     private double longitude =  0.0;
+    private String link =  null;
+    private boolean isCancelled = false;
+
+    public boolean isCancelled() {
+        return isCancelled;
+    }
+
+    public void setIsCancelled(boolean isCancelled) {
+        this.isCancelled = isCancelled;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
 
     public double getLatitude() {
         return latitude;
@@ -160,6 +178,8 @@ public class InfoSession implements Parcelable{
         description = in.readString();
         latitude = in.readDouble();
         longitude = in.readDouble();
+        link = in.readString();
+        isCancelled = in.readByte() != 0;
     }
 
 
@@ -197,6 +217,8 @@ public class InfoSession implements Parcelable{
         dest.writeString(description);
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
+        dest.writeString(link);
+        dest.writeByte((byte) (isCancelled ? 1 : 0));
 
     }
 }

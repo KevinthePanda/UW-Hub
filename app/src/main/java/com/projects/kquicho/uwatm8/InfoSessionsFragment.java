@@ -4,6 +4,7 @@ package com.projects.kquicho.uwatm8;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.SwipeDismissItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.SimpleListDividerDecorator;
@@ -218,10 +220,12 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
 
         switch (type) {
             case InfoSessionAdapter.INFO_SESSION_CLICK:
+                ColorGenerator colorGenerator = ColorGenerator.MATERIAL;
                 Intent intent = new Intent(getActivity(), InfoSessionActivity.class);
                 intent.putExtra(InfoSessionActivity.INFO_SESSION, infoSessionData.getInfoSession());
-                intent.putExtra(InfoSessionActivity.TIME, infoSessionData.getTime());
                 intent.putExtra(InfoSessionActivity.IS_ALARM_SET, infoSessionData.isAlertSet());
+                intent.putExtra(InfoSessionActivity.HEADER_COLOUR, colorGenerator
+                        .getColor(infoSessionData.getInfoSession().getEmployer()));
 
                 startActivityForResult(intent, ALERT_CHANGE_REQUEST);
                 break;

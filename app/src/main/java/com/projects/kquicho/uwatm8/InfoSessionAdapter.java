@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
@@ -151,40 +152,18 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
     @Override
     public void onBindViewHolder(final InfoSessionHolder viewHolder, final int position){
         final InfoSessionData data = mData.get(position);
-        viewHolder.mSaveBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleSetAlert(position);
-            }
-        });
-        viewHolder.mRoundedLetter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(data.isPinned()) {
-                    data.setPinned(false);
-                    notifyItemChanged(position);
-                }else{
-                    mInfoSessionClickListener.onInfoSessionClick(data, position, ROUNDED_TEXT_VIEW_CLICK);
-                }
-            }
-        });
-        viewHolder.mContainer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(data.isPinned()) {
-                    data.setPinned(false);
-                    notifyItemChanged(position);
-                }else{
-                    mInfoSessionClickListener.onInfoSessionClick(data, position, INFO_SESSION_CLICK);
-                }
-            }
-        });
-        viewHolder.setMaxLeftSwipeAmount(-0.17f);
-        viewHolder.setMaxRightSwipeAmount(0);
-        viewHolder.setSwipeItemHorizontalSlideAmount(
-                data.isPinned() ? -0.17f : 0);
-
         InfoSession infoSession = data.getInfoSession();
+        if(infoSession.isCancelled()){
+            viewHolder.mCompany.setPaintFlags(viewHolder.mCompany.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            viewHolder.setMaxLeftSwipeAmount(0);
+            viewHolder.setMaxRightSwipeAmount(0);
+            viewHolder.setSwipeItemHorizontalSlideAmount(0);
+        }else{
+            viewHolder.mCompany.setPaintFlags( viewHolder.mCompany.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+            viewHolder.setMaxLeftSwipeAmount(-0.17f);
+            viewHolder.setMaxRightSwipeAmount(0);
+            viewHolder.setSwipeItemHorizontalSlideAmount(data.isPinned() ? -0.17f : 0);
+        }
         viewHolder.mCompany.setText(infoSession.getEmployer());
         viewHolder.mDate.setText(infoSession.getDate());
         viewHolder.mTime.setText(infoSession.getDisplay_time_range());
@@ -211,6 +190,37 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
                 .buildRound(String.valueOf(infoSession.getEmployer().charAt(0)), color); // radius in px
 
         viewHolder.mRoundedLetter.setImageDrawable(drawable);
+
+        viewHolder.mSaveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleSetAlert(position);
+            }
+        });
+        viewHolder.mRoundedLetter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(data.isPinned()) {
+                    data.setPinned(false);
+                    notifyItemChanged(position);
+                }else{
+                    mInfoSessionClickListener.onInfoSessionClick(data, position, ROUNDED_TEXT_VIEW_CLICK);
+                }
+            }
+        });
+
+        viewHolder.mContainer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (data.isPinned()) {
+                    data.setPinned(false);
+                    notifyItemChanged(position);
+                } else {
+                    mInfoSessionClickListener.onInfoSessionClick(data, position, INFO_SESSION_CLICK);
+                }
+            }
+        });
+
     }
 
 

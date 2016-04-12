@@ -2,9 +2,19 @@
 <menu
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto" >
+    <item android:id="@+id/employer"
+          android:orderInCategory="1"
+          android:title="Employer"
+          android:icon="@drawable/ic_web"
+          app:showAsAction="ifRoom|collapseActionView"/>
+    <item android:id="@+id/uw"
+          android:orderInCategory="2"
+          android:title="CECA"
+          android:icon="@drawable/ic_school"
+          app:showAsAction="ifRoom|collapseActionView"/>
     <item android:id="@+id/save"
-          android:orderInCategory="5"
+          android:orderInCategory="3"
           android:title="Save"
-          android:icon="@drawable/ic_star_outline"
+          android:icon="@drawable/ic_web"
           app:showAsAction="ifRoom|collapseActionView"/>
 </menu>
