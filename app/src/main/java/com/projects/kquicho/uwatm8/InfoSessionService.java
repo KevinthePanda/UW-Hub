@@ -47,8 +47,11 @@ public class InfoSessionService extends IntentService {
                 .getSystemService(Context.NOTIFICATION_SERVICE);
 
 
+        Intent infoSessionIntent = new Intent(this, InfoSessionActivity.class);
+        infoSessionIntent.putExtra(InfoSessionActivity.INFO_SESSION_ID, infoSessionDBModel.getId());
+
         PendingIntent contentIntent = PendingIntent.getActivity(this, id,
-                new Intent(this, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+                infoSessionIntent , PendingIntent.FLAG_UPDATE_CURRENT);
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)

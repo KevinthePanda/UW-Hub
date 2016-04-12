@@ -3,6 +3,7 @@ import android.content.Context;
 import android.util.Log;
 import android.view.ViewGroup;
 
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.MetaData;
 import com.projects.kquicho.uw_api_client.Core.MetaDataParser;
@@ -348,9 +349,130 @@ public class ResourcesParser extends UWParser {
             e.printStackTrace();
         }
     }
-    private void parseInfoSessionsJSON(){
 
-        Log.i(TAG, "start");
+    public InfoSession getSingleInfoSession(int id){
+        try
+        {
+            JSONArray infosessionArray = apiResult.getResultJSON().getJSONArray(DATA_TAG);
+            int infosessionArrayLength = infosessionArray.length();
+
+            for(int i = 0; i < infosessionArrayLength; i++){
+                JSONObject jsonInfoSessionLocation = infosessionArray.getJSONObject(i);
+                InfoSession location = new InfoSession();
+
+                if(!jsonInfoSessionLocation.isNull(ID_TAG)) {
+                    int thisID = Integer.parseInt(jsonInfoSessionLocation.getString(ID_TAG));
+                    if(id == thisID ) {
+                        location.setId(id);
+                    }else{
+                        continue;
+                    }
+                }else{
+                    continue;
+                }
+
+                if(!jsonInfoSessionLocation.isNull(EMPLOYER_TAG)) {
+                    location.setIsCancelled(false);
+                    String company = jsonInfoSessionLocation.getString(EMPLOYER_TAG);
+                    if(company.contains("*CANCELLED - ")){
+                        company = company.replace("*CANCELLED - ", "");
+                        location.setIsCancelled(true);
+                    }else if(company.contains("*CANCELLED ")){
+                        company = company.replace("*CANCELLED ", "");
+                        location.setIsCancelled(true);
+                    }
+                    location.setEmployer(company);
+                }
+
+                if(!jsonInfoSessionLocation.isNull(DATE_TAG)) {
+                    String dateS = jsonInfoSessionLocation.getString(DATE_TAG);
+                    DateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.CANADA);
+                    try {
+                        Date date = format.parse(dateS);
+                        DateFormat newFormat = new SimpleDateFormat("MMM d, yy", Locale.CANADA);
+                        dateS = newFormat.format(date);
+                        location.setDate(dateS);
+                    }catch (ParseException ex){
+                        Log.e(TAG, "onReceive ParseException: " + ex.getMessage());
+                    }
+
+                }
+
+                if(!jsonInfoSessionLocation.isNull(END_TIME_TAG) && !jsonInfoSessionLocation.isNull(START_TIME_TAG)) {
+                    String startTimeS = jsonInfoSessionLocation.getString(START_TIME_TAG);
+                    String endTimeS = jsonInfoSessionLocation.getString(END_TIME_TAG);
+                    location.setStart_time(startTimeS);
+                    location.setEnd_time(endTimeS);
+
+                    DateFormat format = new SimpleDateFormat("HH:mm", Locale.CANADA);
+                    try {
+                        Date startDateTime = format.parse(startTimeS);
+                        Date endDateTime = format.parse(endTimeS);
+                        Date afterNoonDateTime = format.parse("12:00");
+                        DateFormat newFormat = new SimpleDateFormat("h:mm", Locale.CANADA);
+                        DateFormat newFormatWithSuffix = new SimpleDateFormat("h:mm a", Locale.CANADA);
+
+                        String displayTimeRange;
+                        boolean isStartAM = startDateTime.getTime() < afterNoonDateTime.getTime();
+                        boolean isEndAM = endDateTime.getTime() < afterNoonDateTime.getTime();
+                        if((isStartAM && isEndAM) || (!isStartAM && ! isEndAM)){
+                            displayTimeRange = newFormat.format(startDateTime) + " - "
+                                    + newFormatWithSuffix.format(endDateTime);
+                        }else{
+                            displayTimeRange = newFormatWithSuffix.format(startDateTime) + " - "
+                                    + newFormatWithSuffix.format(endDateTime);
+                        }
+
+                        location.setDisplay_time_range(displayTimeRange);
+
+                    }catch (ParseException ex){
+                        Log.e(TAG, "onReceive ParseException: " + ex.getMessage());
+                    }
+                }
+
+
+                if(!jsonInfoSessionLocation.isNull(BUILDING_TAG)){
+                    JSONObject jsonBuildingObject = jsonInfoSessionLocation.getJSONObject(BUILDING_TAG);
+                    if(!jsonBuildingObject.isNull(CODE_TAG)){
+                        location.setBuildingCode(jsonBuildingObject.getString(CODE_TAG));
+                    }
+                    if(!jsonBuildingObject.isNull(ROOM_TAG)){
+                        location.setBuildingRoom(jsonBuildingObject.getString(ROOM_TAG));
+                    }
+                    if(!jsonBuildingObject.isNull(MAP_URL_TAG)){
+                        location.setBuildingMapUrl(jsonBuildingObject.getString(MAP_URL_TAG));
+                    }
+                    if(!jsonBuildingObject.isNull(LATITUDE_TAG)){
+                        location.setLatitude(jsonBuildingObject.getDouble(LATITUDE_TAG));
+                    }
+                    if(!jsonBuildingObject.isNull(LONGITUDE_TAG)){
+                        location.setLongitude(jsonBuildingObject.getDouble(LONGITUDE_TAG));
+                    }
+                }
+
+                if (!jsonInfoSessionLocation.isNull(WEBSITE_TAG))
+                    location.setWebsite(jsonInfoSessionLocation.getString(WEBSITE_TAG));
+
+                if (!jsonInfoSessionLocation.isNull(AUDIENCE_TAG))
+                    location.setAudience(jsonInfoSessionLocation.getString(AUDIENCE_TAG));
+
+                if (!jsonInfoSessionLocation.isNull(PROGRAMS_TAG))
+                    location.setPrograms(jsonInfoSessionLocation.getString(PROGRAMS_TAG));
+
+                if(!jsonInfoSessionLocation.isNull(DESCRIPTION_TAG))
+                    location.setDescription(jsonInfoSessionLocation.getString(DESCRIPTION_TAG));
+
+                if(!jsonInfoSessionLocation.isNull(LINK_TAG))
+                    location.setLink(jsonInfoSessionLocation.getString(LINK_TAG));
+
+                return location;
+            }
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+    private void parseInfoSessionsJSON(){
         try
         {
             JSONArray infosessionArray = apiResult.getResultJSON().getJSONArray(DATA_TAG);
@@ -462,7 +584,6 @@ public class ResourcesParser extends UWParser {
         } catch (JSONException e){
             e.printStackTrace();
         }
-        Log.i(TAG, "end");
     }
 
     private void parseGooseWatchJSON(){
