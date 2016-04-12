@@ -51,7 +51,7 @@ import java.util.TimeZone;
 public class InfoSessionsFragment extends Fragment implements JSONDownloader.onDownloadListener,
         InfoSessionAdapter.onInfoSessionClickListener,
         BottomSheetInfoSessionAdapter.onBottomSheetInfoSessionClickListener{
-    final String TAG = "InfoSessionsFragment";
+    public static final String TAG = "InfoSessionsFragment";
     private final int ALERT_CHANGE_REQUEST = 1;
     public static final String SHOULD_TOGGLE = "shouldToggle";
 
@@ -220,13 +220,9 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
 
         switch (type) {
             case InfoSessionAdapter.INFO_SESSION_CLICK:
-                ColorGenerator colorGenerator = ColorGenerator.MATERIAL;
                 Intent intent = new Intent(getActivity(), InfoSessionActivity.class);
                 intent.putExtra(InfoSessionActivity.INFO_SESSION, infoSessionData.getInfoSession());
                 intent.putExtra(InfoSessionActivity.IS_ALARM_SET, infoSessionData.isAlertSet());
-                intent.putExtra(InfoSessionActivity.HEADER_COLOUR, colorGenerator
-                        .getColor(infoSessionData.getInfoSession().getEmployer()));
-
                 startActivityForResult(intent, ALERT_CHANGE_REQUEST);
                 break;
             case InfoSessionAdapter.ROUNDED_TEXT_VIEW_CLICK:

@@ -44,12 +44,17 @@
         </android.support.design.widget.CollapsingToolbarLayout>
 
     </android.support.design.widget.AppBarLayout>
+    <ProgressBar
+        android:id="@+id/pbLoading"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="16dp"/>
 
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
         <LinearLayout
             android:id="@+id/container"
             android:layout_width="match_parent"
@@ -66,6 +71,7 @@
                 android:layout_marginRight="16dp">
 
                 <RelativeLayout
+                    android:id="@+id/session_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingTop="16dp"
@@ -136,9 +142,18 @@
 
                 </RelativeLayout>
 
+                <TextView
+                    android:id="@+id/cancelled"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Cancelled"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                    android:visibility="gone"/>
             </android.support.v7.widget.CardView>
 
             <android.support.v7.widget.CardView
+                android:id="@+id/description_card_view"
                 card_view:cardBackgroundColor="#E6E6E6"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -192,6 +207,7 @@
 
 
             <android.support.v7.widget.CardView
+                android:id="@+id/audience_card_view"
                 card_view:cardBackgroundColor="#E6E6E6"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

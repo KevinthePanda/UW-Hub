@@ -1,83 +1,88 @@
 package com.projects.kquicho.uwatm8;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.BottomSheetBehavior;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.ms.square.android.expandabletextview.ExpandableTextView;
+import com.projects.kquicho.uw_api_client.Core.APIResult;
+import com.projects.kquicho.uw_api_client.Core.JSONDownloader;
+import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
 import com.projects.kquicho.uw_api_client.Resources.InfoSession;
+import com.projects.kquicho.uw_api_client.Resources.ResourcesParser;
 
 import java.util.ArrayList;
 
 /**
  * Created by Kevin Quicho on 4/5/2016.
  */
-public class InfoSessionActivity extends AppCompatActivity{
+public class InfoSessionActivity extends AppCompatActivity implements JSONDownloader.onDownloadListener{
+    public static final String TAG = "InfoSessionActivity";
     public static final String INFO_SESSION = "infoSession";
     public static final String IS_ALARM_SET = "isAlarmSet";
-    public static final String HEADER_COLOUR = "isAlarmSet";
-    private boolean mIsAlertSet;
+    public static final String INFO_SESSION_ID = "infoSessionId";
+    private boolean mIsAlertSet = true;
     private boolean mIsAlertSetOriginal;
     private String mUWLink;
     private String mEmployerLink;
     private LinearLayout mAudienceContainer;
     private boolean mIsCancelled = false;
+    private ResourcesParser mParser = new ResourcesParser();
+    private int mId = -1;
+    private ProgressBar mProgressBar;
+    private View mContainer;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_info_session);
 
-
+        mProgressBar = (ProgressBar)findViewById(R.id.pbLoading);
+        mContainer = findViewById(R.id.container);
+        mProgressBar.setVisibility(View.VISIBLE);
+        mContainer.setVisibility(View.GONE);
 
         Intent intent = getIntent();
-        final InfoSession infoSession = intent.getParcelableExtra(INFO_SESSION);
-        mIsAlertSet = intent.getBooleanExtra(IS_ALARM_SET, false);
+        mId = intent.getIntExtra(INFO_SESSION_ID, -1);
+        if(mId == -1){
+            init((InfoSession)intent.getParcelableExtra(INFO_SESSION),
+                    intent.getBooleanExtra(IS_ALARM_SET, false));
+        }else{
+            mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
+            String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
+            JSONDownloader downloader = new JSONDownloader(url);
+            downloader.setOnDownloadListener(this);
+            downloader.start();
+        }
+    }
+
+    private void init(final InfoSession infoSession, boolean isAlertSet){
+        mIsAlertSet = isAlertSet;
         mIsAlertSetOriginal = mIsAlertSet;
 
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-       final CollapsingToolbarLayout collapsingToolbar =
-                (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
-
-        collapsingToolbar.setTitle(infoSession.getEmployer());
-
-        if(infoSession.isCancelled()){
-            mIsCancelled = true;
-        }
-
-        if (Build.VERSION.SDK_INT >= 21) {
-            collapsingToolbar.setBackgroundColor(intent.getIntExtra(HEADER_COLOUR,
-                    ContextCompat.getColor(this, R.color.theme_primary)));
-            getWindow().setStatusBarColor(Color.TRANSPARENT);
-        }
-
 
         FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -96,6 +101,28 @@ public class InfoSessionActivity extends AppCompatActivity{
             }
         });
 
+        final CollapsingToolbarLayout collapsingToolbar =
+                (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+
+        collapsingToolbar.setTitle(infoSession.getEmployer());
+
+        if(infoSession.isCancelled()){
+            mIsCancelled = true;
+            findViewById(R.id.session_container).setVisibility(View.GONE);
+            findViewById(R.id.description_card_view).setVisibility(View.GONE);
+            findViewById(R.id.audience_card_view).setVisibility(View.GONE);
+            findViewById(R.id.cancelled).setVisibility(View.VISIBLE);
+            fab.setVisibility(View.GONE);
+        }
+
+        if (Build.VERSION.SDK_INT >= 21) {
+            ColorGenerator generator = ColorGenerator.MATERIAL;
+            collapsingToolbar.setBackgroundColor(generator.getColor(infoSession.getEmployer()));
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
+
+
+
 
         ((TextView)findViewById(R.id.date)).setText(infoSession.getDate());
         ((TextView)findViewById(R.id.time)).setText(infoSession.getDisplay_time_range());
@@ -113,7 +140,10 @@ public class InfoSessionActivity extends AppCompatActivity{
 
         mUWLink = infoSession.getLink();
         mEmployerLink = infoSession.getWebsite();
+        mProgressBar.setVisibility(View.GONE);
+        mContainer.setVisibility(View.VISIBLE);
     }
+
 
     private void createAudienceViews(String[] audienceList){
         Log.i("createAudienceViews", audienceList[0]);
@@ -245,5 +275,29 @@ public class InfoSessionActivity extends AppCompatActivity{
 
 
         return true;
+    }
+
+    @Override
+    public void onDownloadComplete(@NonNull APIResult apiResult) {
+        mParser.setAPIResult(apiResult);
+        final InfoSession infoSession = mParser.getSingleInfoSession(mId);
+        android.os.Handler handler = new android.os.Handler(getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if(infoSession != null) {
+                    init(infoSession, true);
+                }else{
+                    ((CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar)).setTitle("Could not load");
+                }
+            }
+        });
+
+
+    }
+
+    @Override
+    public void onDownloadFail(String givenURL, int index) {
+        Log.e(TAG, "Download failed.. url = " + givenURL);
     }
 }
