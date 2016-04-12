@@ -2,10 +2,12 @@
 <android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/tools"
     android:id="@+id/main_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:background="#E6E6E6">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appbar"
@@ -49,21 +51,25 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
+            android:id="@+id/container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:paddingTop="24dp">
 
             <android.support.v7.widget.CardView
+                card_view:cardBackgroundColor="#E6E6E6"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp">
+                android:layout_marginBottom="16dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="24dp"
-                    android:paddingBottom="24dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
                     android:paddingLeft="16dp"
                     android:paddingRight="16dp">
 
@@ -72,9 +78,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Session Information"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
                         android:layout_alignParentTop="true"
-                        android:paddingBottom="16dp"/>
+                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                        android:paddingBottom="8dp"/>
 
                     <TextView
                         android:id="@+id/date_title"
@@ -82,6 +88,7 @@
                         android:layout_height="wrap_content"
                         android:text="Date"
                         android:layout_below="@id/session_information_title"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
                         android:paddingBottom="4dp"/>
                     <TextView
                         android:id="@+id/date"
@@ -89,6 +96,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
                         android:layout_alignParentEnd="true"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                         android:layout_below="@id/session_information_title"/>
 
                     <TextView
@@ -97,6 +105,7 @@
                         android:layout_height="wrap_content"
                         android:text="Time"
                         android:layout_below="@id/date_title"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
                         android:paddingBottom="4dp"/>
                     <TextView
                         android:id="@+id/time"
@@ -104,6 +113,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
                         android:layout_alignParentEnd="true"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                         android:layout_below="@id/date_title"/>
 
 
@@ -113,6 +123,7 @@
                         android:layout_height="wrap_content"
                         android:text="Location"
                         android:layout_below="@id/time_title"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
                         android:paddingBottom="4dp"/>
                     <TextView
                         android:id="@+id/location"
@@ -120,6 +131,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
                         android:layout_alignParentEnd="true"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                         android:layout_below="@id/time_title"/>
 
                 </RelativeLayout>
@@ -127,18 +139,18 @@
             </android.support.v7.widget.CardView>
 
             <android.support.v7.widget.CardView
+                card_view:cardBackgroundColor="#E6E6E6"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp">
 
-
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="24dp"
-                    android:paddingBottom="24dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
                     android:paddingLeft="16dp"
                     android:paddingRight="16dp">
 
@@ -147,15 +159,32 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Description"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
                         android:layout_alignParentTop="true"
-                        android:paddingBottom="16dp"/>
+                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                        android:paddingBottom="8dp"/>
 
-                    <TextView
-                        android:id="@+id/description"
+                    <com.ms.square.android.expandabletextview.ExpandableTextView
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        xmlns:expandableTextView="http://schemas.android.com/apk/res-auto"
+                        android:id="@+id/expandable_description"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/description_title"/>
+                        expandableTextView:maxCollapsedLines="5"
+                        expandableTextView:animDuration="200"
+                        android:layout_below="@id/description_title">
+                        <TextView
+                            android:id="@+id/expandable_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+                        <ImageButton
+                            android:id="@id/expand_collapse"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right|bottom"
+                            android:background="@android:color/transparent"
+                            android:paddingBottom="4dp"/>
+                    </com.ms.square.android.expandabletextview.ExpandableTextView>
 
                 </RelativeLayout>
 
@@ -163,6 +192,7 @@
 
 
             <android.support.v7.widget.CardView
+                card_view:cardBackgroundColor="#E6E6E6"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
@@ -173,8 +203,8 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="24dp"
-                    android:paddingBottom="24dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
                     android:paddingLeft="16dp"
                     android:paddingRight="16dp">
 
@@ -183,89 +213,23 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Audience"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
                         android:layout_alignParentTop="true"
-                        android:paddingBottom="16dp"/>
+                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                        android:paddingBottom="8dp"/>
 
-                    <TextView
-                        android:id="@+id/audience"
+                    <LinearLayout
+                        android:id="@+id/audience_container"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/audience_title"/>
+                        android:layout_below="@id/audience_title"
+                        android:orientation="vertical">
+
+
+                    </LinearLayout>
 
 
                 </RelativeLayout>
             </android.support.v7.widget.CardView>
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="24dp"
-                    android:paddingBottom="24dp"
-                    android:paddingLeft="16dp"
-                    android:paddingRight="16dp">
-
-                    <TextView
-                        android:id="@+id/links_title"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Links"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                        android:layout_alignParentTop="true"
-                        android:paddingBottom="16dp"/>
-
-                    <RelativeLayout
-                        android:id="@+id/employer_container"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/links_title"
-                        android:layout_marginBottom="4dp">
-
-                        <TextView
-                            android:id="@+id/employer_title"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Employer Website"
-                            android:layout_centerVertical="true"/>
-                        <ImageView
-                            android:id="@+id/employer_link"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:src="@drawable/ic_web"
-                            android:layout_alignParentRight="true"
-                            android:contentDescription="Employer Website"/>
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:id="@+id/ceca_container"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/employer_container">
-                        <TextView
-                            android:id="@+id/ceca"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="CECA Info Session Post"
-                            android:layout_centerVertical="true"/>
-
-                        <ImageView
-                            android:id="@+id/ceca_link"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:src="@drawable/ic_web"
-                            android:layout_alignParentRight="true"
-                            android:contentDescription="CECA"/>
-                    </RelativeLayout>
-                </RelativeLayout>
-
-            </android.support.v7.widget.CardView>
-
         </LinearLayout>
 
     </android.support.v4.widget.NestedScrollView>
