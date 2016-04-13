@@ -113,8 +113,7 @@ public class CoursesFragment extends Fragment implements JSONDownloader.onDownlo
         mCoursesParser.setAPIResult(apiResult);
         mCoursesParser.parseJSON();
         mData = mCoursesParser.getCourses();
-
-        android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+ android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
 
         final CoursesAdapter.onCourseClickListener courseClickListener = this;
         Runnable runnable = new Runnable() {
@@ -135,7 +134,7 @@ public class CoursesFragment extends Fragment implements JSONDownloader.onDownlo
     @Override
     public void onCourseClick(String catalogNumber, String title) {
         android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-        CourseTabFragment fragment = CourseTabFragment.newInstance(mSubject, catalogNumber, title);
+        CourseTabFragment fragment = CourseTabFragment.newInstance(mSubject, catalogNumber, title, title);
         ft
                 .add(R.id.fragment_container, fragment)
                 .hide(this)
