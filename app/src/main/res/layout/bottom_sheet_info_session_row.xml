@@ -24,7 +24,7 @@
             android:layout_toRightOf="@id/ic_date"
             android:layout_alignTop="@id/ic_date"
             android:paddingLeft="3dp"
-            style="@style/TextViewBody"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
         <ImageView
             android:id="@+id/ic_time"
             android:layout_width="17dp"
@@ -41,7 +41,7 @@
             android:layout_toRightOf="@id/ic_time"
             android:layout_alignBaseline="@id/date"
             android:paddingLeft="3dp"
-            style="@style/TextViewBody"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
         <ImageView
             android:id="@+id/ic_location"
             android:layout_width="17dp"
@@ -58,6 +58,6 @@
             android:layout_alignTop="@id/ic_location"
             android:layout_alignLeft="@id/date"
             android:paddingLeft="3dp"
-            style="@style/TextViewBody"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
     </RelativeLayout>
 </android.support.v7.widget.CardView>

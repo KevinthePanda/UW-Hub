@@ -2,13 +2,13 @@ package com.projects.kquicho.uwatm8;
 
 
 
-import android.animation.LayoutTransition;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -25,8 +25,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.LinearLayout;
-
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.ItemShadowDecorator;
@@ -48,9 +46,10 @@ import java.util.List;
 public class GroupSubjectFragment extends Fragment implements JSONDownloader.onDownloadListener,
         RecyclerViewExpandableItemManager.OnGroupCollapseListener,
         RecyclerViewExpandableItemManager.OnGroupExpandListener,
-        GroupSubjectAdapter.onSubjectClickListener{
+        GroupSubjectAdapter.onSubjectClickListener,
+        MainActivity.FragmentOnBackClickInterface{
 
-    public static final String TAG = "GroupSubjectFragment";
+public static final String TAG = "GroupSubjectFragment";
     private static final String SAVED_STATE_EXPANDABLE_ITEM_MANAGER = "RecyclerViewExpandableItemManager";
     public static final String TITLE = "Courses";
     private GroupSubjectData mData;
@@ -465,5 +464,11 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
                 .hide(this)
                 .addToBackStack(CatalogNumberFragment.TAG)
                 .commit();
+    }
+
+    @Override
+    public void onFragmentBackPressed() {
+        Log.i(TAG, "onFragmentBackPressed");
+        ((MainActivity)getActivity()).navigateToHome();
     }
 }

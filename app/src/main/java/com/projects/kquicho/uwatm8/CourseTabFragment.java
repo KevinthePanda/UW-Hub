@@ -99,8 +99,9 @@ public class CourseTabFragment extends Fragment implements MainActivity.Fragment
 
     @Override
     public void onFragmentBackPressed() {
-        Log.i("test", "OnFragment");
-        android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        Log.i(TAG, "onFragmentBackPressed");
+        MainActivity activity = (MainActivity)getActivity();
+        android.support.v7.app.ActionBar actionBar = activity.getSupportActionBar();
         if(actionBar != null){
             actionBar.setSubtitle(null);
             actionBar.setTitle(mCallingFragmentTitle);
@@ -108,8 +109,9 @@ public class CourseTabFragment extends Fragment implements MainActivity.Fragment
 
 
         if(mCallingFragmentTitle.equals(GroupSubjectFragment.TITLE)){
-            ((MainActivity) getActivity()).animateMenuArrowDrawable(false);
+            activity.animateMenuArrowDrawable(false);
         }
+        activity.getSupportFragmentManager().popBackStackImmediate();
     }
 
     public class PagerAdapter extends FragmentStatePagerAdapter {

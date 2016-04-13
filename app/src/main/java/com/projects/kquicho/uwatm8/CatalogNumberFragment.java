@@ -187,11 +187,14 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
 
     @Override
     public void onFragmentBackPressed() {
-        android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        Log.i(TAG, "onFragmentBackPressed");
+        MainActivity activity = (MainActivity)getActivity();
+        android.support.v7.app.ActionBar actionBar = activity.getSupportActionBar();
         if(actionBar != null){
             actionBar.setTitle(mCallingFragmentTitle);
         }
 
-         ((MainActivity) getActivity()).animateMenuArrowDrawable(false);
+        activity.animateMenuArrowDrawable(false);
+        activity.getSupportFragmentManager().popBackStackImmediate();
     }
 }
