@@ -4,7 +4,6 @@ package com.projects.kquicho.uwatm8;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -20,12 +19,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.SwipeDismissItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.SimpleListDividerDecorator;
@@ -50,7 +47,8 @@ import java.util.TimeZone;
 
 public class InfoSessionsFragment extends Fragment implements JSONDownloader.onDownloadListener,
         InfoSessionAdapter.onInfoSessionClickListener,
-        BottomSheetInfoSessionAdapter.onBottomSheetInfoSessionClickListener{
+        BottomSheetInfoSessionAdapter.onBottomSheetInfoSessionClickListener,
+        MainActivity.FragmentOnBackClickInterface{
     public static final String TAG = "InfoSessionsFragment";
     private final int ALERT_CHANGE_REQUEST = 1;
     public static final String SHOULD_TOGGLE = "shouldToggle";
@@ -303,6 +301,17 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
                 return SNAP_TO_START;
             }
         }
+    }
+
+    @Override
+    public void onFragmentBackPressed() {
+        Log.i(TAG, "onFragmentBackPressed");
+        if(mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            return;
+        }
+        MainActivity activity = (MainActivity)getActivity();
+        activity.navigateToHome();
     }
 
 }

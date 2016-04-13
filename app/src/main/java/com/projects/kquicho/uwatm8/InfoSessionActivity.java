@@ -146,7 +146,6 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
 
 
     private void createAudienceViews(String[] audienceList){
-        Log.i("createAudienceViews", audienceList[0]);
         String prevDepartment = "";
         ArrayList<String> programs = new ArrayList<>();
         for(String audience : audienceList){
@@ -177,12 +176,10 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
     }
 
     private void createDepartmentView(String department, ArrayList<String> programs){
-        Log.i("Department", department);
         final LinearLayout expandableContainer = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.expandable_department, null);
         ((TextView)expandableContainer.findViewById(R.id.department)).setText(department);
         String programList = "";
         for(String program : programs){
-            Log.i("Program", program);
             if(!programList.equals("")){
                 programList += "\n";
             }

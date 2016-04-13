@@ -9,6 +9,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
@@ -18,6 +19,7 @@ import android.os.Bundle;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -27,6 +29,7 @@ import android.view.View;
 public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
+    final private static String BASE_FRAGMENT = "baseFragment";
     final private int PERMISSIONS_REQUEST_GET_ACCOUNTS = 0;
     final private int PERMISSIONS_REQUEST_WRITE_CALENDAR = 1;
     private DrawerLayout mDrawerLayout;
@@ -81,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         // Create a new fragment and specify the planet to show based on position
 
         FragmentManager fragmentManager = getSupportFragmentManager();
-        Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container);;
+        Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container);
 
         Class fragmentClass;
         switch(menuItem.getItemId()) {
@@ -102,15 +105,12 @@ public class MainActivity extends AppCompatActivity {
             if(fragment != null && fragmentClass == fragment.getClass()){
                 return;
             }
-
             fragment = (Fragment) fragmentClass.newInstance();
-            fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
-
+            fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment, BASE_FRAGMENT).commit();
             // Highlight the selected item, update the title, and close the drawer
             menuItem.setChecked(true);
             getSupportActionBar().setTitle(menuItem.getTitle());
             getSupportActionBar().setSubtitle(null);
-            Log.i("test", menuItem.getTitle() + "");
             mDrawerLayout.closeDrawers();
 
         } catch (Exception e) {
@@ -135,22 +135,32 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed(){
+        Log.i(TAG, "onBackPressed");
+        if(mDrawerLayout.isDrawerOpen(GravityCompat.START)){
+            mDrawerLayout.closeDrawers();
+            return;
+        }
         FragmentManager fragmentManager = getSupportFragmentManager();
         int count = fragmentManager.getBackStackEntryCount();
-        Fragment currentFragment = null;
+        Fragment currentFragment;
+
         if(count > 0) {
             String fragmentTag = fragmentManager.getBackStackEntryAt(count - 1).getName();
             currentFragment = getSupportFragmentManager().findFragmentByTag(fragmentTag);
+        }else{
+            currentFragment = fragmentManager.findFragmentByTag(BASE_FRAGMENT);
+            if(currentFragment instanceof HomeFragment){
+                currentFragment = null;
+            }
         }
 
-        //nothing else in back stack || nothing in back stack is instance of our interface
         if (currentFragment == null || !(currentFragment instanceof FragmentOnBackClickInterface)) {
-            Log.i("test", "Wtf");
             super.onBackPressed();
         } else {
             ((FragmentOnBackClickInterface) currentFragment).onFragmentBackPressed();
-            super.onBackPressed();
         }
+
+        //nothing else in back stack || nothing in back stack is instance of our interface
     }
 
     @Override
@@ -236,6 +246,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void navigateToHome(){
+        selectDrawerItem(mNavDrawer.getMenu().getItem(0));
     }
 
 }
