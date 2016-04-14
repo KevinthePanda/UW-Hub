@@ -4,11 +4,11 @@ package com.projects.kquicho.uwatm8;
 
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.graphics.Color;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -37,8 +37,6 @@ import com.projects.kquicho.uw_api_client.Core.JSONDownloader;
 import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
 import com.projects.kquicho.uw_api_client.Course.Course;
 import com.projects.kquicho.uw_api_client.Course.CourseParser;
-
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,7 +86,7 @@ public static final String TAG = "GroupSubjectFragment";
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.main, menu);
+        inflater.inflate(R.menu.search, menu);
         final MenuItem searchItem = menu.findItem(R.id.action_search);
         final android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         final Window window = getActivity().getWindow();
@@ -103,7 +101,7 @@ public static final String TAG = "GroupSubjectFragment";
             public boolean onMenuItemActionExpand(MenuItem item) {
                 actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.search_view));
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_accent));
+                    window.setStatusBarColor(Color.BLACK);
                 }
 
 

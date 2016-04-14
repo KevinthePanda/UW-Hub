@@ -34,6 +34,7 @@
     <string name="currently_not_offered">Currently not being offered</string>
 
     <string name="search_courses">Search Courses - eg. CS 135</string>
+    <string name="search_employers">Search Employers - eg. Google</string>
     <string name="no_info_sessions_available">No info sessions available</string>
     <string name="no_courses_available">No courses available</string>
     <string name="no_sections_available">No sections available</string>
