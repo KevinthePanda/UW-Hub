@@ -4,21 +4,30 @@ package com.projects.kquicho.uwatm8;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -54,6 +63,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     public static final String SHOULD_TOGGLE = "shouldToggle";
 
     private ArrayList<InfoSessionData> mData = new ArrayList<>();
+    private ArrayList<InfoSessionData> mOriginalData = new ArrayList<>();
     private ArrayList<Pair<Integer,InfoSession>> mBottomSheetData = new ArrayList<>();
     private InfoSessionAdapter mAdapter;
     private RecyclerView mRecyclerView;
@@ -74,18 +84,149 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     public InfoSessionsFragment(){
         super();
     }
+    private View mDimOverlay;
+    private SearchView mSearchView;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_info_sessions, parent, false);
     }
 
-
     @Override
+    public void onCreateOptionsMenu(Menu menu, final MenuInflater inflater) {
+        inflater.inflate(R.menu.search, menu);
+        final MenuItem searchItem = menu.findItem(R.id.action_search);
+        final android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        final Window window = getActivity().getWindow();
+
+        final SearchView searchView = new SearchView(actionBar.getThemedContext());
+        mSearchView = searchView;
+        searchView.setQueryHint(getString(R.string.search_employers));
+        MenuItemCompat.setShowAsAction(searchItem, MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW | MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
+        MenuItemCompat.setActionView(searchItem, searchView);
+
+        searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean queryTextFocused) {
+                Log.i("test",  "onFocusChange" );
+                if (!queryTextFocused) {
+                    if(searchView.getQuery().toString().trim().length() == 0){
+                        searchItem.collapseActionView();
+                    }
+                    actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.theme_primary));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
+                    }
+                    mDimOverlay.setVisibility(View.GONE);
+                    mFab.setVisibility(View.VISIBLE);
+                }else{
+                    if(mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+                        mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    }
+
+                    actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.search_view));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        window.setStatusBarColor(Color.BLACK);
+                    }
+
+                    mDimOverlay.setVisibility(View.VISIBLE);
+                    mFab.setVisibility(View.GONE);
+                }
+            }
+        });
+
+
+        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.theme_primary));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
+                }
+                mDimOverlay.setVisibility(View.GONE);
+                mFab.setVisibility(View.VISIBLE);
+                mData.clear();
+                mData.addAll(mOriginalData);
+                mAdapter.notifyDataSetChanged();
+                return true;
+            }
+        });
+
+
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                query = query.toUpperCase().trim();
+                mData.clear();
+                if (mOriginalData == null) {
+                    return false;
+                }else if(query.equals("")){
+                    mData.addAll(mOriginalData);
+                }else {
+                    for (int i = 0; i < mOriginalData.size(); i++) {
+                        InfoSessionData infoSession = mOriginalData.get(i);
+                        String employer = infoSession.getInfoSession().getEmployer().toUpperCase();
+                        if (employer.contains(query)) {
+                            mData.add(infoSession);
+                        }
+                    }
+                }
+                searchView.clearFocus();
+                mDimOverlay.setVisibility(View.GONE);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
+                }
+                actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.theme_primary));
+                mAdapter.notifyDataSetChanged();
+
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                newText = newText.toUpperCase().trim();
+                mData.clear();
+                if (mOriginalData == null) {
+                    return false;
+                }else if(newText.equals("")){
+                    mData.addAll(mOriginalData);
+                }else {
+                    for (int i = 0; i < mOriginalData.size(); i++) {
+                        InfoSessionData infoSession = mOriginalData.get(i);
+                        String employer = infoSession.getInfoSession().getEmployer().toUpperCase();
+                        if (employer.contains(newText)) {
+                            mData.add(infoSession);
+                        }
+                    }
+                }
+                mAdapter.notifyDataSetChanged();
+                return true;
+            }
+        });
+
+        super.onCreateOptionsMenu(menu, inflater);
+
+    }
+
+        @Override
     public void onViewCreated(View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
 
         mProgressBar = (ProgressBar)view.findViewById(R.id.pbLoading);
+        mDimOverlay = view.findViewById(R.id.dim_overlay);
         mEmptyView = view.findViewById(R.id.empty_view);
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new SnappingLinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
@@ -145,6 +286,13 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         mBottomSheetRV.setAdapter(mBottomSheetAdapter);
         mBottomSheetRV.setLayoutManager(new LinearLayoutManager(getContext()));
         mBottomSheetRV.addItemDecoration(new SimpleListDividerDecorator(ContextCompat.getDrawable(getContext(), R.drawable.list_divider_h), true));
+        mDimOverlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mSearchView.clearFocus();
+            }
+        });
+
     }
 
 
@@ -181,6 +329,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
 
         }
         Collections.sort(mData, new CustonComparator());
+        mOriginalData.addAll(mData);
         android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
 
         Runnable runnable = new Runnable() {
