@@ -36,6 +36,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
     private final String TAG = "InfoSessionAdapter";
     public static final int INFO_SESSION_CLICK = 0;
     public static final int ROUNDED_TEXT_VIEW_CLICK = 1;
+    public static final int SAVE_CLICK = 2;
     private ArrayList<InfoSessionData> mData;
     private Drawable mSelectedDrawable;
     private Drawable mUnselectedDrawable;
@@ -44,6 +45,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
     private static onInfoSessionClickListener mInfoSessionClickListener;
     private boolean mIsShowingAll = true;
     ColorGenerator mColorGenerator = ColorGenerator.MATERIAL;
+    ArrayList<InfoSessionData> mDataFabCopy = new ArrayList<>();
 
     private interface Swipeable extends SwipeableItemConstants {
     }
@@ -107,6 +109,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
     public void toggleSetAlert(int position){
         final InfoSessionData data = mData.get(position);
         if (data.toggleAlert()) {
+            mInfoSessionClickListener.onInfoSessionClick(data, position, SAVE_CLICK);
             InfoSession infoSession = data.getInfoSession();
             long alarmTime = data.getTime() - 3600000;
             int id = infoSession.getId();
@@ -276,7 +279,6 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
     private static class SwipeLeftResultAction extends SwipeResultActionMoveToSwipedDirection {
         private InfoSessionAdapter mAdapter;
         private final int mPosition;
-        private boolean mSetPinned;
 
         SwipeLeftResultAction(InfoSessionAdapter adapter, int position) {
             mAdapter = adapter;
@@ -292,7 +294,6 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
             if (!item.isPinned()) {
                 item.setPinned(true);
                 mAdapter.notifyItemChanged(mPosition);
-                mSetPinned = true;
             }
         }
 
@@ -338,7 +339,6 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
     }
 
 
-    ArrayList<InfoSessionData> mDataFabCopy = new ArrayList<>();
     public boolean showOnlyFavourites() {
         boolean existsAlarmSet = false;
         mDataFabCopy.addAll(mData);
@@ -367,12 +367,13 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
         return true;
     }
 
-    public void fabClick(){
+    public boolean toggleShowSaved(){
         if(mIsShowingAll && showOnlyFavourites()){
             mIsShowingAll = false;
         }else if(!mIsShowingAll && showAll()){
             mIsShowingAll = true;
         }
+        return mIsShowingAll;
     }
 
     public interface onInfoSessionClickListener{
