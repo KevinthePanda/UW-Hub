@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
+<android.support.v7.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="55dp"
-    card_view:cardBackgroundColor="#E6E6E6"
-    card_view:cardElevation="0dp"
-    android:foreground="?android:attr/selectableItemBackground"
-    android:background="@color/gray">
+    android:foreground="?android:attr/selectableItemBackground">
     <RelativeLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
@@ -20,19 +17,18 @@
             android:id="@+id/subject"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
             android:text="SWREN"
-            android:fontFamily="sans-serif-medium"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"/>
 
         <TextView
             android:id="@+id/desc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
             android:text="Workplace Hazardous Materials Information Systems   "
             android:fontFamily="sans-serif-light"
             android:maxLines="1"
             android:ellipsize="end"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             android:layout_below="@id/subject"/>
 
         <ImageView
