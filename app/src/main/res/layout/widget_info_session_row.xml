@@ -37,11 +37,10 @@
             android:layout_height="wrap_content"
             android:text="@string/info_sessions"
             android:background="?attr/colorPrimary"
-            android:layout_alignParentTop="true"
-            android:textSize="24sp"
             android:layout_margin="8dp"
             android:paddingLeft="8dp"
-            android:fontFamily="sans-serif-medium"/>
+            android:fontFamily="sans-serif-medium"
+            android:textAppearance="@style/TextAppearance.AppCompat.Headline"/>
 
         <RelativeLayout
             android:id="@+id/saved_company_1_container"
@@ -53,34 +52,31 @@
                 android:id="@+id/saved_date_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
                 android:layout_alignParentRight="true"
-                android:fontFamily="sans-serif"/>
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:layout_alignBottom="@+id/saved_company_1"/>
 
             <TextView
-                android:id="@+id/saved_company_1"
+                android:id="@id/saved_company_1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
                 android:paddingRight="16dp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif"
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:gravity="left"
-                android:layout_toLeftOf="@id/saved_date_1"/>
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"/>
             <TextView
                 android:id="@+id/saved_time_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/saved_company_1"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_alignParentRight="true"/>
             <TextView
                 android:id="@+id/saved_location_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_below="@id/saved_company_1"/>
         </RelativeLayout>
         <RelativeLayout
@@ -94,8 +90,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dip"
                 android:background="@color/gray"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="4dp"
                 android:layout_alignParentTop="true"/>
@@ -103,36 +97,33 @@
                 android:id="@+id/saved_date_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
                 android:layout_alignParentRight="true"
-                android:fontFamily="sans-serif"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_below="@id/saved_divider_2"/>
 
             <TextView
                 android:id="@+id/saved_company_2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
                 android:paddingRight="16dp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif"
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:gravity="left"
                 android:layout_toLeftOf="@id/saved_date_2"
-                android:layout_below="@id/saved_divider_2"/>
+                android:layout_below="@id/saved_divider_2"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"/>
             <TextView
                 android:id="@+id/saved_time_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/saved_company_2"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_alignParentRight="true"/>
             <TextView
                 android:id="@+id/saved_location_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_below="@id/saved_company_2"/>
         </RelativeLayout>
 
@@ -147,8 +138,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dip"
                 android:background="@color/gray"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="4dp"
                 android:layout_alignParentTop="true"/>
@@ -156,61 +145,59 @@
                 android:id="@+id/saved_date_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_alignParentRight="true"
-                android:fontFamily="sans-serif"
                 android:layout_below="@id/saved_divider_3"/>
             <TextView
                 android:id="@+id/saved_company_3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
                 android:paddingRight="16dp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif"
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:gravity="left"
                 android:layout_toLeftOf="@id/saved_date_3"
-                android:layout_below="@id/saved_divider_3"/>
+                android:layout_below="@id/saved_divider_3"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"/>
             <TextView
                 android:id="@+id/saved_time_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/saved_company_3"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_alignParentRight="true"/>
             <TextView
                 android:id="@+id/saved_location_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_below="@id/saved_company_3"/>
         </RelativeLayout>
         <TextView
             android:id="@+id/no_sessions_saved"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:fontFamily="sans-serif-medium"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
             android:text="No info sessions saved"/>
 
         <View
             android:id="@+id/divider"
             android:layout_width="match_parent"
             android:layout_height="2dip"
-            android:layout_margin="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
             android:background="@color/theme_primary_dark"/>
         <TextView
             android:id="@+id/no_sessions_exists"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            android:fontFamily="sans-serif-medium"
             android:text="@string/no_info_sessions_available"/>
 
         <RelativeLayout
@@ -223,18 +210,15 @@
                 android:id="@+id/date_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
-                android:layout_alignParentRight="true"
-                android:fontFamily="sans-serif"/>
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:layout_alignParentRight="true"/>
 
             <TextView
                 android:id="@+id/company_1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
                 android:paddingRight="16dp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:gravity="left"
@@ -244,13 +228,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/company_1"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_alignParentRight="true"/>
             <TextView
                 android:id="@+id/location_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_below="@id/company_1"/>
         </RelativeLayout>
 
@@ -265,8 +249,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dip"
                 android:background="@color/gray"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="4dp"
                android:layout_alignParentTop="true"/>
@@ -274,19 +256,16 @@
                 android:id="@+id/date_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
                 android:layout_alignParentRight="true"
-                android:fontFamily="sans-serif"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_below="@id/divider_2"/>
 
             <TextView
                 android:id="@+id/company_2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
                 android:paddingRight="16dp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:gravity="left"
@@ -297,13 +276,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/company_2"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_alignParentRight="true"/>
             <TextView
                 android:id="@+id/location_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_below="@id/company_2"/>
         </RelativeLayout>
 
@@ -318,8 +297,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dip"
                 android:background="@color/gray"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="4dp"
                 android:layout_alignParentTop="true"/>
@@ -327,18 +304,15 @@
                 android:id="@+id/date_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
                 android:layout_alignParentRight="true"
-                android:fontFamily="sans-serif"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_below="@id/divider_3"/>
             <TextView
                 android:id="@+id/company_3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
                 android:paddingRight="16dp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:gravity="left"
@@ -349,13 +323,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/company_3"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_alignParentRight="true"/>
             <TextView
                 android:id="@+id/location_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_below="@id/company_3"/>
         </RelativeLayout>
     </LinearLayout>
