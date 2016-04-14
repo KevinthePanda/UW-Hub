@@ -9,8 +9,10 @@ import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
@@ -274,7 +276,21 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mAdapter.fabClick();
+                if(!mAdapter.toggleShowSaved()){
+                    if(mData.size() == 0){
+                        ((TextView)mEmptyView).setText(getString(R.string.no_saved_info_sessions));
+                        final Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                mEmptyView.setVisibility(View.VISIBLE);
+                            }
+                        }, 300);
+
+                    }
+                }else{
+                    mEmptyView.setVisibility(View.GONE);
+                }
             }
         });
         mBottomSheetViewGroup = (RelativeLayout) view.findViewById(R.id.bottom_sheet);
@@ -397,6 +413,10 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
                     }
                 });
 
+                break;
+            case InfoSessionAdapter.SAVE_CLICK:
+                Snackbar.make(mRecyclerView, getString(R.string.info_session_save_message),Snackbar.LENGTH_LONG)
+                        .show();
                 break;
 
         }

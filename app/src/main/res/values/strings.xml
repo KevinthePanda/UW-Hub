@@ -36,7 +36,9 @@
     <string name="search_courses">Search Courses - eg. CS 135</string>
     <string name="search_employers">Search Employers - eg. Google</string>
     <string name="no_info_sessions_available">No info sessions available</string>
+    <string name="no_saved_info_sessions">You have no saved info sessions</string>
     <string name="no_courses_available">No courses available</string>
     <string name="no_sections_available">No sections available</string>
+    <string name="info_session_save_message">Info session saved\nYou\'ll receive a reminder an hour before the event</string>
 
 </resources>
