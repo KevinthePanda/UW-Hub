@@ -144,7 +144,9 @@ public class CourseDetailsFragment extends Fragment implements JSONDownloader.on
                     if (!termsOfferedText.equals("")){
                         termsOffered.setText(termsOfferedText);
                     }else{
-                        termsOffered.setText(getString(R.string.currently_not_offered));
+                        termsOffered.setVisibility(View.GONE);
+                        mView.findViewById(R.id.title_terms_offered).setVisibility(View.GONE);
+                        mView.findViewById(R.id.separator_terms_offered).setVisibility(View.GONE);
                     }
                 }
                 String instructionsText = mCourseDetails.getInstructions();
@@ -213,12 +215,4 @@ public class CourseDetailsFragment extends Fragment implements JSONDownloader.on
         handler.post(runnable);
         Log.i(TAG, "complete");
     }
-    private class AnimatedTextView {
-        private final TextView textView;
-
-        public AnimatedTextView(TextView textView) {this.textView = textView;}
-        public String getText() {return textView.getText().toString();}
-        public void setText(String text) {textView.setText(text);}
-    }
-
 }
