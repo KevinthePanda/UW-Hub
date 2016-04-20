@@ -37,7 +37,7 @@ public class CoursesAdapter extends RecyclerView.Adapter<CoursesAdapter.CourseVi
         }
         @Override
         public void onClick(View v) {
-            mCourseClickListener.onCourseClick(mCourseName.getText().toString(), mTitle.getText().toString());
+            mCourseClickListener.onCourseClick(mCourseName.getText().toString().split(" ")[1], mTitle.getText().toString());
         }
     }
 
@@ -58,13 +58,10 @@ public class CoursesAdapter extends RecyclerView.Adapter<CoursesAdapter.CourseVi
     @Override
     public void onBindViewHolder(CourseViewHolder viewHolder, int position) {
         Course course = mData.get(position);
-
-        viewHolder.mCourseName.setText(course.getCatalogNumber());
+        viewHolder.mCourseName.setText(course.getSubject() + " " + course.getCatalogNumber());
         viewHolder.mTitle.setText(course.getTitle());
-     //   viewHolder.mDescription.setText(course.getDescription());
     }
 
-    // Return the total count of items
     @Override
     public int getItemCount() {
         return mData.size();

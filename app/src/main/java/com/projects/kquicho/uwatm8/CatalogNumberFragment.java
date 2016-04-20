@@ -18,6 +18,7 @@ import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.ItemShadowDecorator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.SimpleListDividerDecorator;
+import com.projects.kquicho.uw_api_client.Codes.Term;
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.JSONDownloader;
 import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
@@ -36,6 +37,7 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
     private static final String SUBJECT = "subject";
     private static final String CALLING_FRAGMENT_TITLE = "callingFragmentTitle";
     private static final String DATA = "data";
+    private static final String TITLE = "title";
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private CourseParser mCoursesParser = new CourseParser();
@@ -58,9 +60,10 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
         return fragment;
     }
 
-    public static CatalogNumberFragment newInstance(String subject, ArrayList<Course> data, String callingFragmentTitle) {
+    public static CatalogNumberFragment newInstance(String subject, String title, ArrayList<Course> data, String callingFragmentTitle) {
         Bundle args = new Bundle();
         args.putString(SUBJECT, subject);
+        args.putString(TITLE, title);
         args.putString(CALLING_FRAGMENT_TITLE, callingFragmentTitle);
         args.putParcelableArrayList(DATA, data);
         CatalogNumberFragment fragment = new CatalogNumberFragment();
@@ -76,12 +79,17 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
         Bundle args = getArguments();
         mSubject = args.getString(SUBJECT);
         mCallingFragmentTitle = args.getString(CALLING_FRAGMENT_TITLE);
+        String title = args.getString(TITLE);
         if(args.containsKey(DATA)){
             mData = args.getParcelableArrayList(DATA);
         }
         android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if(actionBar != null){
-            actionBar.setTitle(mSubject);
+            if(title == null) {
+                actionBar.setTitle(mSubject);
+            }else{
+                actionBar.setTitle(title);
+            }
         }
     }
 
