@@ -108,32 +108,38 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         final android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         final Window window = getActivity().getWindow();
 
-        final SearchView searchView = new SearchView(actionBar.getThemedContext());
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         mSearchView = searchView;
         searchView.setQueryHint(getString(R.string.search_employers));
-        MenuItemCompat.setShowAsAction(searchItem, MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW | MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
-        MenuItemCompat.setActionView(searchItem, searchView);
+        searchView.setMaxWidth(Integer.MAX_VALUE);
 
         searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean queryTextFocused) {
-                Log.i("test",  "onFocusChange" );
                 if (!queryTextFocused) {
+                    Log.i(TAG,  "onFocusChange - searchView lost focus" );
+                    ((MainActivity)getActivity()).animateMenuArrowDrawable(false);
                     if(searchView.getQuery().toString().trim().length() == 0){
                         searchItem.collapseActionView();
+                        searchView.setIconified(true);
                     }
-                    actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.theme_primary));
+                    if(actionBar != null) {
+                        actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.theme_primary));
+                    }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
                     }
                     mDimOverlay.setVisibility(View.GONE);
                     mFab.setVisibility(View.VISIBLE);
                 }else{
+                    Log.i(TAG,  "onFocusChange - searchView gained focus" );
+                    ((MainActivity)getActivity()).animateMenuArrowDrawable(true);
                     if(mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
                         mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                     }
-
-                    actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.search_view));
+                    if(actionBar != null) {
+                        actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.search_view));
+                    }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         window.setStatusBarColor(Color.BLACK);
                     }
@@ -148,17 +154,13 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
+                Log.i(TAG,  "onMenuItemActionExpand" );
                 return true;
             }
 
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
-                actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.theme_primary));
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
-                }
-                mDimOverlay.setVisibility(View.GONE);
-                mFab.setVisibility(View.VISIBLE);
+                Log.i(TAG, "onMenuItemActionCollapse");
                 mData.clear();
                 mData.addAll(mOriginalData);
                 mAdapter.notifyDataSetChanged();
@@ -477,10 +479,13 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         Log.i(TAG, "onFragmentBackPressed");
         if(mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
             mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            return;
+        }else if(mSearchView.getQuery() != null){
+            mSearchView.setQuery(null, false);
+            mSearchView.setIconified(true);
+        }else{
+            MainActivity activity = (MainActivity)getActivity();
+            activity.navigateToHome();
         }
-        MainActivity activity = (MainActivity)getActivity();
-        activity.navigateToHome();
     }
 
 }

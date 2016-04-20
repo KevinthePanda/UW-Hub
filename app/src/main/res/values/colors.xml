@@ -47,4 +47,5 @@ s
     <color name="primaryTextColour">#212121</color>
     <color name="theme_accent">#E5C13F</color>
     <color name="green">#4CAF50</color>
+    <color name="fragment_background">#E6E6E6</color>
 </resources>
