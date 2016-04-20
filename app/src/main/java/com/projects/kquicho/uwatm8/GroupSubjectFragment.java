@@ -2,6 +2,7 @@ package com.projects.kquicho.uwatm8;
 
 
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.graphics.Color;
@@ -217,15 +218,11 @@ public static final String TAG = "GroupSubjectFragment";
                         }
                         actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.theme_primary));
 
-                        android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                        CourseTabFragment fragment = CourseTabFragment.newInstance(mPreviousSearchSubject,
-                                catalogNumber, title, TITLE);
-
-                        ft
-                                .add(R.id.fragment_container, fragment, CourseTabFragment.TAG)
-                                .hide(thisFragment)
-                                .addToBackStack(CourseTabFragment.TAG)
-                                .commit();
+                        Intent intent = new Intent(getActivity(), CourseTabActivity.class);
+                        intent.putExtra(CourseTabActivity.CATALOG_NUMBER_TAG, catalogNumber);
+                        intent.putExtra(CourseTabActivity.SUBJECT_TAG, mPreviousSearchSubject);
+                        intent.putExtra(CourseTabActivity.SUBTITLE_TAG, title);
+                        startActivity(intent);
                     }
                 });
         searchView.setSuggestionsAdapter(mSearchViewAdapter);
