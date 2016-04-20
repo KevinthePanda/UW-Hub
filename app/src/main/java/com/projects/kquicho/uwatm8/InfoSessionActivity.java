@@ -1,8 +1,10 @@
 package com.projects.kquicho.uwatm8;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -192,6 +194,13 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
 
     }
 
+    private Drawable getResizedDrawable(Drawable drawable){
+        Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+        return new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap,
+                (int)(getResources().getDisplayMetrics().density * 24),
+                (int)(getResources().getDisplayMetrics().density * 24), true));
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.info_session_menu, menu);
@@ -199,10 +208,10 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
         final MenuItem save = menu.findItem(R.id.save);
         final MenuItem uw = menu.findItem(R.id.uw);
         final MenuItem employer = menu.findItem(R.id.employer);
-        final Drawable ic_star = ContextCompat.getDrawable(this, R.drawable.ic_star);
-        final Drawable ic_starOutline = ContextCompat.getDrawable(this, R.drawable.ic_star_outline);
-        final Drawable ic_uw = ContextCompat.getDrawable(this, R.drawable.ic_school);
-        final Drawable ic_employer = ContextCompat.getDrawable(this, R.drawable.ic_web);
+        final Drawable ic_starOutline = getResizedDrawable(save.getIcon());
+        final Drawable ic_star = getResizedDrawable(ContextCompat.getDrawable(this, R.drawable.ic_star));
+        final Drawable ic_uw = getResizedDrawable(uw.getIcon());
+        final Drawable ic_employer = getResizedDrawable(employer.getIcon());
 
         if(mIsCancelled){
            save.setVisible(false);
@@ -212,8 +221,6 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
             }else{
                 save.setIcon(ic_starOutline);
             }
-            ic_star.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
-            ic_starOutline.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
             save.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
@@ -231,8 +238,6 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
             });
         }
 
-        ic_uw.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
-        ic_employer.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
 
         uw.setIcon(ic_uw);
         employer.setIcon(ic_employer);
