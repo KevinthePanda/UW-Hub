@@ -1,34 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <TextView
-        android:id="@+id/empty_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:visibility="gone"
-        android:textStyle="bold"
-        android:fontFamily="sans-serif"
-        android:textSize="20sp"
-        android:text="@string/no_sections_available" />
-    <ProgressBar
-        android:id="@+id/pbLoading"
-        android:visibility="gone"
+    <RadioGroup
+        android:id="@+id/term_toggle"
+        android:checkedButton="@+id/current_term"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="16dp"/>
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="2dp"
+        android:orientation="horizontal"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/toggle_outline">
+
+        <RadioButton
+            android:id="@+id/current_term"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_marginLeft="1dp"
+            android:background="@drawable/toggle_widget_background"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:padding="8dp"
+            android:textSize="12sp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Widget.Button"
+            android:gravity="center"/>
+
+        <RadioButton
+            android:id="@+id/next_term"
+            android:layout_marginRight="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="1dp"
+            android:background="@drawable/toggle_widget_background"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:padding="8dp"
+            android:textSize="12sp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Widget.Button"
+            android:gravity="center"/>
+    </RadioGroup>
+
+    <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipChildren="true"
-        android:clipToPadding="false"
-        android:scrollbarStyle="outsideOverlay"
-        android:scrollbars="vertical"
-        android:paddingBottom="16dp"
-        android:paddingTop="8dp"
-        android:paddingRight="16dp"
-        android:paddingLeft="16dp"/>
-</android.support.design.widget.CoordinatorLayout>
+        android:layout_below="@id/term_toggle">
+        <TextView
+            android:id="@+id/empty_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:visibility="gone"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:textSize="20sp"
+            android:text="@string/no_sections_available" />
+        <ProgressBar
+            android:id="@+id/pbLoading"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"/>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipChildren="true"
+            android:clipToPadding="false"
+            android:scrollbarStyle="outsideOverlay"
+            android:scrollbars="vertical"
+            android:paddingBottom="8dp"
+            android:paddingRight="8dp"
+            android:paddingLeft="8dp"/>
+    </android.support.design.widget.CoordinatorLayout>
+</RelativeLayout>

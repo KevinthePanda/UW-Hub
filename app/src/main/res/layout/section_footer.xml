@@ -3,44 +3,35 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="70dp"
     card_view:cardBackgroundColor="#E6E6E6"
-    card_view:cardElevation="2dp"
     android:foreground="?android:attr/selectableItemBackground">
     <RelativeLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="8dp"
         android:clickable="true"
         android:background="@color/bg_item_normal_state">
         <TextView
-            android:paddingLeft="16dp"
             android:id="@+id/class_number_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
             android:text="Class Number"
-            android:fontFamily="sans-serif-medium"
             android:paddingRight="8dp"
+            android:paddingLeft="16dp"
             android:layout_marginBottom="4dp"
-            android:textStyle="italic"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2"/>
         <TextView
             android:id="@+id/class_number"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
             android:gravity="right"
             android:text="2331"
-            android:fontFamily="sans-serif-medium"
-            android:paddingRight="24dp"/>
+            android:paddingRight="24dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
 
 
         <LinearLayout
-            android:layout_marginTop="8dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:background="@color/gray"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:weightSum="3"
@@ -53,9 +44,18 @@
                 <ImageView
                     android:id="@+id/google_calendar"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="30dp"
                     android:src="@drawable/ic_calendar_plus"
                     android:layout_centerInParent="true"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/google_calendar"
+                    android:text="Calendar"
+                    android:paddingTop="5dp"
+                    android:textSize="10sp"
+                    android:fontFamily="sans-serif"
+                    android:layout_centerHorizontal="true"/>
             </RelativeLayout>
             <RelativeLayout
                 android:layout_weight="1"
@@ -64,9 +64,19 @@
                 <ImageView
                     android:id="@+id/google_maps_directions"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="30dp"
                     android:src="@drawable/ic_google_maps"
                     android:layout_centerInParent="true"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/google_maps_directions"
+                    android:text="Directions"
+                    android:paddingTop="5dp"
+                    android:textSize="10sp"
+                    android:fontFamily="sans-serif"
+                    android:layout_centerHorizontal="true"/>
+
             </RelativeLayout>
 
             <RelativeLayout
@@ -76,9 +86,18 @@
                 <ImageView
                     android:id="@+id/watch_course_section"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="30dp"
                     android:src="@drawable/ic_eye_off"
                     android:layout_centerInParent="true"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/watch_course_section"
+                    android:text="Watch"
+                    android:paddingTop="5dp"
+                    android:textSize="10sp"
+                    android:fontFamily="sans-serif"
+                    android:layout_centerHorizontal="true"/>
             </RelativeLayout>
 
         </LinearLayout>

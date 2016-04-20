@@ -47,4 +47,13 @@ public class CourseScheduleData extends  AbstractExpandableData{
     public int getGroupCount() {
         return mData.size();
     }
+
+    public void changeData(ArrayList<Pair<GroupData, ArrayList<ChildData>>> data){
+        mData.clear();
+        mData.addAll(data);
+    }
+
+    public void clearData(){
+        mData.clear();
+    }
 }
