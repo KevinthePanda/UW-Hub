@@ -95,21 +95,27 @@ public class CourseWatchService extends IntentService {
             AlarmManager deleteAlarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             deleteAlarm.cancel(deletePIntent);
 
-            Log.i("test",courseWatchDBModel.getID() + " yesysey" );
-            sendNotification(courseWatchDBModel.getTitle(), courseWatchDBModel.getMessage());
+            String subject = courseWatchDBModel.getURL().split("/")[1];
+            String catalogNumber = courseWatchDBModel.getURL().split("/")[2];
+            sendNotification(courseWatchDBModel.getTitle(), courseWatchDBModel.getMessage(), subject,
+                    catalogNumber);
         }
 
     }
 
-    private void sendNotification(String title, String message){
+    private void sendNotification(String title, String message, String subject, String catalogNumber){
         Log.d(TAG, "Preparing to send notification...: " + title + " " + message);
         NotificationManager notificationManager = (NotificationManager) this
                 .getSystemService(Context.NOTIFICATION_SERVICE);
 
         SharedPreferences settings = getSharedPreferences("Settings", 0);
         int id = settings.getInt(NOTIFICATION_ID, 1);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, id,
-                new Intent(this, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent intent = new Intent(this, CourseTabActivity.class);
+        intent.putExtra(CourseTabActivity.CATALOG_NUMBER_TAG, catalogNumber);
+        intent.putExtra(CourseTabActivity.SUBJECT_TAG, subject);
+
+        PendingIntent contentIntent = PendingIntent.getActivity(this, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
