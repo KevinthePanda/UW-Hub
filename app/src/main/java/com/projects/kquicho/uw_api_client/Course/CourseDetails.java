@@ -18,14 +18,14 @@ public class CourseDetails extends Course {
     private String mCalendarYear = null;
     private String mUrl = null;
 
-    private Boolean mOnline = null;
-    private Boolean mOnlineOnly = null;
-    private Boolean mStJeromes = null;
-    private Boolean mStJeromesOnly = null;
-    private Boolean mRenison = null;
-    private Boolean mRenisonOnly = null;
-    private Boolean mConradGrebel = null;
-    private Boolean mConradGrebelOnly = null;
+    private Boolean mOnline = false;
+    private Boolean mOnlineOnly = false;
+    private Boolean mStJeromes = false;
+    private Boolean mStJeromesOnly = false;
+    private Boolean mRenison = false;
+    private Boolean mRenisonOnly = false;
+    private Boolean mConradGrebel = false;
+    private Boolean mConradGrebelOnly = false;
 
     public String getInstructions() {
 

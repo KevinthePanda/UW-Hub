@@ -63,6 +63,12 @@ public class MainActivity extends AppCompatActivity {
     public void animateMenuArrowDrawable(boolean menuToArrow){
         mMenuArrowDrawable.animateDrawable(menuToArrow);
     }
+    public void lockNavDrawer(){
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+    }
+    public void unlockNavDrawer(){
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+    }
 
     public void setMenuArrowDrawable(boolean menuToArrow){
         float progress = menuToArrow ? 1: 0;

@@ -116,14 +116,18 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean queryTextFocused) {
+                MainActivity activity = (MainActivity) getActivity();
                 if (!queryTextFocused) {
-                    Log.i(TAG,  "onFocusChange - searchView lost focus" );
-                    ((MainActivity)getActivity()).animateMenuArrowDrawable(false);
-                    if(searchView.getQuery().toString().trim().length() == 0){
+                    Log.i(TAG, "onFocusChange - searchView lost focus");
+
+                    activity.animateMenuArrowDrawable(false);
+                    activity.unlockNavDrawer();
+
+                    if (searchView.getQuery().toString().trim().length() == 0) {
                         searchItem.collapseActionView();
                         searchView.setIconified(true);
                     }
-                    if(actionBar != null) {
+                    if (actionBar != null) {
                         actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.theme_primary));
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -131,13 +135,16 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
                     }
                     mDimOverlay.setVisibility(View.GONE);
                     mFab.setVisibility(View.VISIBLE);
-                }else{
-                    Log.i(TAG,  "onFocusChange - searchView gained focus" );
-                    ((MainActivity)getActivity()).animateMenuArrowDrawable(true);
-                    if(mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+                } else {
+                    Log.i(TAG, "onFocusChange - searchView gained focus");
+
+                    activity.animateMenuArrowDrawable(true);
+                    activity.lockNavDrawer();
+
+                    if (mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
                         mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                     }
-                    if(actionBar != null) {
+                    if (actionBar != null) {
                         actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.search_view));
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -149,26 +156,6 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
                 }
             }
         });
-
-
-        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
-                Log.i(TAG,  "onMenuItemActionExpand" );
-                return true;
-            }
-
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
-                Log.i(TAG, "onMenuItemActionCollapse");
-                mData.clear();
-                mData.addAll(mOriginalData);
-                mAdapter.notifyDataSetChanged();
-                return true;
-            }
-        });
-
-
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -479,7 +466,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         Log.i(TAG, "onFragmentBackPressed");
         if(mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
             mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        }else if(mSearchView.getQuery() != null){
+        }else if(!mSearchView.isIconified()){
             mSearchView.setQuery(null, false);
             mSearchView.setIconified(true);
         }else{
