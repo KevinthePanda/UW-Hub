@@ -1,5 +1,6 @@
 package com.projects.kquicho.uwatm8;
 
+import android.content.Intent;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -178,13 +179,11 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
 
     @Override
     public void onCourseClick(String catalogNumber, String title) {
-        android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-        CourseTabFragment fragment = CourseTabFragment.newInstance(mSubject, catalogNumber, title, mSubject);
-        ft
-                .add(R.id.fragment_container, fragment, CourseTabFragment.TAG)
-                .hide(this)
-                .addToBackStack(CourseTabFragment.TAG)
-                .commit();
+        Intent intent = new Intent(getActivity(), CourseTabActivity.class);
+        intent.putExtra(CourseTabActivity.CATALOG_NUMBER_TAG, catalogNumber);
+        intent.putExtra(CourseTabActivity.SUBJECT_TAG, mSubject);
+        intent.putExtra(CourseTabActivity.SUBTITLE_TAG, title);
+        startActivity(intent);
     }
 
 
