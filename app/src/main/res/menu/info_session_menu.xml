@@ -15,6 +15,6 @@
     <item android:id="@+id/save"
           android:orderInCategory="3"
           android:title="Save"
-          android:icon="@drawable/ic_web"
+          android:icon="@drawable/ic_star_outline"
           app:showAsAction="ifRoom|collapseActionView"/>
 </menu>
