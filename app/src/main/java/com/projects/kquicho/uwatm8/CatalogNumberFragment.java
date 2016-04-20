@@ -123,23 +123,26 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
             ((MainActivity) getActivity()).animateMenuArrowDrawable(true);
         }
 
-        if(mData != null){
+        if(mData != null && mData.size() != 0) {
+            mEmptyView.setVisibility(View.GONE);
             mAdapter = new CoursesAdapter(mData, this);
             mRecyclerView.setAdapter(mAdapter);
-            return;
-        }
-        mCoursesParser.setParseType(CourseParser.ParseType.COURSES.ordinal());
-        mUrl = UWOpenDataAPI.buildURL(String.format(mCoursesParser.getEndPoint(), mSubject));
+        }else {
+            mCoursesParser.setParseType(CourseParser.ParseType.COURSES.ordinal());
+            mUrl = UWOpenDataAPI.buildURL(String.format(mCoursesParser.getEndPoint(), mSubject));
 
-        mProgressBar.setVisibility(View.VISIBLE);
-        JSONDownloader downloader = new JSONDownloader(mUrl);
-        downloader.setOnDownloadListener(this);
-        downloader.start();
+            mProgressBar.setVisibility(View.VISIBLE);
+            JSONDownloader downloader = new JSONDownloader(mUrl);
+            downloader.setOnDownloadListener(this);
+            downloader.start();
+        }
     }
 
     @Override
     public void onDownloadFail(String givenURL, int index) {
         Log.e(TAG, "Download failed.. url = " + givenURL);
+        mProgressBar.setVisibility(View.GONE);
+        mEmptyView.setVisibility(View.VISIBLE);
     }
 
 

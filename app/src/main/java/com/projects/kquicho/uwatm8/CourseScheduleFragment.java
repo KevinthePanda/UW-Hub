@@ -10,6 +10,7 @@ import android.graphics.drawable.NinePatchDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.provider.CalendarContract;
 import android.support.design.widget.Snackbar;
@@ -21,6 +22,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.RadioButton;
 
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
@@ -34,7 +37,14 @@ import com.projects.kquicho.uw_api_client.Core.JSONDownloader;
 import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
 import com.projects.kquicho.uw_api_client.Terms.TermsParser;
 
+import java.text.DateFormat;
+import java.text.FieldPosition;
+import java.text.ParseException;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by Kevin Quicho on 3/16/2016.
@@ -49,6 +59,9 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     public static final String TAG = "courseScheduleFragment";
     public static final String SUBJECT_TAG = "subject";
     public static final String CATALOG_NUMBER_TAG = "catalogNumber";
+    private final int WINTER = 1;
+    private final int SPRING = 5;
+    private final int FALL = 9;
 
     private CourseScheduleData mData;
     private CourseScheduleAdapter mAdapter;
@@ -58,11 +71,12 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     private RecyclerView.Adapter mWrappedAdapter;
 
 
-    private String mCurrentTerm = "1165";
+    private String mTerm;
     private String mSubject;
     private String mCatalogNumber;
     private TermsParser mTermsParser = new TermsParser();
     private String mCourseScheduleURL;
+    private String mTermListURL;
     private BuildingParser mBuildingParser = new BuildingParser();
     private String mBuildingURL;
     private Long mLastEventID = null;
@@ -70,6 +84,8 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     private CourseDBHelper mDBHelper;
     private View mEmptyView;
     private View mProgressBar;
+    private RadioButton mCurrentTermRB;
+    private RadioButton mNextTermRB;
 
     public static CourseScheduleFragment newInstance(String subject, String catalogNumber) {
 
@@ -87,7 +103,6 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         Bundle args = getArguments();
         mSubject = args.getString(SUBJECT_TAG);
         mCatalogNumber = args.getString(CATALOG_NUMBER_TAG);
-
         mHandler = new AsyncHandler(getActivity().getContentResolver(), this);
         mDBHelper = CourseDBHelper.getInstance(getActivity().getApplicationContext());
     }
@@ -109,6 +124,8 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     public void onViewCreated(View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
 
+        mCurrentTermRB = (RadioButton)view.findViewById(R.id.current_term);
+        mNextTermRB = (RadioButton)view.findViewById(R.id.next_term);
         mProgressBar = view.findViewById(R.id.pbLoading);
         mEmptyView = view.findViewById(R.id.empty_view);
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
@@ -138,14 +155,12 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         mRecyclerViewExpandableItemManager.attachRecyclerView(mRecyclerView);
 
 
-        mTermsParser.setParseType(TermsParser.ParseType.CATALOG_SCHEDULE.ordinal());
-        mCourseScheduleURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint("1165",mSubject, mCatalogNumber));
-
-        mProgressBar.setVisibility(View.VISIBLE);
-        JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
+        mTermsParser.setParseType(TermsParser.ParseType.TERM_LIST.ordinal());
+        mTermListURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint());
+        JSONDownloader downloader = new JSONDownloader(mTermListURL);
         downloader.setOnDownloadListener(this);
         downloader.start();
-
+        mProgressBar.setVisibility(View.VISIBLE);
     }
 
 
@@ -154,31 +169,137 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         Log.e(TAG, "Download failed.. url = " + givenURL);
     }
 
+    private String getTerm(String id){
+        String season = "";
+        switch (Integer.valueOf(id.substring(3))){
+            case WINTER:
+                season = "Winter";
+                break;
+            case SPRING:
+                season = "Spring";
+                break;
+            case FALL:
+                season = "Fall";
+        }
+        return  season + " " + "20" + id.substring(1,3);
+    }
+
+
     @Override
     public void onDownloadComplete(APIResult  apiResult) {
-        if(apiResult.getUrl().equals(mCourseScheduleURL)) {
+        if(apiResult.getUrl().equals(mTermListURL)){
             mTermsParser.setAPIResult(apiResult);
-            mTermsParser.parseJSON(getActivity().getApplicationContext());
-            mData = new CourseScheduleData(mTermsParser.getCourseSchedule());
+            mTermsParser.parseJSON();
+            final String currentTerm = mTermsParser.getCurrentTerm();
+            final String nextTerm = mTermsParser.getNextTerm();
+            mTerm = currentTerm;
+            final String currentTermTitle  = getTerm(currentTerm);
+            final String nextTermTitle  = getTerm(nextTerm);
 
             android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
-
-            final CourseScheduleAdapter.onButtonClickListener onButtonClickListener = this;
-            Runnable runnable = new Runnable() {
+            final JSONDownloader.onDownloadListener onDownloadListener = this;
+            handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mProgressBar.setVisibility(View.GONE);
-                    if(mData == null || mData.getGroupCount() == 0){
-                        mEmptyView.setVisibility(View.VISIBLE);
-                    }else {
-                        mEmptyView.setVisibility(View.GONE);
-                        mAdapter = new CourseScheduleAdapter(mData, getContext(),
-                                onButtonClickListener);
-                        mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
-                        mRecyclerView.setAdapter(mWrappedAdapter);
-                    }
+                    mCurrentTermRB.setText(currentTermTitle);
+                    mNextTermRB.setText(nextTermTitle);
+
+                    mCurrentTermRB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if(isChecked) {
+                                mTerm = currentTerm;
+                                mTermsParser.setParseType(TermsParser.ParseType.CATALOG_SCHEDULE.ordinal());
+                                mCourseScheduleURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint(currentTerm, mSubject, mCatalogNumber));
+
+                                mProgressBar.setVisibility(View.VISIBLE);
+                                mRecyclerView.setVisibility(View.GONE);
+                                mRecyclerViewExpandableItemManager.collapseAll();
+                                mEmptyView.setVisibility(View.GONE);
+                                JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
+                                downloader.setOnDownloadListener(onDownloadListener);
+                                downloader.start();
+                            }
+                        }
+                    });
+
+                    mNextTermRB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if(isChecked) {
+                                mTerm = nextTerm;
+                                mTermsParser.setParseType(TermsParser.ParseType.CATALOG_SCHEDULE.ordinal());
+                                mCourseScheduleURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint(nextTerm, mSubject, mCatalogNumber));
+
+                                mProgressBar.setVisibility(View.VISIBLE);
+                                mRecyclerView.setVisibility(View.GONE);
+                                mRecyclerViewExpandableItemManager.collapseAll();
+                                mEmptyView.setVisibility(View.GONE);
+                                JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
+                                downloader.setOnDownloadListener(onDownloadListener);
+                                downloader.start();
+                            }
+                        }
+                    });
+
+                    mTermsParser.setParseType(TermsParser.ParseType.CATALOG_SCHEDULE.ordinal());
+                    mCourseScheduleURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint(currentTerm,mSubject, mCatalogNumber));
+
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
+                    downloader.setOnDownloadListener(onDownloadListener);
+                    downloader.start();
                 }
-            };
+            });
+
+        }
+        else if(apiResult.getUrl().equals(mCourseScheduleURL)) {
+            mTermsParser.setAPIResult(apiResult);
+            mTermsParser.parseJSON(getActivity().getApplicationContext());
+
+            android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+            Runnable runnable;
+            if(mAdapter == null) {
+                mData = new CourseScheduleData(mTermsParser.getCourseSchedule());
+                final CourseScheduleAdapter.onButtonClickListener onButtonClickListener = this;
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        mProgressBar.setVisibility(View.GONE);
+                        if (mData == null || mData.getGroupCount() == 0) {
+                            mEmptyView.setVisibility(View.VISIBLE);
+                        } else {
+                            mEmptyView.setVisibility(View.GONE);
+                            mRecyclerView.setVisibility(View.VISIBLE);
+                            mAdapter = new CourseScheduleAdapter(mData, getActivity(),
+                                    onButtonClickListener);
+                            mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
+                            mRecyclerView.setAdapter(mWrappedAdapter);
+                        }
+                    }
+                };
+            }else{
+                mData.changeData(mTermsParser.getCourseSchedule());
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        mProgressBar.setVisibility(View.GONE);
+                        mAdapter.notifyDataSetChanged();
+                        if (mData == null || mData.getGroupCount() == 0) {
+                            mEmptyView.setVisibility(View.VISIBLE);
+                        } else {
+                            mEmptyView.setVisibility(View.GONE);
+                            final Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mRecyclerView.setVisibility(View.VISIBLE);
+                                }
+                            }, 150);
+                        }
+                    }
+                };
+            }
             handler.post(runnable);
 
         }else{
@@ -186,13 +307,16 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
             mBuildingParser.parseJSON();
 
             UWBuilding building = mBuildingParser.getBuildingCodeBuilding();
-
-            Uri gmmIntentUri = Uri.parse("geo:0,0?q=" + String.valueOf(building.getLatitude()) + ","
-                    + String.valueOf(building.getLongitude()) + "(" + building.getBuildingCode() + ")");
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-            mapIntent.setPackage("com.google.android.apps.maps");
-            if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-                startActivity(mapIntent);
+            if (building != null) {
+                Uri gmmIntentUri = Uri.parse("geo:0,0?q=" + String.valueOf(building.getLatitude()) + ","
+                        + String.valueOf(building.getLongitude()) + "(" + building.getBuildingCode() + ")");
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    startActivity(mapIntent);
+                }
+            }else{
+                Snackbar.make(mRecyclerView, "Section has no location to search", Snackbar.LENGTH_LONG).show();
             }
         }
         Log.i(TAG, "completed ");
@@ -239,16 +363,22 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     }
 
     @Override
-    public void onGroupExpand(int groupPosition, boolean fromUser) {
+    public void onGroupExpand(final int groupPosition, boolean fromUser) {
         if (fromUser) {
-            adjustScrollPositionOnGroupExpanded(groupPosition);
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    adjustScrollPositionOnGroupExpanded(groupPosition);
+                }
+            }, 250);
         }
     }
 
     private void adjustScrollPositionOnGroupExpanded(int groupPosition) {
-        int childItemHeight = 43;
-        int topMargin = (int) (getActivity().getResources().getDisplayMetrics().density * 16); // top-spacing: 16dp
-        int bottomMargin = topMargin; // bottom-spacing: 16dp
+        int childItemHeight = (int) (getActivity().getResources().getDisplayMetrics().density * 25);
+        int topMargin = (int) (getActivity().getResources().getDisplayMetrics().density * 2);
+        int bottomMargin = (int) (getActivity().getResources().getDisplayMetrics().density * (8 + 45));
 
         mRecyclerViewExpandableItemManager.scrollToGroup(groupPosition, childItemHeight, topMargin, bottomMargin);
     }
@@ -257,84 +387,184 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP);
     }
 
+    private void createLECorTUTEvent(CourseSectionData sectionData, int groupPosition, int childPosition){
+        String weekdays =  sectionData.getWeekdays();
+        String recurDays = "";
+        int firstOccurence = 0;
+        for(int i = 0; i < weekdays.length(); i++){
+            char c = weekdays.charAt(i);
+            String day = "";
+            int calendarDay = 0;
+            if(c == 'T' && weekdays.length() > i + 1 && weekdays.charAt(i +1) == 'h'){
+                day = "TH";
+                i++;
+                calendarDay = Calendar.THURSDAY;
+            }else{
+                switch (c){
+                    case 'M':
+                        day = "MO";
+                        calendarDay = Calendar.MONDAY;
+                        break;
+                    case 'T':
+                        day = "TU";
+                        calendarDay = Calendar.TUESDAY;
+                        break;
+                    case 'W':
+                        day = "WE";
+                        calendarDay = Calendar.WEDNESDAY;
+                        break;
+                    case'F':
+                        day = "FR";
+                        calendarDay = Calendar.FRIDAY;
+                        break;
+                }
+            }
+
+            if(recurDays.equals("")){
+                recurDays = day;
+                firstOccurence = calendarDay;
+            }else{
+                recurDays += "," + day;
+            }
+        }
+
+
+
+        String startTimeS = sectionData.getStartTime();
+        String endTimeS = sectionData.getEndTime();
+        String[] hoursMinsStart = startTimeS.split(":");
+        String[] hoursMinsEnd = endTimeS.split(":");
+
+        int hourStart = Integer.valueOf(hoursMinsStart[0]);
+        int minStart = Integer.valueOf(hoursMinsStart[1]);
+        int hourEnd = Integer.valueOf(hoursMinsEnd[0]);
+        int minEnd = Integer.valueOf(hoursMinsEnd[1]);
+
+        int duration = ((hourEnd * 60) + minEnd)  - ((hourStart * 60) + minStart);
+        int hDuration = (duration / 60);
+        int mDuration = (duration % 60);
+
+
+
+        Calendar beginTime = Calendar.getInstance();
+        Calendar endTime = Calendar.getInstance();
+        beginTime.set(Calendar.DAY_OF_WEEK, firstOccurence);
+        int year =  Integer.valueOf("20" + mTerm.substring(1, 3));
+        int month = Integer.valueOf(mTerm.substring(3)) - 1;
+        switch (month){
+            case 0:
+                beginTime.set(Calendar.DAY_OF_WEEK_IN_MONTH, 1);
+
+                endTime.set(Calendar.MONTH, 3);
+                endTime.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                endTime.set(Calendar.DAY_OF_WEEK_IN_MONTH, 1);
+
+                break;
+            case 4:
+                beginTime.set(Calendar.DAY_OF_WEEK_IN_MONTH, 1);
+
+                endTime.set(Calendar.MONTH, 6);
+                endTime.set(Calendar.DAY_OF_WEEK, Calendar.TUESDAY);
+                endTime.set(Calendar.DAY_OF_WEEK_IN_MONTH, -1);
+
+                break;
+            case 8:
+                beginTime.set(Calendar.DAY_OF_WEEK_IN_MONTH, 2);
+
+                endTime.set(Calendar.MONTH, 11);
+                endTime.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                endTime.set(Calendar.DAY_OF_WEEK_IN_MONTH, 1);
+
+                break;
+        }
+        beginTime.set(Calendar.YEAR, year);
+        beginTime.set(Calendar.MONTH, month);
+        beginTime.set(Calendar.HOUR_OF_DAY, hourStart);
+        beginTime.set(Calendar.MINUTE, minStart);
+
+        endTime.set(Calendar.YEAR, year);
+        DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd", Locale.CANADA);
+        String endDate = dateFormat.format(endTime.getTime());
+
+        ContentValues values = new ContentValues();
+        values.put(CalendarContract.Events.DTSTART, beginTime.getTimeInMillis());
+        values.put(CalendarContract.Events.TITLE,  mSubject + " " + mCatalogNumber + " - " + sectionData.getSection());
+        values.put(CalendarContract.Events.CALENDAR_ID, 1);
+        values.put(CalendarContract.Events.RRULE, "FREQ=WEEKLY;UNTIL=" + endDate.toString() +"T170000Z;WKST=SU;BYDAY=" + recurDays);
+        values.put(CalendarContract.Events.EVENT_TIMEZONE, "America/Toronto");
+        values.put(CalendarContract.Events.EVENT_LOCATION, sectionData.getBuilding() + " - " + sectionData.getRoom());
+        values.put(CalendarContract.Events.DURATION, "PT" + String.valueOf(hDuration) +
+                "H" + String.valueOf(mDuration) + "M0S");
+        Cookie cookie = new Cookie(sectionData.getSection()+ " " + mSubject + mCatalogNumber + mTerm,
+                groupPosition, childPosition);
+        mHandler.startInsert(0,cookie , CalendarContract.Events.CONTENT_URI, values);
+
+    }
+
+    private void createTSTEvent(CourseSectionData sectionData, int groupPosition, int childPosition){
+        String startTimeS = sectionData.getStartTime();
+        String endTimeS = sectionData.getEndTime();
+        String[] hoursMinsStart = startTimeS.split(":");
+        String[] hoursMinsEnd = endTimeS.split(":");
+
+        int hourStart = Integer.valueOf(hoursMinsStart[0]);
+        int minStart = Integer.valueOf(hoursMinsStart[1]);
+        int hourEnd = Integer.valueOf(hoursMinsEnd[0]);
+        int minEnd = Integer.valueOf(hoursMinsEnd[1]);
+
+        int duration = ((hourEnd * 60) + minEnd)  - ((hourStart * 60) + minStart);
+        int hDuration = (duration / 60);
+        int mDuration = (duration % 60);
+
+
+        int year =  Integer.valueOf("20" + mTerm.substring(1, 3));
+        DateFormat dateFormat = new SimpleDateFormat("MM/dd yyyy HH:mm", Locale.CANADA);
+        Date date = null;
+        try {
+            date = dateFormat.parse(sectionData.getDate() + " " + year + " " + sectionData.getStartTime());
+        }catch (ParseException ex){
+            Log.e(TAG, ex.getMessage());
+            return;
+        }
+        ContentValues values = new ContentValues();
+        values.put(CalendarContract.Events.DTSTART, date.getTime());
+        values.put(CalendarContract.Events.TITLE,  mSubject + " " + mCatalogNumber + " - " + sectionData.getSection());
+        values.put(CalendarContract.Events.CALENDAR_ID, 1);
+        values.put(CalendarContract.Events.EVENT_TIMEZONE, "America/Toronto");
+        String building =  sectionData.getBuilding();
+        String room =  sectionData.getRoom();
+        if(building != null && !building.equals("null") && room != null && !room.equals("null")) {
+            values.put(CalendarContract.Events.EVENT_LOCATION, sectionData.getBuilding() + " - " + sectionData.getRoom());
+        }
+        values.put(CalendarContract.Events.DURATION, "PT" + String.valueOf(hDuration) +
+                "H" + String.valueOf(mDuration) + "M0S");
+        Cookie cookie = new Cookie(sectionData.getSection()+ " " + mSubject + mCatalogNumber + mTerm,
+                groupPosition, childPosition);
+        mHandler.startInsert(0,cookie , CalendarContract.Events.CONTENT_URI, values);
+
+    }
+
     @Override
     public void onButtonClick(int groupPosition, int childPosition, int type) {
         CourseSectionData sectionData = (CourseSectionData)mData.getGroupItem(groupPosition);
         switch (type){
 
             case CourseScheduleAdapter.ADD_EVENT:
-                String weekdays =  sectionData.getWeekdays();
-                String recurDays = "";
-                for(int i = 0; i < weekdays.length(); i++){
-                    char c = weekdays.charAt(i);
-                    String day = "";
-                    if(c == 'T' && weekdays.charAt(i +1) == 'h'){
-                        day = "TH";
-                        i++;
-                    }else{
-                        switch (c){
-                            case 'M':
-                                day = "MO";
-                                break;
-                            case 'T':
-                                day = "TU";
-                                break;
-                            case 'W':
-                                day = "WE";
-                                break;
-                            case'F':
-                                day = "FR";
-                                break;
-                        }
-                    }
-
-                    if(recurDays.equals("")){
-                        recurDays = day;
-                    }else{
-                        recurDays += "," + day;
-                    }
+                if(sectionData.getCampus().contains("ONLINE")){
+                    Snackbar.make(mRecyclerView, "Cannot add online courses to calendar", Snackbar.LENGTH_LONG).show();
+                    return;
                 }
-
-
-
-                String startTimeS = sectionData.getStartTime();
-                String endTimeS = sectionData.getEndTime();
-                String[] hoursMinsStart = startTimeS.split(":");
-                String[] hoursMinsEnd = endTimeS.split(":");
-
-                int hourStart = Integer.valueOf(hoursMinsStart[0]);
-                int minStart = Integer.valueOf(hoursMinsStart[1]);
-                int hourEnd = Integer.valueOf(hoursMinsEnd[0]);
-                int minEnd = Integer.valueOf(hoursMinsEnd[1]);
-
-                int duration = ((hourEnd * 60) + minEnd)  - ((hourStart * 60) + minStart);
-                int hDuration = (duration / 60);
-                int mDuration = (duration % 60);
-
-
-
-                Calendar beginTime = Calendar.getInstance();
-                beginTime.set(2016, 4, 2, hourStart, minStart);
-
-                ContentValues values = new ContentValues();
-                values.put(CalendarContract.Events.DTSTART, beginTime.getTimeInMillis());
-                values.put(CalendarContract.Events.TITLE,  mSubject + " " + mCatalogNumber + " - " + sectionData.getSection());
-                values.put(CalendarContract.Events.CALENDAR_ID, 1);
-                values.put(CalendarContract.Events.RRULE, "FREQ=WEEKLY;UNTIL=20160726T170000Z;WKST=SU;BYDAY=" + recurDays);
-                values.put(CalendarContract.Events.EVENT_TIMEZONE, "America/Toronto");
-                values.put(CalendarContract.Events.EVENT_LOCATION, sectionData.getBuilding() + " - " + sectionData.getRoom());
-                values.put(CalendarContract.Events.DURATION, "PT" + String.valueOf(hDuration) +
-                        "H" + String.valueOf(mDuration) + "M0S");
-                Cookie cookie = new Cookie(sectionData.getSection()+ " " + mSubject + mCatalogNumber + mCurrentTerm,
-                        groupPosition, childPosition);
-                mHandler.startInsert(0,cookie , CalendarContract.Events.CONTENT_URI, values);
-
+                if(!sectionData.getSection().split(" ")[0].equals("TST")) {
+                    createLECorTUTEvent(sectionData, groupPosition, childPosition);
+                }else{
+                    createTSTEvent(sectionData, groupPosition, childPosition);
+                }
                 break;
             case CourseScheduleAdapter.DIRECTION:
                 mBuildingParser.setParseType(BuildingParser.ParseType.BUILDING_CODE.ordinal());
-                mBuildingURL = UWOpenDataAPI.buildURL(mBuildingParser.getEndPoint(((CourseSectionData)mData.getGroupItem(groupPosition)).getBuilding()));
+                mBuildingURL = UWOpenDataAPI.buildURL(mBuildingParser.getEndPoint(sectionData.getBuilding()));
 
-                JSONDownloader downloader = new JSONDownloader(mBuildingURL);
+            JSONDownloader downloader = new JSONDownloader(mBuildingURL);
                 downloader.setOnDownloadListener(this);
                 downloader.start();
                 break;
@@ -347,7 +577,11 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                 startActivity(intent);
                 break;
             case CourseScheduleAdapter.ADD_WATCH:
-                CourseWatchDBModel data = new CourseWatchDBModel(sectionData.getSection(), mCurrentTerm,
+                if(sectionData.getEnrollmentTotal() < sectionData.getEnrollmentCapacity()){
+                    Snackbar.make(mRecyclerView, "Can't watch sections without full enrollment", Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+                CourseWatchDBModel data = new CourseWatchDBModel(sectionData.getSection(), mTerm,
                         mSubject, mCatalogNumber);
                 data.setID(mDBHelper.addCourseWatch(data));
                 ((CourseSectionFooterData)mData.getChildItem(groupPosition, childPosition)).setBeingWatched(true);
@@ -365,10 +599,11 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                         AlarmManager.INTERVAL_HOUR, pIntent);
                 //http://www.fileformat.info/tip/java/date2millis.htm
                 Log.d(TAG, "Setting alarm for " + data.getID() + " " + data.getCourseID());
+                Snackbar.make(mRecyclerView, "You'll recieve a notification when the section is no longer full", Snackbar.LENGTH_LONG).show();
 
                 break;
             case CourseScheduleAdapter.REMOVE_WATCH:
-                int id = mDBHelper.deleteCourseWatch(sectionData.getSection() + " " + mSubject + mCatalogNumber + mCurrentTerm);
+                int id = mDBHelper.deleteCourseWatch(sectionData.getSection() + " " + mSubject + mCatalogNumber + mTerm);
                 ((CourseSectionFooterData)mData.getChildItem(groupPosition, childPosition)).setBeingWatched(false);
                 mRecyclerViewExpandableItemManager.notifyChildItemChanged(groupPosition, childPosition);
 

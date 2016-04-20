@@ -116,7 +116,7 @@ public class CourseTabFragment extends Fragment implements MainActivity.Fragment
 
     public class PagerAdapter extends FragmentStatePagerAdapter {
         final int PAGE_COUNT = 2;
-        private String tabTitles[] = new String[] { "Details", "Schedule" };
+        private String mTabTitles[] = new String[] { "Details", "Schedule" };
 
         public PagerAdapter(FragmentManager fm) {
             super(fm);
@@ -136,7 +136,7 @@ public class CourseTabFragment extends Fragment implements MainActivity.Fragment
         }
         @Override
         public CharSequence getPageTitle(int position) {
-            return tabTitles[position];
+            return mTabTitles[position];
         }
 
         @Override

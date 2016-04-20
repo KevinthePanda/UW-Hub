@@ -2,6 +2,7 @@ package com.projects.kquicho.uwatm8;
 
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
@@ -34,6 +35,7 @@ public class CourseScheduleAdapter
     public static final int ADD_EVENT = 0, DIRECTION = 1, VIEW_EVENT = 2, ADD_WATCH = 3, REMOVE_WATCH = 4;
 
     private CourseScheduleData mData;
+    private int mDensity;
 
     onButtonClickListener mOnButtonClickListener;
     Drawable mEnrollmentStatusOpen;
@@ -62,7 +64,6 @@ public class CourseScheduleAdapter
         public TextView mInstructor;
         public TextView mTime;
         public TextView mLocation;
-        public TextView mExpandMessage;
         public ImageView mEnrollmentStatus;
 
         public MyGroupViewHolder(View v) {
@@ -72,7 +73,6 @@ public class CourseScheduleAdapter
             mInstructor= (TextView) v.findViewById(R.id.instructor);
             mTime = (TextView) v.findViewById(R.id.time);
             mLocation = (TextView) v.findViewById(R.id.location);
-            mExpandMessage = (TextView) v.findViewById(R.id.expand_message);
             mEnrollmentStatus = (ImageView) v.findViewById(R.id.enrollment_status);
 
         }
@@ -119,16 +119,16 @@ public class CourseScheduleAdapter
     }
 
 
-    public CourseScheduleAdapter(CourseScheduleData data, Context context,
+    public CourseScheduleAdapter(CourseScheduleData data, Activity activity,
                                  onButtonClickListener onButtonClickListener){
         mData = data;
-        mEnrollmentStatusOpen = ContextCompat.getDrawable(context, R.drawable.enrollment_status_open);
-        mEnrollmentStatusFull = ContextCompat.getDrawable(context, R.drawable.enrollment_status_full);
-        mViewCalendarDrawable = ContextCompat.getDrawable(context, R.drawable.ic_calendar);
-        mAddCalendarDrawable = ContextCompat.getDrawable(context, R.drawable.ic_calendar_plus);
-        mEyeClosedDrawable = ContextCompat.getDrawable(context, R.drawable.ic_eye_off);
-        mEyeOpenDrawable = ContextCompat.getDrawable(context, R.drawable.ic_eye);
-
+        mEnrollmentStatusOpen = ContextCompat.getDrawable(activity, R.drawable.enrollment_status_open);
+        mEnrollmentStatusFull = ContextCompat.getDrawable(activity, R.drawable.enrollment_status_full);
+        mViewCalendarDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_calendar);
+        mAddCalendarDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_calendar_plus);
+        mEyeClosedDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_eye_off);
+        mEyeOpenDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_eye);
+        mDensity = (int)activity.getResources().getDisplayMetrics().density;
         mOnButtonClickListener = onButtonClickListener;
 
 
@@ -239,15 +239,13 @@ public class CourseScheduleAdapter
         String location = "TBA - ";
         if(!courseSectionData.getBuilding().equals("null") && !courseSectionData.getRoom().equals("null")){
             location = courseSectionData.getBuilding() + " " + courseSectionData.getRoom()  + " - ";
-        }else if(courseSectionData.getCampus().equals("ONLN ONLINE")){
+        }else if(courseSectionData.getCampus().contains("ONLINE")){
             location = "";
             finalTimeText = "N/A";
         }
         myGroupViewHolder.mTime.setText(finalTimeText);
         myGroupViewHolder.mLocation.setText(location + courseSectionData.getCampus());
 
-        int visibility = mData.getChildCount(i) == 2 ? View.GONE : View.VISIBLE;
-        myGroupViewHolder.mExpandMessage.setVisibility(visibility);
 
         Drawable status = courseSectionData.getEnrollmentTotal() < courseSectionData.getEnrollmentCapacity() ?
                 mEnrollmentStatusOpen : mEnrollmentStatusFull;
@@ -264,7 +262,6 @@ public class CourseScheduleAdapter
             boolean animateIndicator = ((expandState & Expandable.STATE_FLAG_HAS_EXPANDED_STATE_CHANGED) != 0);
 
             if ((expandState & Expandable.STATE_FLAG_IS_EXPANDED) != 0) {
-                myGroupViewHolder.mExpandMessage.setVisibility(View.GONE);
                 isExpanded = true;
             } else {
                 isExpanded = false;

@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -291,7 +292,6 @@ public static final String TAG = "GroupSubjectFragment";
                 mSearchItem.collapseActionView();
             }
         });
-
     }
 
 
@@ -391,9 +391,15 @@ public static final String TAG = "GroupSubjectFragment";
     }
 
     @Override
-    public void onGroupExpand(int groupPosition, boolean fromUser) {
+    public void onGroupExpand(final int groupPosition, boolean fromUser) {
         if (fromUser) {
-            adjustScrollPositionOnGroupExpanded(groupPosition);
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    adjustScrollPositionOnGroupExpanded(groupPosition);
+                }
+            }, 300);
         }
     }
 

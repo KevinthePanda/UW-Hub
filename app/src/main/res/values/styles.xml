@@ -39,17 +39,14 @@
     <style name="CourseDetailsTitle">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">15sp</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:textStyle">italic</item>
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Subhead</item>
         <item name="android:paddingTop">4dp</item>
         <item name="android:paddingBottom">2dp</item>
     </style>
     <style name="CourseDetailsText">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Body1</item>
         <item name="android:paddingBottom">4dp</item>
         <item name="android:text">@string/default_string</item>
     </style>
