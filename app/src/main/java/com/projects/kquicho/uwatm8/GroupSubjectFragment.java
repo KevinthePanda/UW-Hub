@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -67,6 +68,7 @@ public static final String TAG = "GroupSubjectFragment";
     private ArrayList<Course> mPreviousCourses;
     private View mDimOverlay;
     private MenuItem mSearchItem;
+    private SearchView mSearchView;
     private FloatingActionButton mFab;
     private View mProgressBar;
 
@@ -93,42 +95,56 @@ public static final String TAG = "GroupSubjectFragment";
         final android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         final Window window = getActivity().getWindow();
 
-        final SearchView searchView = new SearchView(actionBar.getThemedContext());
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        mSearchView = searchView;
         mSearchItem = searchItem;
-        MenuItemCompat.setShowAsAction(searchItem, MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW | MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
-        MenuItemCompat.setActionView(searchItem, searchView);
+        searchView.setMaxWidth(Integer.MAX_VALUE);
+        searchView.setQueryHint(getString(R.string.search_courses));
 
-        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
+        searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
-                actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.search_view));
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    window.setStatusBarColor(Color.BLACK);
+            public void onFocusChange(View view, boolean queryTextFocused) {
+                MainActivity activity = (MainActivity) getActivity();
+                if (!queryTextFocused) {
+                    Log.i(TAG, "onFocusChange - searchView lost focus");
+
+                    activity.animateMenuArrowDrawable(false);
+                    activity.unlockNavDrawer();
+
+                    searchItem.collapseActionView();
+                    searchView.setIconified(true);
+                    searchView.setQuery(null, false);
+
+                    if (actionBar != null) {
+                        actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.theme_primary));
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
+                    }
+                    mDimOverlay.setVisibility(View.GONE);
+                    mFab.setVisibility(View.VISIBLE);
+                } else {
+                    Log.i(TAG, "onFocusChange - searchView gained focus");
+
+                    activity.animateMenuArrowDrawable(true);
+                    activity.lockNavDrawer();
+
+                    if (actionBar != null) {
+                        actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.search_view));
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        window.setStatusBarColor(Color.BLACK);
+                    }
+
+                    mDimOverlay.setVisibility(View.VISIBLE);
+                    mFab.setVisibility(View.GONE);
                 }
-
-
-                mDimOverlay.setVisibility(View.VISIBLE);
-                mFab.setVisibility(View.GONE);
-                return true;
-            }
-
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
-                actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.theme_primary));
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
-                }
-                mDimOverlay.setVisibility(View.GONE);
-                mFab.setVisibility(View.VISIBLE);
-                return true;
             }
         });
 
+
         final Fragment thisFragment = this;
-
-
         final JSONDownloader.onDownloadListener onDownloadListener = this;
-        searchView.setQueryHint(getString(R.string.search_courses));
 
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -142,13 +158,13 @@ public static final String TAG = "GroupSubjectFragment";
                 for (int i = 0; i < mSearchViewAdapter.getCount(); i++) {
                     Cursor cursor = (Cursor) mSearchViewAdapter.getItem(i);
                     Course newCourse = new Course();
+                    newCourse.setSubject(mPreviousSearchSubject);
                     newCourse.setCatalogNumber(cursor.getString(1).split(" ")[1]);
                     newCourse.setTitle(cursor.getString(2));
                     newCourseList.add(newCourse);
                     cursor.close();
                 }
 
-                searchView.clearFocus();
                 mDimOverlay.setVisibility(View.GONE);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
@@ -156,7 +172,7 @@ public static final String TAG = "GroupSubjectFragment";
                 actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.theme_primary));
 
                 android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                CatalogNumberFragment fragment = CatalogNumberFragment.newInstance(mPreviousSearchSubject, newCourseList, TITLE);
+                CatalogNumberFragment fragment = CatalogNumberFragment.newInstance(mPreviousSearchSubject, searchView.getQuery().toString(), newCourseList, TITLE);
 
                 ft
                         .add(R.id.fragment_container, fragment, CatalogNumberFragment.TAG)
@@ -164,9 +180,9 @@ public static final String TAG = "GroupSubjectFragment";
                         .addToBackStack(CatalogNumberFragment.TAG)
                         .commit();
 
+                mPreviousSearchSubject = null;
+                searchView.clearFocus();
 
-                // workaround to avoid issues with some emulators and keyboard devices firing twice if a keyboard enter is used
-                // see https://code.google.com/p/android/issues/detail?id=24599
                 return true;
             }
 
@@ -216,7 +232,10 @@ public static final String TAG = "GroupSubjectFragment";
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             window.setStatusBarColor(ContextCompat.getColor(getActivity(), R.color.theme_primary_dark));
                         }
-                        actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.theme_primary));
+
+                        if(actionBar != null) {
+                            actionBar.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.theme_primary));
+                        }
 
                         Intent intent = new Intent(getActivity(), CourseTabActivity.class);
                         intent.putExtra(CourseTabActivity.CATALOG_NUMBER_TAG, catalogNumber);
@@ -286,7 +305,7 @@ public static final String TAG = "GroupSubjectFragment";
         mDimOverlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSearchItem.collapseActionView();
+                mSearchView.clearFocus();
             }
         });
     }
@@ -470,6 +489,11 @@ public static final String TAG = "GroupSubjectFragment";
     @Override
     public void onFragmentBackPressed() {
         Log.i(TAG, "onFragmentBackPressed");
+        if(!mSearchView.isIconified()   ) {
+            mSearchView.setQuery(null, false);
+            mSearchView.setIconified(true);
+            return;
+        }
         ((MainActivity)getActivity()).navigateToHome();
     }
 }
