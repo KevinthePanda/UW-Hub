@@ -49,7 +49,6 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
         mContext = context;
         String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
 
-        Log.i("test", "start");
         JSONDownloader downloader = new JSONDownloader(url);
         downloader.setOnDownloadListener(this);
         downloader.start();
@@ -62,12 +61,14 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
 
     @Override
     public void onDownloadComplete(APIResult apiResult) {
+        if(mParser == null || mHandler == null){
+            Log.e(TAG, "download completed but nothing to pass to");
+            return;
+        }
         mParser.setAPIResult(apiResult);
-        //mParser.parseJSON();
         mParser.parseHomeWidgetInfoSessions(mContext);
         UWData data = new UWData(mParser, TAG);
         mHandler.onSuccess(data, mPosition);
-        Log.i("test", "end");
     }
 
 }
