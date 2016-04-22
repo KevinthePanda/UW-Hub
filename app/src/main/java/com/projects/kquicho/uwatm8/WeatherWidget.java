@@ -8,6 +8,8 @@ import com.projects.kquicho.uw_api_client.Core.JSONDownloader;
 import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
 import com.projects.kquicho.uw_api_client.Weather.WeatherParser;
 
+import java.util.logging.Handler;
+
 public class WeatherWidget implements JSONDownloader.onDownloadListener {
 
     public static final String TAG = "WeatherWidget";
@@ -53,6 +55,10 @@ public class WeatherWidget implements JSONDownloader.onDownloadListener {
 
     @Override
     public void onDownloadComplete(APIResult apiResult) {
+        if(mParser == null || mHandler == null){
+            Log.e(TAG, "download completed but nothing to pass to");
+            return;
+        }
         mParser.setAPIResult(apiResult);
         mParser.parseJSON();
         UWData data = new UWData(mParser, TAG);
