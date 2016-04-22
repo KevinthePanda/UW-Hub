@@ -61,13 +61,15 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
 
     @Override
     public void onDownloadComplete(APIResult apiResult) {
+        Log.d(TAG, "onDownloadComplete");
         if(mParser == null || mHandler == null){
             Log.e(TAG, "download completed but nothing to pass to");
             return;
         }
         mParser.setAPIResult(apiResult);
         mParser.parseHomeWidgetInfoSessions(mContext);
-        UWData data = new UWData(mParser, TAG);
+        InfoSessionWidgetData data = new InfoSessionWidgetData(mParser.getHomeWidgetInfoSessions(),
+                mParser.getHomeWidgetSavedInfoSessions());
         mHandler.onSuccess(data, mPosition);
     }
 

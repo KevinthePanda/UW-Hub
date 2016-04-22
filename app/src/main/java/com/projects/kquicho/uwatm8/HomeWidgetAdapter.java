@@ -22,20 +22,18 @@ import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultAct
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultActionMoveToSwipedDirection;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractDraggableSwipeableItemViewHolder;
 import com.projects.kquicho.uw_api_client.Resources.InfoSession;
-import com.projects.kquicho.uw_api_client.Resources.ResourcesParser;
-import com.projects.kquicho.uw_api_client.Weather.WeatherParser;
 
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
+public class HomeWidgetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         implements DraggableItemAdapter<RecyclerView.ViewHolder>,
         SwipeableItemAdapter<RecyclerView.ViewHolder> {
 
     Context mContext;
-    private final String TAG = "UWParserAdapter";
+    private final String TAG = "HomeWidgetAdapter";
     
     private interface Draggable extends DraggableItemConstants {
     }
@@ -45,7 +43,7 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private ArrayList<UWData> mData;
     private final int WEATHER = 0, INFO_SESSIONS = 1;
 
-    public UWParserAdapter(ArrayList<UWData> data, Context context){
+    public HomeWidgetAdapter(ArrayList<UWData> data, Context context){
         mData = data;
         mContext = context;
         setHasStableIds(true);
@@ -197,13 +195,14 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public int getItemViewType(int position) {
-        if (mData.get(position).getParser() instanceof WeatherParser) {
-            return WEATHER;
-        } else if (mData.get(position).getParser() instanceof ResourcesParser) {
+        if (mData.get(position).isLoading()) {
             return INFO_SESSIONS;
-        }else {
+        } else if (mData.get(position).getWidgetTag().equals(WeatherWidget.TAG)) {
+            return WEATHER;
+        } else if (mData.get(position).getWidgetTag().equals(InfoSessionWidget.TAG)) {
             return INFO_SESSIONS;
         }
+        return INFO_SESSIONS;
     }
 
     @Override
@@ -328,20 +327,30 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
     private void configureWeatherViewHolder(WeatherViewHolder viewHolder, int position){
-        WeatherParser parser =  (WeatherParser)mData.get(position).getParser();
-        if(parser == null){
+        UWData uwData = mData.get(position);
+        if(uwData.isLoading()){
             viewHolder.mProgressBar.setVisibility(View.VISIBLE);
             return;
         }
+
+        WeatherWidgetData data = (WeatherWidgetData)uwData;
         viewHolder.mProgressBar.setVisibility(View.GONE);
 
-        setTempField(viewHolder.mCurrentTemp, viewHolder.mCurrentTempPrefix, parser.getCurrentTemperature());
-        setTempField(viewHolder.mHighTemp, viewHolder.mHighTempPrefix, parser.getTemperature24hrMax());
-        setTempField(viewHolder.mLowTemp, viewHolder.mLowTempPrefix, parser.getTemperature24hrMin());
-        setTempField(viewHolder.mWindChill, viewHolder.mWindChillPrefix, parser.getWindchill());
-        viewHolder.mWindSpeed.setText(String.valueOf(parser.getWindSpeed()));
-        viewHolder.mHumidity.setText(String.valueOf(parser.getRelativeHumidityPercent()));
-        viewHolder.mPrecip.setText(String.valueOf(parser.getPrecipitation24hr()));
+        setTempField(viewHolder.mCurrentTemp, viewHolder.mCurrentTempPrefix, data.getCurrentTemp());
+        setTempField(viewHolder.mHighTemp, viewHolder.mHighTempPrefix, data.getMaxTemp());
+        setTempField(viewHolder.mLowTemp, viewHolder.mLowTempPrefix, data.getMinTemp());
+
+        double windChill = data.getWindChill();
+        if(windChill == 0){
+            viewHolder.mWindChill.setText("--");
+            viewHolder.mWindChillPrefix.setVisibility(View.GONE);
+        }else{
+            setTempField(viewHolder.mWindChill, viewHolder.mWindChillPrefix, windChill);
+        }
+
+        viewHolder.mWindSpeed.setText(String.valueOf(data.getWindSpeed()));
+        viewHolder.mHumidity.setText(String.valueOf(data.getHumidity()));
+        viewHolder.mPrecip.setText(String.valueOf(data.getPrecip()));
 
 
         RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)viewHolder.mCurrentTemp.getLayoutParams();
@@ -377,14 +386,16 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     private void configureInfoSessionViewHolder(InfoSessionViewHolder viewHolder, int position){
-        ResourcesParser parser = (ResourcesParser)mData.get(position).getParser();
-        if(parser == null){
+        UWData uwData = mData.get(position);
+        if(uwData.isLoading()){
             viewHolder.mProgressBar.setVisibility(View.VISIBLE);
             return;
         }
+
+        InfoSessionWidgetData data = (InfoSessionWidgetData)uwData;
         viewHolder.mProgressBar.setVisibility(View.GONE);
 
-        ArrayList<InfoSession> infoSessions = parser.getHomeWidgetInfoSessions();
+        ArrayList<InfoSession> infoSessions = data.getInfoSessions();
         if(infoSessions.size() != 0) {
             viewHolder.mNoSessionsExist.setVisibility(View.GONE);
             String employer1 = infoSessions.get(0).getEmployer();
@@ -433,7 +444,7 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
 
 
-        List<InfoSessionDBModel> infoSessionDBModelList = parser.getHomeWidgetSavedInfoSessions();
+        List<InfoSessionDBModel> infoSessionDBModelList = data.getSavedInfoSessions();
 
         if(infoSessionDBModelList == null || infoSessionDBModelList.size() == 0){
             viewHolder.mSavedContainer1.setVisibility(View.GONE);
@@ -565,11 +576,11 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
 
     private static class SwipeLeftResultAction extends SwipeResultActionMoveToSwipedDirection {
-        private UWParserAdapter mAdapter;
+        private HomeWidgetAdapter mAdapter;
         private final int mPosition;
         private boolean mSetPinned;
 
-        SwipeLeftResultAction(UWParserAdapter adapter, int position) {
+        SwipeLeftResultAction(HomeWidgetAdapter adapter, int position) {
             mAdapter = adapter;
             mPosition = position;
         }
@@ -601,10 +612,10 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     private static class UnpinResultAction extends SwipeResultActionDefault {
-        private UWParserAdapter mAdapter;
+        private HomeWidgetAdapter mAdapter;
         private final int mPosition;
 
-        UnpinResultAction(UWParserAdapter adapter, int position) {
+        UnpinResultAction(HomeWidgetAdapter adapter, int position) {
             mAdapter = adapter;
             mPosition = position;
         }
