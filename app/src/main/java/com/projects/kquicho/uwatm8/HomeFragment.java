@@ -1,9 +1,5 @@
 package com.projects.kquicho.uwatm8;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
@@ -29,10 +25,9 @@ import com.h6ah4i.android.widget.advrecyclerview.utils.WrapperAdapterUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 
 public class HomeFragment extends Fragment implements  UWClientResponseHandler{
-    private final String LOGCAT_TAG = "HomeFragment";
+    private final String TAG = "HomeFragment";
     private final static ArrayList<String> mAvailableWidgets =
             new ArrayList<>(Arrays.asList(WeatherWidget.TAG, InfoSessionWidget.TAG));
 
@@ -96,8 +91,6 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         mWrappedAdapter = mRecyclerViewSwipeManager.createWrappedAdapter(mWrappedAdapter);      // wrap for swiping
 
         final GeneralItemAnimator animator = new SwipeDismissItemAnimator();
-        // Change animations are enabled by default since support-v7-recyclerview v22.
-        // Disable the change animation in order to make turning back animation of swiped item works properly.
         animator.setSupportsChangeAnimations(false);
 
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -119,9 +112,8 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         for(int i = 0; i < size; i++){
             String widget = mSettings.getString(String.valueOf(i), null);
             if(widget == null){
-                Log.i("Test", "null");
+                Log.d(TAG, "Creating default widgets");
                 if(i == 0){
-                    Log.i("Test", "0");
                     WeatherWidget.getInstance(this, 0);
                     InfoSessionWidget.getInstance(this, 1, getActivity().getApplicationContext());
                 }
@@ -129,14 +121,15 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
             }
             switch (widget){
                 case WeatherWidget.TAG:
-                    Log.i("Test", "WeatherWidget");
+                    Log.d(TAG, "Creating WeatherWidget");
                     WeatherWidget.getInstance(this, i);
                     break;
                 case InfoSessionWidget.TAG:
-                    Log.i("Test", "InfoSessionWidget");
+                    Log.d(TAG, "Creating InfoSessionWidget");
                     InfoSessionWidget.getInstance(this, getActivity().getApplicationContext());
                     break;
             }
+            mData.add(i, new UWData(null, widget));
         }
 
         final UWClientResponseHandler handler = this;
@@ -163,9 +156,11 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         int availableSize = mAvailableWidgets.size();
         int size = mData.size();
         for(;index < size; index++){
+            Log.d(TAG, "Putting " + mData.get(index).getWidgetTag() + " at " + index + " in settings");
             editor.putString(String.valueOf(index), mData.get(index).getWidgetTag());
         }
         for(;index < availableSize; index++){
+            Log.d(TAG, index + "  was removed from HomeFragment");
             editor.putString(String.valueOf(index), null);
         }
         editor.commit();
@@ -212,15 +207,26 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
 
     @Override
     public void onSuccess(UWData data, Integer position) {
-        Log.i(LOGCAT_TAG, "onSuccess");
-        final int dataPosition = (position == null || position > mData.size() ) ? mData.size() : position;
-        mData.add(dataPosition, data);
+        Log.i(TAG, "onSuccess");
+        int index = 0;
+        for(UWData existingData : mData){
+            if(existingData.getWidgetTag().equals(data.getWidgetTag())){
+                break;
+            }
+            index++;
+        }
+        if(index == mData.size()){
+            mData.add(index, data);
+        }else{
+            mData.remove(index);
+            mData.add(index, data);
+        }
         android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
 
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                mAdapter.notifyItemInserted(dataPosition);
+                mAdapter.notifyDataSetChanged();
             }
         };
         handler.post(runnable);
@@ -228,7 +234,7 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
 
     @Override
     public void onError(String error){
-        Log.e(LOGCAT_TAG, error);
+        Log.e(TAG, error);
     }
 
 

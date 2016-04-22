@@ -11,10 +11,9 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#888888"
+        android:background="#E0E0E0"
         android:paddingLeft="16dp"
         android:paddingRight="16dp">
-
         <Button
             android:id="@+id/remove_widget"
             style="@style/Widget.AppCompat.Button.Small"
@@ -23,7 +22,6 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:text="@string/remove"/>
-
     </RelativeLayout>
 
     <RelativeLayout
@@ -31,19 +29,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clickable="true"
-        android:paddingBottom="8dp">
-        <TextView
+        android:paddingBottom="8dp"
+        android:background="#F5F5F5">
+        <RelativeLayout
             android:id="@+id/header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/weather"
             android:background="?attr/colorPrimary"
-            android:layout_alignParentTop="true"
             android:layout_margin="8dp"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:fontFamily="sans-serif-medium"
-            android:textAppearance="@style/TextAppearance.AppCompat.Headline"/>
+            android:paddingLeft="8dp">
+            <ImageView
+                android:id="@+id/ic_header"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_brightness_6"
+                android:layout_centerVertical="true"/>
+            <TextView
+                android:id="@+id/header_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="8dp"
+                android:text="@string/weather"
+                android:fontFamily="sans-serif-medium"
+                android:layout_toRightOf="@id/ic_header"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"/>
+        </RelativeLayout>
         <ImageView
             android:id="@+id/ic_thermometer"
             android:layout_width="37dp"
@@ -70,20 +80,20 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_centerHorizontal="true"/>
                 <TextView
                     android:id="@+id/current_temp_prefix"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="-"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_toLeftOf="@id/current_temp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="°"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_toRightOf="@id/current_temp"/>
                 <TextView
                     android:id="@+id/current"
@@ -105,20 +115,20 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_centerHorizontal="true"/>
                 <TextView
                     android:id="@+id/low_temp_prefix"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="-"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_toLeftOf="@id/low_temp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="°"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_toRightOf="@id/low_temp"/>
                 <TextView
                     android:id="@+id/low"
@@ -140,20 +150,20 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_centerHorizontal="true"/>
                 <TextView
                     android:id="@+id/high_temp_prefix"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="-"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_toLeftOf="@id/high_temp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="°"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_toRightOf="@id/high_temp"/>
                 <TextView
                     android:id="@+id/high"
@@ -176,20 +186,20 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_centerHorizontal="true"/>
                 <TextView
                     android:id="@+id/wind_chill_temp_prefix"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="-"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_toLeftOf="@id/wind_chill_temp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="°"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_toRightOf="@id/wind_chill_temp"/>
                 <TextView
                     android:id="@+id/wind_chill"
@@ -231,12 +241,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1"
-                android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                 android:layout_centerHorizontal="true"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=" kph"
+                android:text=" km/h"
                 android:textSize="12dp"
                 android:fontFamily="sans-serif"
                 android:layout_centerHorizontal="true"
@@ -263,7 +273,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_centerHorizontal="true"/>
                 <TextView
                     android:layout_width="wrap_content"
@@ -297,7 +307,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:layout_centerHorizontal="true"/>
                 <TextView
                     android:layout_width="wrap_content"
@@ -309,8 +319,30 @@
                     android:layout_below="@id/precip"/>
             </RelativeLayout>
         </RelativeLayout>
-
-
+    </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/pbLoading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="#F5F5F5">
+        <TextView
+            android:id="@+id/loading_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/loading_widget"
+            android:background="?attr/colorPrimary"
+            android:layout_alignParentTop="true"
+            android:layout_margin="8dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"/>
+        <ProgressBar
+            android:layout_below="@id/loading_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"/>
     </RelativeLayout>
 
 </android.support.v7.widget.CardView>
