@@ -1,5 +1,6 @@
 package com.projects.kquicho.uwatm8;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
@@ -221,15 +222,18 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
             mData.remove(index);
             mData.add(index, data);
         }
-        android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+        Activity activity = getActivity();
+        if(getActivity() != null) {
+            android.os.Handler handler = new android.os.Handler(activity.getMainLooper());
 
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                mAdapter.notifyDataSetChanged();
-            }
-        };
-        handler.post(runnable);
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    mAdapter.notifyDataSetChanged();
+                }
+            };
+            handler.post(runnable);
+        }
     }
 
     @Override
