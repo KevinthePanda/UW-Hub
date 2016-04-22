@@ -1,6 +1,5 @@
 package com.projects.kquicho.uw_api_client.Core;
 
-import com.projects.kquicho.uw_api_client.Weather.WeatherParser;
 
 /**
  * Created by ZainH on 31/08/2015.

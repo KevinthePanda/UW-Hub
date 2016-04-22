@@ -29,11 +29,12 @@ import java.util.Arrays;
 
 public class HomeFragment extends Fragment implements  UWClientResponseHandler{
     private final String TAG = "HomeFragment";
+    private final String DATA = "data";
     private final static ArrayList<String> mAvailableWidgets =
             new ArrayList<>(Arrays.asList(WeatherWidget.TAG, InfoSessionWidget.TAG));
 
     private ArrayList<UWData> mData = new ArrayList<>();
-    private UWParserAdapter mAdapter;
+    private HomeWidgetAdapter mAdapter;
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private RecyclerView.Adapter mWrappedAdapter;
@@ -55,7 +56,12 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_home, parent, false);
+        View view = inflater.inflate(R.layout.fragment_home, parent, false);
+
+        if (savedInstanceState != null) {
+            mData = savedInstanceState.getParcelableArrayList(DATA);
+        }
+        return view;
     }
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState){
@@ -86,7 +92,7 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         // swipe manager
         mRecyclerViewSwipeManager = new RecyclerViewSwipeManager();
 
-        mAdapter = new UWParserAdapter(mData, getContext());
+        mAdapter = new HomeWidgetAdapter(mData, getContext());
 
         mWrappedAdapter = mRecyclerViewDragDropManager.createWrappedAdapter(mAdapter);      // wrap for dragging
         mWrappedAdapter = mRecyclerViewSwipeManager.createWrappedAdapter(mWrappedAdapter);      // wrap for swiping
@@ -109,28 +115,47 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         mRecyclerViewTouchActionGuardManager.attachRecyclerView(mRecyclerView);
         mRecyclerViewSwipeManager.attachRecyclerView(mRecyclerView);
 
-        int size = mAvailableWidgets.size();
-        for(int i = 0; i < size; i++){
-            String widget = mSettings.getString(String.valueOf(i), null);
-            if(widget == null){
-                Log.d(TAG, "Creating default widgets");
-                if(i == 0){
-                    WeatherWidget.getInstance(this, 0);
-                    InfoSessionWidget.getInstance(this, 1, getActivity().getApplicationContext());
+        if(mData.size() == 0) {
+            int size = mAvailableWidgets.size();
+            for (int i = 0; i < size; i++) {
+                String widget = mSettings.getString(String.valueOf(i), null);
+                if (widget == null) {
+                    Log.d(TAG, "Creating default widgets");
+                    if (i == 0) {
+                        WeatherWidget.getInstance(this, 0);
+                        InfoSessionWidget.getInstance(this, 1, getActivity().getApplicationContext());
+                    }
+                    break;
                 }
-                break;
+                switch (widget) {
+                    case WeatherWidget.TAG:
+                        Log.d(TAG, "Creating WeatherWidget");
+                        WeatherWidget.getInstance(this, i);
+                        break;
+                    case InfoSessionWidget.TAG:
+                        Log.d(TAG, "Creating InfoSessionWidget");
+                        InfoSessionWidget.getInstance(this, getActivity().getApplicationContext());
+                        break;
+                }
+                mData.add(i, new UWData(widget));
             }
-            switch (widget){
-                case WeatherWidget.TAG:
-                    Log.d(TAG, "Creating WeatherWidget");
-                    WeatherWidget.getInstance(this, i);
-                    break;
-                case InfoSessionWidget.TAG:
-                    Log.d(TAG, "Creating InfoSessionWidget");
-                    InfoSessionWidget.getInstance(this, getActivity().getApplicationContext());
-                    break;
+        }else{
+            int i = 0;
+            for(UWData data : mData){
+                if(data.isLoading()){
+                    switch (data.getWidgetTag()) {
+                        case WeatherWidget.TAG:
+                            Log.d(TAG, "Creating WeatherWidget");
+                            WeatherWidget.getInstance(this, i);
+                            break;
+                        case InfoSessionWidget.TAG:
+                            Log.d(TAG, "Creating InfoSessionWidget");
+                            InfoSessionWidget.getInstance(this, getActivity().getApplicationContext());
+                            break;
+                    }
+                }
+                i++;
             }
-            mData.add(i, new UWData(null, widget));
         }
 
         final UWClientResponseHandler handler = this;
@@ -148,6 +173,13 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
             }
         });
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(DATA, mData);
+        super.onSaveInstanceState(outState);
+    }
+
 
     @Override
     public void onPause() {

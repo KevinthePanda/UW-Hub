@@ -55,14 +55,23 @@ public class WeatherWidget implements JSONDownloader.onDownloadListener {
 
     @Override
     public void onDownloadComplete(APIResult apiResult) {
+        Log.d(TAG, "onDownloadComplete");
         if(mParser == null || mHandler == null){
             Log.e(TAG, "download completed but nothing to pass to");
             return;
         }
         mParser.setAPIResult(apiResult);
         mParser.parseJSON();
-        UWData data = new UWData(mParser, TAG);
-        mHandler.onSuccess(data, mPosition);
+        WeatherWidgetData.Builder builder = new WeatherWidgetData.Builder();
+        builder
+                .currentTemp(mParser.getCurrentTemperature())
+                .windChill(mParser.getWindchill())
+                .maxTemp(mParser.getTemperature24hrMax())
+                .minTemp(mParser.getTemperature24hrMin())
+                .precip(mParser.getPrecipitation24hr())
+                .humidity(mParser.getRelativeHumidityPercent())
+                .windSpeed(mParser.getWindSpeed());
+        mHandler.onSuccess(builder.createWeatherData(), mPosition);
     }
 
 
