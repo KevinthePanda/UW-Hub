@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     card_view:cardCornerRadius="6dp"
-    card_view:cardElevation="8dp"
+    card_view:cardElevation="4dp"
     android:foreground="?android:attr/selectableItemBackground"
     android:layout_marginBottom="16dp">
 
@@ -14,14 +14,13 @@
         android:background="#E0E0E0"
         android:paddingLeft="16dp"
         android:paddingRight="16dp">
-        <Button
+        <ImageView
             android:id="@+id/remove_widget"
-            style="@style/Widget.AppCompat.Button.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:text="@string/remove"/>
+            android:src="@drawable/ic_close_circle"/>
     </RelativeLayout>
 
     <LinearLayout
