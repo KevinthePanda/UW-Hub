@@ -8,7 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -54,13 +54,13 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private static abstract class DraggableSwipeableHolder extends AbstractDraggableSwipeableItemViewHolder {
         public View container;
-        public Button removeBtn;
+        public ImageView removeBtn;
         public View dragHandle;
 
         public DraggableSwipeableHolder(View itemView){
             super(itemView);
             container = itemView.findViewById(R.id.container);
-            removeBtn = (Button) itemView.findViewById(R.id.remove_widget);
+            removeBtn = (ImageView) itemView.findViewById(R.id.remove_widget);
             dragHandle = itemView.findViewById(R.id.header);
         }
 
@@ -312,10 +312,10 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 break;
         }
         // set swiping properties
-        ((DraggableSwipeableHolder)viewHolder).setMaxLeftSwipeAmount(-0.29f);
+        ((DraggableSwipeableHolder)viewHolder).setMaxLeftSwipeAmount(-0.17f);
         ((DraggableSwipeableHolder)viewHolder).setMaxRightSwipeAmount(0);
         ((DraggableSwipeableHolder)viewHolder).setSwipeItemHorizontalSlideAmount(
-                mData.get(position).isPinned() ? -0.29f : 0);
+                mData.get(position).isPinned() ? -0.17f : 0);
 
     }
 
