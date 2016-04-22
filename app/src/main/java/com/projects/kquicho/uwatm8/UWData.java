@@ -4,7 +4,7 @@ package com.projects.kquicho.uwatm8;
 import com.projects.kquicho.uw_api_client.Core.UWParser;
 
 public class UWData {
-    private UWParser mParser;
+    private UWParser mParser = null;
     private String mWidgetTag;
     private boolean mPinned = false;
 

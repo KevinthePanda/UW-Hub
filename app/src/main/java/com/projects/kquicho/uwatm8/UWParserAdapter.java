@@ -2,8 +2,6 @@ package com.projects.kquicho.uwatm8;
 
 
 import android.content.Context;
-import android.graphics.Color;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -14,7 +12,6 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemConstants;
 import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange;
@@ -24,12 +21,10 @@ import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultAct
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultActionDefault;
 import com.h6ah4i.android.widget.advrecyclerview.swipeable.action.SwipeResultActionMoveToSwipedDirection;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractDraggableSwipeableItemViewHolder;
-import com.projects.kquicho.uw_api_client.Core.UWParser;
 import com.projects.kquicho.uw_api_client.Resources.InfoSession;
 import com.projects.kquicho.uw_api_client.Resources.ResourcesParser;
 import com.projects.kquicho.uw_api_client.Weather.WeatherParser;
 
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -87,6 +82,8 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public TextView mHighTempPrefix;
         public TextView mLowTempPrefix;
         public TextView mWindChillPrefix;
+        public View mProgressBar;
+
         public WeatherViewHolder(View itemView) {
             super(itemView);
             mCurrentTemp = (TextView) itemView.findViewById(R.id.current_temp);
@@ -100,6 +97,7 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             mHighTempPrefix = (TextView) itemView.findViewById(R.id.high_temp_prefix);
             mLowTempPrefix = (TextView) itemView.findViewById(R.id.low_temp_prefix);
             mWindChillPrefix = (TextView) itemView.findViewById(R.id.wind_chill_temp_prefix);
+            mProgressBar = itemView.findViewById(R.id.pbLoading);
         }
     }
 
@@ -140,10 +138,11 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public TextView mSavedTime3;
         public TextView mSavedLocation3;
 
-
         public View mDivider;
         public View mNoSessionsSaved;
         public View mNoSessionsExist;
+
+        public View mProgressBar;
 
         public InfoSessionViewHolder(View itemView) {
             super(itemView);
@@ -187,6 +186,7 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             mNoSessionsSaved = itemView.findViewById(R.id.no_sessions_saved);
             mNoSessionsExist = itemView.findViewById(R.id.no_sessions_exists);
 
+            mProgressBar = itemView.findViewById(R.id.pbLoading);
         }
     }
 
@@ -201,8 +201,9 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             return WEATHER;
         } else if (mData.get(position).getParser() instanceof ResourcesParser) {
             return INFO_SESSIONS;
+        }else {
+            return INFO_SESSIONS;
         }
-        return -1;
     }
 
     @Override
@@ -327,17 +328,20 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
     private void configureWeatherViewHolder(WeatherViewHolder viewHolder, int position){
-        UWParser parser = mData.get(position).getParser();
+        WeatherParser parser =  (WeatherParser)mData.get(position).getParser();
+        if(parser == null){
+            viewHolder.mProgressBar.setVisibility(View.VISIBLE);
+            return;
+        }
+        viewHolder.mProgressBar.setVisibility(View.GONE);
 
-        WeatherParser weatherParser = (WeatherParser)parser;
-
-        setTempField(viewHolder.mCurrentTemp, viewHolder.mCurrentTempPrefix, weatherParser.getCurrentTemperature());
-        setTempField(viewHolder.mHighTemp, viewHolder.mHighTempPrefix, weatherParser.getTemperature24hrMax());
-        setTempField(viewHolder.mLowTemp, viewHolder.mLowTempPrefix, weatherParser.getTemperature24hrMin());
-        setTempField(viewHolder.mWindChill, viewHolder.mWindChillPrefix, weatherParser.getWindchill());
-        viewHolder.mWindSpeed.setText(String.valueOf(weatherParser.getWindSpeed()));
-        viewHolder.mHumidity.setText(String.valueOf(weatherParser.getRelativeHumidityPercent()));
-        viewHolder.mPrecip.setText(String.valueOf(weatherParser.getPrecipitation24hr()));
+        setTempField(viewHolder.mCurrentTemp, viewHolder.mCurrentTempPrefix, parser.getCurrentTemperature());
+        setTempField(viewHolder.mHighTemp, viewHolder.mHighTempPrefix, parser.getTemperature24hrMax());
+        setTempField(viewHolder.mLowTemp, viewHolder.mLowTempPrefix, parser.getTemperature24hrMin());
+        setTempField(viewHolder.mWindChill, viewHolder.mWindChillPrefix, parser.getWindchill());
+        viewHolder.mWindSpeed.setText(String.valueOf(parser.getWindSpeed()));
+        viewHolder.mHumidity.setText(String.valueOf(parser.getRelativeHumidityPercent()));
+        viewHolder.mPrecip.setText(String.valueOf(parser.getPrecipitation24hr()));
 
 
         RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)viewHolder.mCurrentTemp.getLayoutParams();
@@ -374,6 +378,12 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private void configureInfoSessionViewHolder(InfoSessionViewHolder viewHolder, int position){
         ResourcesParser parser = (ResourcesParser)mData.get(position).getParser();
+        if(parser == null){
+            viewHolder.mProgressBar.setVisibility(View.VISIBLE);
+            return;
+        }
+        viewHolder.mProgressBar.setVisibility(View.GONE);
+
         ArrayList<InfoSession> infoSessions = parser.getHomeWidgetInfoSessions();
         if(infoSessions.size() != 0) {
             viewHolder.mNoSessionsExist.setVisibility(View.GONE);
@@ -385,9 +395,9 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 InfoSession infoSession1 = infoSessions.get(0);
                 viewHolder.mContainer1.setVisibility(View.VISIBLE);
                 viewHolder.mCompany1.setText(employer1);
-                viewHolder.mDate1.setText(infoSessions.get(0).getDate());
-                viewHolder.mLocation1.setText(infoSessions.get(0).getBuildingCode() + " - " + infoSessions.get(0).getBuildingRoom());
-                viewHolder.mTime1.setText(infoSessions.get(0).getDisplay_time_range());
+                viewHolder.mDate1.setText(infoSession1.getDate());
+                viewHolder.mLocation1.setText(infoSession1.getBuildingCode() + " - " + infoSession1.getBuildingRoom());
+                viewHolder.mTime1.setText(infoSession1.getDisplay_time_range());
             }else{
                 viewHolder.mContainer1.setVisibility(View.GONE);
             }
@@ -395,9 +405,9 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 InfoSession infoSession2 = infoSessions.get(1);
                 viewHolder.mContainer2.setVisibility(View.VISIBLE);
                 viewHolder.mCompany2.setText(employer2);
-                viewHolder.mDate2.setText(infoSessions.get(1).getDate());
-                viewHolder.mLocation2.setText(infoSessions.get(1).getBuildingCode() + " - " + infoSessions.get(1).getBuildingRoom());
-                viewHolder.mTime2.setText(infoSessions.get(1).getDisplay_time_range());
+                viewHolder.mDate2.setText(infoSession2.getDate());
+                viewHolder.mLocation2.setText(infoSession2.getBuildingCode() + " - " + infoSession2.getBuildingRoom());
+                viewHolder.mTime2.setText(infoSession2.getDisplay_time_range());
             }else{
                 viewHolder.mContainer2.setVisibility(View.GONE);
             }
@@ -406,9 +416,9 @@ public class UWParserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 InfoSession infoSession3 = infoSessions.get(2);
                 viewHolder.mContainer3.setVisibility(View.VISIBLE);
                 viewHolder.mCompany3.setText(employer3);
-                viewHolder.mDate3.setText(infoSessions.get(2).getDate());
-                viewHolder.mLocation3.setText(infoSessions.get(2).getBuildingCode() + " - " + infoSessions.get(2).getBuildingRoom());
-                viewHolder.mTime3.setText(infoSessions.get(2).getDisplay_time_range());
+                viewHolder.mDate3.setText(infoSession3.getDate());
+                viewHolder.mLocation3.setText(infoSession3.getBuildingCode() + " - " + infoSession3.getBuildingRoom());
+                viewHolder.mTime3.setText(infoSession3.getDisplay_time_range());
             }else{
                 viewHolder.mContainer3.setVisibility(View.GONE);
             }
