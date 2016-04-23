@@ -61,6 +61,8 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         BottomSheetInfoSessionAdapter.onBottomSheetInfoSessionClickListener,
         MainActivity.FragmentOnBackClickInterface{
     public static final String TAG = "InfoSessionsFragment";
+    private final String DATA = "data";
+    private final String IS_SHOWING_ALL = "isShowingAll";
     private final int ALERT_CHANGE_REQUEST = 1;
     public static final String SHOULD_TOGGLE = "shouldToggle";
 
@@ -88,6 +90,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     }
     private View mDimOverlay;
     private SearchView mSearchView;
+    private boolean mSavedShowingAll = true;
 
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -98,7 +101,15 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_info_sessions, parent, false);
+        View view = inflater.inflate(R.layout.fragment_info_sessions, parent, false);
+
+        if (savedInstanceState != null) {
+            mData = savedInstanceState.getParcelableArrayList(DATA);
+            mOriginalData.clear();
+            mOriginalData.addAll(mData);
+            mSavedShowingAll = savedInstanceState.getBoolean(IS_SHOWING_ALL);
+        }
+        return view;
     }
 
     @Override
@@ -164,9 +175,9 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
                 mData.clear();
                 if (mOriginalData == null) {
                     return false;
-                }else if(query.equals("")){
+                } else if (query.equals("")) {
                     mData.addAll(mOriginalData);
-                }else {
+                } else {
                     for (int i = 0; i < mOriginalData.size(); i++) {
                         InfoSessionData infoSession = mOriginalData.get(i);
                         String employer = infoSession.getInfoSession().getEmployer().toUpperCase();
@@ -192,9 +203,9 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
                 mData.clear();
                 if (mOriginalData == null) {
                     return false;
-                }else if(newText.equals("")){
+                } else if (newText.equals("")) {
                     mData.addAll(mOriginalData);
-                }else {
+                } else {
                     for (int i = 0; i < mOriginalData.size(); i++) {
                         InfoSessionData infoSession = mOriginalData.get(i);
                         String employer = infoSession.getInfoSession().getEmployer().toUpperCase();
@@ -251,13 +262,15 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         mRecyclerViewTouchActionGuardManager.attachRecyclerView(mRecyclerView);
         mRecyclerViewSwipeManager.attachRecyclerView(mRecyclerView);
 
-        mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
-        String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
+        if(mData == null || mData.size() == 0) {
+            mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
+            String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
+            mProgressBar.setVisibility(View.VISIBLE);
+            JSONDownloader downloader = new JSONDownloader(url);
+            downloader.setOnDownloadListener(this);
+            downloader.start();
+        }
 
-        mProgressBar.setVisibility(View.VISIBLE);
-        JSONDownloader downloader = new JSONDownloader(url);
-        downloader.setOnDownloadListener(this);
-        downloader.start();
 
         mFab = (FloatingActionButton)view.findViewById(R.id.fab);
 
@@ -282,6 +295,12 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
                 }
             }
         });
+
+        if(!mSavedShowingAll){
+            mFab.setVisibility(View.VISIBLE);
+            mFab.performClick();
+        }
+
         mBottomSheetViewGroup = (RelativeLayout) view.findViewById(R.id.bottom_sheet);
         mBottomSheetBehavior = BottomSheetBehavior.from(mBottomSheetViewGroup);
         mBottomSheetRV = (RecyclerView)view.findViewById(R.id.bottom_recycler_view);
@@ -300,6 +319,12 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
 
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(DATA, mOriginalData);
+        outState.putBoolean(IS_SHOWING_ALL, mAdapter.getIsShowingAll());
+        super.onSaveInstanceState(outState);
+    }
 
     @Override
     public void onDownloadFail(String givenURL, int index) {
@@ -308,11 +333,15 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
 
     @Override
     public void onDownloadComplete(APIResult apiResult) {
+        Activity activity = getActivity();
+        if(activity == null){
+            return;
+        }
         mParser.setAPIResult(apiResult);
         mParser.parseJSON();
         ArrayList<InfoSession> infoSessions = mParser.getInfoSessions();
         ListIterator li = infoSessions.listIterator(infoSessions.size());
-        InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(getActivity().getApplicationContext());
+        InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(activity.getApplicationContext());
         DateFormat format = new SimpleDateFormat("MMM d, yy HH:mm", Locale.CANADA);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         while (li.hasPrevious()){
@@ -335,7 +364,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         }
         Collections.sort(mData, new CustonComparator());
         mOriginalData.addAll(mData);
-        android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+        android.os.Handler handler = new android.os.Handler(activity.getMainLooper());
 
         Runnable runnable = new Runnable() {
             @Override

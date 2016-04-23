@@ -56,7 +56,9 @@ public class MainActivity extends AppCompatActivity {
         // Setup drawer view
         setupDrawerContent(mNavDrawer);
 
-        mNavDrawer.getMenu().performIdentifierAction(R.id.nav_home, 0);
+        if(savedInstanceState == null) {
+            mNavDrawer.getMenu().performIdentifierAction(R.id.nav_home, 0);
+        }
     }
 
 
