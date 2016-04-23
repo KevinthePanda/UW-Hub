@@ -376,6 +376,10 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
         return mIsShowingAll;
     }
 
+    public boolean getIsShowingAll(){
+        return mIsShowingAll;
+    }
+
     public interface onInfoSessionClickListener{
         void onInfoSessionClick(InfoSessionData infoSessionData, int position, int type);
     }
