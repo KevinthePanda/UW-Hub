@@ -115,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
             }
             fragment = (Fragment) fragmentClass.newInstance();
             fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment, BASE_FRAGMENT).commit();
+            fragmentManager.popBackStackImmediate();
             // Highlight the selected item, update the title, and close the drawer
             menuItem.setChecked(true);
             getSupportActionBar().setTitle(menuItem.getTitle());
