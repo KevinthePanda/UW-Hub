@@ -2,6 +2,7 @@ package com.projects.kquicho.uwatm8;
 
 
 
+import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.MatrixCursor;
@@ -53,6 +54,7 @@ public class GroupSubjectFragment extends Fragment implements JSONDownloader.onD
 public static final String TAG = "GroupSubjectFragment";
     private static final String SAVED_STATE_EXPANDABLE_ITEM_MANAGER = "RecyclerViewExpandableItemManager";
     public static final String TITLE = "Courses";
+    private final String DATA = "data";
     private GroupSubjectData mData;
     private GroupSubjectAdapter mAdapter;
     private RecyclerView mRecyclerView;
@@ -67,7 +69,6 @@ public static final String TAG = "GroupSubjectFragment";
     private SearchCourseResultsAdapter mSearchViewAdapter;
     private ArrayList<Course> mPreviousCourses;
     private View mDimOverlay;
-    private MenuItem mSearchItem;
     private SearchView mSearchView;
     private FloatingActionButton mFab;
     private View mProgressBar;
@@ -85,7 +86,13 @@ public static final String TAG = "GroupSubjectFragment";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_group_subject, parent, false);
+        View view = inflater.inflate(R.layout.fragment_group_subject, parent, false);
+
+        if(savedInstanceState != null){
+            mData = savedInstanceState.getParcelable(DATA);
+        }
+
+        return view;
     }
 
     @Override
@@ -97,7 +104,6 @@ public static final String TAG = "GroupSubjectFragment";
 
         final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         mSearchView = searchView;
-        mSearchItem = searchItem;
         searchView.setMaxWidth(Integer.MAX_VALUE);
         searchView.setQueryHint(getString(R.string.search_courses));
 
@@ -284,14 +290,6 @@ public static final String TAG = "GroupSubjectFragment";
         mRecyclerView.addItemDecoration(new SimpleListDividerDecorator(ContextCompat.getDrawable(getContext(), R.drawable.list_divider_h), true));
         mRecyclerViewExpandableItemManager.attachRecyclerView(mRecyclerView);
 
-        mCodesParser.setParseType(CodesParser.ParseType.GROUPS_WITH_SUBJECTS.ordinal());
-        mCodeUrl = UWOpenDataAPI.buildURL(mCodesParser.getEndPoint());
-
-        mProgressBar.setVisibility(View.VISIBLE);
-        JSONDownloader downloader = new JSONDownloader(mCodeUrl);
-        downloader.setOnDownloadListener(this);
-        downloader.start();
-
         mFab = (FloatingActionButton)view.findViewById(R.id.fab);
 
 
@@ -301,6 +299,23 @@ public static final String TAG = "GroupSubjectFragment";
                 mRecyclerViewExpandableItemManager.collapseAll();
             }
         });
+
+        if(mData == null) {
+            mCodesParser.setParseType(CodesParser.ParseType.GROUPS_WITH_SUBJECTS.ordinal());
+            mCodeUrl = UWOpenDataAPI.buildURL(mCodesParser.getEndPoint());
+
+            mProgressBar.setVisibility(View.VISIBLE);
+            JSONDownloader downloader = new JSONDownloader(mCodeUrl);
+            downloader.setOnDownloadListener(this);
+            downloader.start();
+        }else{
+            mProgressBar.setVisibility(View.GONE);
+            mFab.setVisibility(View.VISIBLE);
+            mAdapter = new GroupSubjectAdapter(mData, this);
+            mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
+            mRecyclerView.setAdapter(mWrappedAdapter);
+        }
+
 
         mDimOverlay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -317,6 +332,10 @@ public static final String TAG = "GroupSubjectFragment";
     }
     @Override
     public void onDownloadComplete(APIResult apiResult) {
+        Activity activity = getActivity();
+        if(activity == null){
+            return;
+        }
         if(apiResult.getUrl().equals(mCodeUrl)){
             mCodesParser.setAPIResult(apiResult);
             mCodesParser.parseJSON();
@@ -330,7 +349,7 @@ public static final String TAG = "GroupSubjectFragment";
             }else{
                 mData = new GroupSubjectData(mCodesParser.getSubjectsWithGroups());
 
-                android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+                android.os.Handler handler = new android.os.Handler(activity.getMainLooper());
 
                 final GroupSubjectAdapter.onSubjectClickListener subjectClickListener = this;
                 Runnable runnable = new Runnable() {
@@ -352,7 +371,7 @@ public static final String TAG = "GroupSubjectFragment";
             mPreviousCourses = mCoursesParser.getCourses();
             if(mPreviousCourses != null && mPreviousCourses.size() > 0){
                 final MatrixCursor matrixCursor = convertToCursor(mPreviousCourses);
-                android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+                android.os.Handler handler = new android.os.Handler(activity.getMainLooper());
                 Runnable runnable = new Runnable() {
                     @Override
                     public void run() {
@@ -371,6 +390,7 @@ public static final String TAG = "GroupSubjectFragment";
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putParcelable(DATA, mData);
 
         // save current state to support screen rotation, etc...
         if (mRecyclerViewExpandableItemManager != null) {
