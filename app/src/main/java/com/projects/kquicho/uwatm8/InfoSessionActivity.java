@@ -42,9 +42,11 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
     public static final String TAG = "InfoSessionActivity";
     public static final String INFO_SESSION = "infoSession";
     public static final String IS_ALARM_SET = "isAlarmSet";
+    public static final String IS_ALARM_SET_ORIGINAL = "isAlarmSetOriginal";
     public static final String INFO_SESSION_ID = "infoSessionId";
     private boolean mIsAlertSet = true;
-    private boolean mIsAlertSetOriginal;
+    private Boolean mIsAlertSetOriginal;
+    private InfoSession mInfoSession;
     private String mUWLink;
     private String mEmployerLink;
     private LinearLayout mAudienceContainer;
@@ -64,23 +66,122 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
         mProgressBar.setVisibility(View.VISIBLE);
         mContainer.setVisibility(View.GONE);
 
-        Intent intent = getIntent();
-        mId = intent.getIntExtra(INFO_SESSION_ID, -1);
-        if(mId == -1){
-            init((InfoSession)intent.getParcelableExtra(INFO_SESSION),
-                    intent.getBooleanExtra(IS_ALARM_SET, false));
+        if(savedInstanceState == null) {
+            Intent intent = getIntent();
+            mId = intent.getIntExtra(INFO_SESSION_ID, -1);
+            if (mId == -1) {
+                mInfoSession = intent.getParcelableExtra(INFO_SESSION);
+                init(mInfoSession, intent.getBooleanExtra(IS_ALARM_SET, false));
+            } else {
+                mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
+                String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
+                JSONDownloader downloader = new JSONDownloader(url);
+                downloader.setOnDownloadListener(this);
+                downloader.start();
+            }
         }else{
-            mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
-            String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
-            JSONDownloader downloader = new JSONDownloader(url);
-            downloader.setOnDownloadListener(this);
-            downloader.start();
+            mInfoSession = savedInstanceState.getParcelable(INFO_SESSION);
+            mIsAlertSet = savedInstanceState.getBoolean(IS_ALARM_SET);
+            mIsAlertSetOriginal = savedInstanceState.getBoolean(IS_ALARM_SET_ORIGINAL);
+
+            Intent data = new Intent();
+            data.putExtra(InfoSessionsFragment.SHOULD_TOGGLE, mIsAlertSet != mIsAlertSetOriginal);
+            setResult(RESULT_OK, data);
+
+            init(mInfoSession, mIsAlertSet);
         }
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.info_session_menu, menu);
+        final View container  = findViewById(R.id.container);
+        final MenuItem save = menu.findItem(R.id.save);
+        final MenuItem uw = menu.findItem(R.id.uw);
+        final MenuItem employer = menu.findItem(R.id.employer);
+        final Drawable ic_starOutline = getResizedDrawable(save.getIcon());
+        final Drawable ic_star = getResizedDrawable(ContextCompat.getDrawable(this, R.drawable.ic_star));
+        final Drawable ic_uw = getResizedDrawable(uw.getIcon());
+        final Drawable ic_employer = getResizedDrawable(employer.getIcon());
+
+        if(mIsCancelled){
+            save.setVisible(false);
+        }else{
+            if(mIsAlertSet) {
+                save.setIcon(ic_star);
+            }else{
+                save.setIcon(ic_starOutline);
+            }
+            save.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    if (mIsAlertSet) {
+                        item.setIcon(ic_starOutline);
+                    } else {
+                        item.setIcon(ic_star);
+                    }
+                    mIsAlertSet = !mIsAlertSet;
+                    Intent data = new Intent();
+                    data.putExtra(InfoSessionsFragment.SHOULD_TOGGLE, mIsAlertSet != mIsAlertSetOriginal);
+                    setResult(RESULT_OK, data);
+                    return true;
+                }
+            });
+        }
+
+
+        uw.setIcon(ic_uw);
+        employer.setIcon(ic_employer);
+
+
+        uw.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                Intent intent = new Intent(Intent.ACTION_VIEW,
+                        Uri.parse(mUWLink));
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                } else {
+                    Snackbar.make(container, "Website appears to be down or no longer valid", Snackbar.LENGTH_SHORT)
+                            .show();
+                }
+                return true;
+            }
+        });
+
+
+        employer.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                Intent intent = new Intent(Intent.ACTION_VIEW,
+                        Uri.parse(mEmployerLink));
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                } else {
+                    Snackbar.make(container, "Website appears to be down or no longer valid", Snackbar.LENGTH_SHORT)
+                            .show();
+                }
+                return true;
+            }
+        });
+
+
+        return true;
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putParcelable(INFO_SESSION, mInfoSession);
+        savedInstanceState.putBoolean(IS_ALARM_SET, mIsAlertSet);
+        savedInstanceState.putBoolean(IS_ALARM_SET_ORIGINAL, mIsAlertSetOriginal);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
 
     private void init(final InfoSession infoSession, boolean isAlertSet){
         mIsAlertSet = isAlertSet;
-        mIsAlertSetOriginal = mIsAlertSet;
+        if(mIsAlertSetOriginal == null) {
+            mIsAlertSetOriginal = mIsAlertSet;
+        }
 
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -201,83 +302,6 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
                 (int)(getResources().getDisplayMetrics().density * 24), true));
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.info_session_menu, menu);
-        final View container  = findViewById(R.id.container);
-        final MenuItem save = menu.findItem(R.id.save);
-        final MenuItem uw = menu.findItem(R.id.uw);
-        final MenuItem employer = menu.findItem(R.id.employer);
-        final Drawable ic_starOutline = getResizedDrawable(save.getIcon());
-        final Drawable ic_star = getResizedDrawable(ContextCompat.getDrawable(this, R.drawable.ic_star));
-        final Drawable ic_uw = getResizedDrawable(uw.getIcon());
-        final Drawable ic_employer = getResizedDrawable(employer.getIcon());
-
-        if(mIsCancelled){
-           save.setVisible(false);
-        }else{
-            if(mIsAlertSet) {
-                save.setIcon(ic_star);
-            }else{
-                save.setIcon(ic_starOutline);
-            }
-            save.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    if (mIsAlertSet) {
-                        item.setIcon(ic_starOutline);
-                    } else {
-                        item.setIcon(ic_star);
-                    }
-                    mIsAlertSet = !mIsAlertSet;
-                    Intent data = new Intent();
-                    data.putExtra(InfoSessionsFragment.SHOULD_TOGGLE, mIsAlertSet != mIsAlertSetOriginal);
-                    setResult(RESULT_OK, data);
-                    return true;
-                }
-            });
-        }
-
-
-        uw.setIcon(ic_uw);
-        employer.setIcon(ic_employer);
-
-
-        uw.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                Intent intent = new Intent(Intent.ACTION_VIEW,
-                        Uri.parse(mUWLink));
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(intent);
-                } else {
-                    Snackbar.make(container, "Website appears to be down or no longer valid", Snackbar.LENGTH_SHORT)
-                            .show();
-                }
-                return true;
-            }
-        });
-
-
-        employer.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                Intent intent = new Intent(Intent.ACTION_VIEW,
-                        Uri.parse(mEmployerLink));
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(intent);
-                } else {
-                    Snackbar.make(container, "Website appears to be down or no longer valid", Snackbar.LENGTH_SHORT)
-                            .show();
-                }
-                return true;
-            }
-        });
-
-
-
-        return true;
-    }
 
     @Override
     public void onDownloadComplete(@NonNull APIResult apiResult) {
