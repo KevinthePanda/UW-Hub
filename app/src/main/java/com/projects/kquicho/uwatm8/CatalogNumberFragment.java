@@ -1,10 +1,12 @@
 package com.projects.kquicho.uwatm8;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -25,6 +27,7 @@ import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
 import com.projects.kquicho.uw_api_client.Course.Course;
 import com.projects.kquicho.uw_api_client.Course.CourseParser;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 
 /**
@@ -43,6 +46,7 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
     private CourseParser mCoursesParser = new CourseParser();
     private String mUrl;
     private String mSubject;
+    private String mTitle = null;
     private ArrayList<Course> mData;
     private CoursesAdapter mAdapter;
     private String mCallingFragmentTitle = null;
@@ -73,29 +77,30 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
     }
 
 
-    @Override
-    public void onCreate(Bundle savedInstanceState){
-        super.onCreate(savedInstanceState);
-        Bundle args = getArguments();
-        mSubject = args.getString(SUBJECT);
-        mCallingFragmentTitle = args.getString(CALLING_FRAGMENT_TITLE);
-        String title = args.getString(TITLE);
-        if(args.containsKey(DATA)){
-            mData = args.getParcelableArrayList(DATA);
-        }
-        android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        if(actionBar != null){
-            if(title == null) {
-                actionBar.setTitle(mSubject);
-            }else{
-                actionBar.setTitle(title);
-            }
-        }
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_catalog_number, parent, false);
+        View view = inflater.inflate(R.layout.fragment_catalog_number, parent, false);
+
+        Bundle args = savedInstanceState != null ? savedInstanceState : getArguments();
+        mSubject = args.getString(SUBJECT);
+        mCallingFragmentTitle = args.getString(CALLING_FRAGMENT_TITLE);
+        mTitle = args.getString(TITLE);
+        if(args.containsKey(DATA)){
+            mData = args.getParcelableArrayList(DATA);
+        }
+        if(savedInstanceState == null) {
+            android.support.v7.app.ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+            if (actionBar != null) {
+                if (mTitle == null) {
+                    actionBar.setTitle(mSubject);
+                } else {
+                    actionBar.setTitle(mTitle);
+                }
+            }
+        }
+
+        return view;
     }
 
 
@@ -148,6 +153,18 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.i(TAG, "onSaveInstanceState");
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(DATA, mData);
+        outState.putString(SUBJECT, mSubject);
+        outState.putString(CALLING_FRAGMENT_TITLE, mCallingFragmentTitle);
+        if(mTitle != null) {
+            outState.putString(TITLE, mTitle);
+        }
+    }
+
+    @Override
     public void onDownloadFail(String givenURL, int index) {
         Log.e(TAG, "Download failed.. url = " + givenURL);
         mProgressBar.setVisibility(View.GONE);
@@ -157,11 +174,15 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
 
     @Override
     public void onDownloadComplete(APIResult apiResult) {
+        Activity activity = getActivity();
+        if(activity == null) {
+            return;
+        }
         mCoursesParser.setAPIResult(apiResult);
         mCoursesParser.parseJSON();
         mData = mCoursesParser.getCourses();
 
-        android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+        android.os.Handler handler = new android.os.Handler(activity.getMainLooper());
 
         final CoursesAdapter.onCourseClickListener courseClickListener = this;
         Runnable runnable = new Runnable() {
@@ -194,7 +215,6 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
         startActivity(intent);
     }
 
-
     @Override
     public void onFragmentBackPressed() {
         Log.i(TAG, "onFragmentBackPressed");
@@ -207,4 +227,6 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
         activity.animateMenuArrowDrawable(false);
         activity.getSupportFragmentManager().popBackStackImmediate();
     }
+
+
 }
