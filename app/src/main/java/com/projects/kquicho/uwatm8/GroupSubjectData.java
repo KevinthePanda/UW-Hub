@@ -1,14 +1,19 @@
 package com.projects.kquicho.uwatm8;
 
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.projects.kquicho.uw_api_client.Codes.Subject;
 
-public class GroupSubjectData {
+public class GroupSubjectData implements Parcelable{
     private Map<String, ArrayList<Subject>> mData;
+
     public  GroupSubjectData(Map<String, ArrayList<Subject>> data){
         mData = data;
     }
@@ -44,5 +49,40 @@ public class GroupSubjectData {
         }
         return children.get(childPosition);
     }
+
+    public GroupSubjectData(Parcel in){
+        int size = in.readInt();
+        mData = new HashMap<>();
+        for(int i = 0; i < size; i++){
+            String key = in.readString();
+            ArrayList<Subject> value = new ArrayList<>();
+            in.readTypedList(value, Subject.CREATOR);
+            mData.put(key, value);
+        }
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(mData.size());
+        for(Map.Entry<String, ArrayList<Subject>> entry : mData.entrySet()){
+            dest.writeString(entry.getKey());
+            dest.writeTypedList(entry.getValue());
+        }
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public GroupSubjectData createFromParcel(Parcel in) {
+            return new GroupSubjectData(in);
+        }
+
+        public GroupSubjectData[] newArray(int size) {
+            return new GroupSubjectData[size];
+        }
+    };
 
 }
