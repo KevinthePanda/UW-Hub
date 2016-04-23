@@ -63,6 +63,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     public static final String TAG = "InfoSessionsFragment";
     private final String DATA = "data";
     private final String IS_SHOWING_ALL = "isShowingAll";
+    private final String CURRENT_INFO_SESSION_POSITION = "currentInfoSessionPosition";
     private final int ALERT_CHANGE_REQUEST = 1;
     public static final String SHOULD_TOGGLE = "shouldToggle";
 
@@ -108,6 +109,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
             mOriginalData.clear();
             mOriginalData.addAll(mData);
             mSavedShowingAll = savedInstanceState.getBoolean(IS_SHOWING_ALL);
+            mCurrentInfoSessionPosition = savedInstanceState.getInt(CURRENT_INFO_SESSION_POSITION);
         }
         return view;
     }
@@ -323,6 +325,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelableArrayList(DATA, mOriginalData);
         outState.putBoolean(IS_SHOWING_ALL, mAdapter.getIsShowingAll());
+        outState.putInt(CURRENT_INFO_SESSION_POSITION, mCurrentInfoSessionPosition);
         super.onSaveInstanceState(outState);
     }
 
