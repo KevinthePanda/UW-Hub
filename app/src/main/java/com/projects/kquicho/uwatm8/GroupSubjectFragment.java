@@ -3,6 +3,7 @@ package com.projects.kquicho.uwatm8;
 
 
 import android.app.Activity;
+import android.app.Notification;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.MatrixCursor;
@@ -17,6 +18,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -55,6 +57,7 @@ public static final String TAG = "GroupSubjectFragment";
     private static final String SAVED_STATE_EXPANDABLE_ITEM_MANAGER = "RecyclerViewExpandableItemManager";
     public static final String TITLE = "Courses";
     private final String DATA = "data";
+    private final String IS_HIDDEN = "hidden";
     private GroupSubjectData mData;
     private GroupSubjectAdapter mAdapter;
     private RecyclerView mRecyclerView;
@@ -90,6 +93,9 @@ public static final String TAG = "GroupSubjectFragment";
 
         if(savedInstanceState != null){
             mData = savedInstanceState.getParcelable(DATA);
+            if(savedInstanceState.getBoolean(IS_HIDDEN)){
+                getActivity().getSupportFragmentManager().beginTransaction().hide(this).commit();
+            }
         }
 
         return view;
@@ -156,8 +162,10 @@ public static final String TAG = "GroupSubjectFragment";
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                ArrayList<Course> newCourseList = new ArrayList<>();
+                searchView.setOnQueryTextFocusChangeListener(null);
+                ((MainActivity)getActivity()).unlockNavDrawer();
 
+                ArrayList<Course> newCourseList = new ArrayList<>();
                 if (mSearchViewAdapter == null) {
                     return false;
                 }
@@ -232,7 +240,6 @@ public static final String TAG = "GroupSubjectFragment";
                 new SearchCourseResultsAdapter.onSuggestionClickListener() {
                     @Override
                     public void onSuggestionClick(String catalogNumber, String title){
-                        Log.i("test", "onSuggestionClick");
                         searchView.clearFocus();
                         mDimOverlay.setVisibility(View.GONE);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -391,6 +398,7 @@ public static final String TAG = "GroupSubjectFragment";
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(DATA, mData);
+        outState.putBoolean(IS_HIDDEN, isHidden());
 
         // save current state to support screen rotation, etc...
         if (mRecyclerViewExpandableItemManager != null) {

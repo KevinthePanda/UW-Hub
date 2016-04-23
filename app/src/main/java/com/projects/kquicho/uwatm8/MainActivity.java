@@ -1,6 +1,7 @@
 package com.projects.kquicho.uwatm8;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -29,7 +30,9 @@ import android.view.View;
 public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
-    final private static String BASE_FRAGMENT = "baseFragment";
+    final public static String BASE_FRAGMENT = "baseFragment";
+    final public String TITLE = "title";
+    final public String SUBTITLE = "subtitle";
     final private int PERMISSIONS_REQUEST_GET_ACCOUNTS = 0;
     final private int PERMISSIONS_REQUEST_WRITE_CALENDAR = 1;
     private DrawerLayout mDrawerLayout;
@@ -58,23 +61,41 @@ public class MainActivity extends AppCompatActivity {
 
         if(savedInstanceState == null) {
             mNavDrawer.getMenu().performIdentifierAction(R.id.nav_home, 0);
+        }else{
+            android.support.v7.app.ActionBar actionBar =  getSupportActionBar();
+            if(actionBar != null){
+                actionBar.setTitle(savedInstanceState.getString(TITLE));
+                actionBar.setSubtitle(savedInstanceState.getString(SUBTITLE));
+            }
         }
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        android.support.v7.app.ActionBar actionBar =  getSupportActionBar();
+        if(actionBar != null) {
+            savedInstanceState.putString(TITLE, actionBar.getTitle() != null ?
+                    actionBar.getTitle().toString() : null);
+            savedInstanceState.putString(SUBTITLE, actionBar.getSubtitle() != null ?
+                    actionBar.getSubtitle().toString(): null);
+        }
+        super.onSaveInstanceState(savedInstanceState);
+    }
 
     public void animateMenuArrowDrawable(boolean menuToArrow){
         mMenuArrowDrawable.animateDrawable(menuToArrow);
-    }
-    public void lockNavDrawer(){
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-    }
-    public void unlockNavDrawer(){
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
     public void setMenuArrowDrawable(boolean menuToArrow){
         float progress = menuToArrow ? 1: 0;
         mMenuArrowDrawable.setProgress(progress);
+    }
+
+    public void lockNavDrawer(){
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+    }
+    public void unlockNavDrawer(){
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
     private void setupDrawerContent(NavigationView navigationView) {
