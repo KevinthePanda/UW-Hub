@@ -1,5 +1,8 @@
 package com.projects.kquicho.uwatm8;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by Kevin Quicho on 3/19/2016.
  */
@@ -85,6 +88,52 @@ public class CourseSectionData extends AbstractExpandableData.GroupData {
     public void setEventID(String eventID) {
         mEventID = eventID;
     }
+
+    public CourseSectionData(Parcel in){
+        mSection = in.readString();
+        mCampus = in.readString();
+        mEnrollmentCapacity = in.readInt();
+        mEnrollmentTotal = in.readInt();
+        mStartTime = in.readString();
+        mEndTime = in.readString();
+        mWeekdays = in.readString();
+        mBuilding = in.readString();
+        mRoom = in.readString();
+        mInstructor = in.readString();
+        mDate = in.readString();
+        mEventID = in.readString();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mSection);
+        dest.writeString(mCampus);
+        dest.writeInt(mEnrollmentCapacity);
+        dest.writeInt(mEnrollmentTotal);
+        dest.writeString(mStartTime);
+        dest.writeString(mEndTime);
+        dest.writeString(mWeekdays);
+        dest.writeString(mBuilding);
+        dest.writeString(mRoom);
+        dest.writeString(mInstructor);
+        dest.writeString(mDate);
+        dest.writeString(mEventID);
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public CourseSectionData createFromParcel(Parcel in) {
+            return new CourseSectionData(in);
+        }
+
+        public CourseSectionData[] newArray(int size) {
+            return new CourseSectionData[size];
+        }
+    };
 
 
     public static class Builder{

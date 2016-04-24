@@ -1,5 +1,6 @@
 package com.projects.kquicho.uwatm8;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.ContentUris;
@@ -38,9 +39,7 @@ import com.projects.kquicho.uw_api_client.Core.UWOpenDataAPI;
 import com.projects.kquicho.uw_api_client.Terms.TermsParser;
 
 import java.text.DateFormat;
-import java.text.FieldPosition;
 import java.text.ParseException;
-import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -57,11 +56,15 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
 
     private static final String SAVED_STATE_EXPANDABLE_ITEM_MANAGER = "RecyclerViewExpandableItemManager";
     public static final String TAG = "courseScheduleFragment";
-    public static final String SUBJECT_TAG = "subject";
-    public static final String CATALOG_NUMBER_TAG = "catalogNumber";
+    public static final String SUBJECT = "subject";
+    public static final String CATALOG_NUMBER = "catalogNumber";
     private final int WINTER = 1;
     private final int SPRING = 5;
     private final int FALL = 9;
+    private final String DATA = "data";
+    private final String IS_CURRENT_TERM_SELECTED = "isCurrentTermSelected";
+    private final String CURRENT_TERM = "currentTerm";
+    private final String NEXT_TERM = "nextTerm";
 
     private CourseScheduleData mData;
     private CourseScheduleAdapter mAdapter;
@@ -72,6 +75,8 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
 
 
     private String mTerm;
+    private String mCurrentTerm;
+    private String mNextTerm;
     private String mSubject;
     private String mCatalogNumber;
     private TermsParser mTermsParser = new TermsParser();
@@ -90,8 +95,8 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     public static CourseScheduleFragment newInstance(String subject, String catalogNumber) {
 
         Bundle args = new Bundle();
-        args.putString(SUBJECT_TAG, subject);
-        args.putString(CATALOG_NUMBER_TAG, catalogNumber);
+        args.putString(SUBJECT, subject);
+        args.putString(CATALOG_NUMBER, catalogNumber);
         CourseScheduleFragment fragment = new CourseScheduleFragment();
         fragment.setArguments(args);
         return fragment;
@@ -101,8 +106,8 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
-        mSubject = args.getString(SUBJECT_TAG);
-        mCatalogNumber = args.getString(CATALOG_NUMBER_TAG);
+        mSubject = args.getString(SUBJECT);
+        mCatalogNumber = args.getString(CATALOG_NUMBER);
         mHandler = new AsyncHandler(getActivity().getContentResolver(), this);
         mDBHelper = CourseDBHelper.getInstance(getActivity().getApplicationContext());
     }
@@ -111,12 +116,6 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_course_schedule, container, false);
-    }
-
-    @Override
-    public void onStart(){
-        super.onStart();
-
     }
 
 
@@ -130,6 +129,14 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         mEmptyView = view.findViewById(R.id.empty_view);
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+
+        if(savedInstanceState != null){
+            mData = savedInstanceState.getParcelable(DATA);
+            mCurrentTermRB.setSelected(savedInstanceState.getBoolean(IS_CURRENT_TERM_SELECTED));
+            mCurrentTerm = savedInstanceState.getString(CURRENT_TERM);
+            mNextTerm = savedInstanceState.getString(NEXT_TERM);
+
+        }
 
         final Parcelable eimSavedState = (savedInstanceState != null) ? savedInstanceState.getParcelable(SAVED_STATE_EXPANDABLE_ITEM_MANAGER) : null;
         mRecyclerViewExpandableItemManager = new RecyclerViewExpandableItemManager(eimSavedState);
@@ -154,13 +161,76 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         }
         mRecyclerViewExpandableItemManager.attachRecyclerView(mRecyclerView);
 
+        if(mData == null) {
+            mTermsParser.setParseType(TermsParser.ParseType.TERM_LIST.ordinal());
+            mTermListURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint());
+            JSONDownloader downloader = new JSONDownloader(mTermListURL);
+            downloader.setOnDownloadListener(this);
+            downloader.start();
+            mProgressBar.setVisibility(View.VISIBLE);
+        }else{
+            mCurrentTermRB.setText(getTermTitle(mCurrentTerm));
+            mNextTermRB.setText(getTermTitle(mNextTerm));
+            final JSONDownloader.onDownloadListener onDownloadListener = this;
 
-        mTermsParser.setParseType(TermsParser.ParseType.TERM_LIST.ordinal());
-        mTermListURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint());
-        JSONDownloader downloader = new JSONDownloader(mTermListURL);
-        downloader.setOnDownloadListener(this);
-        downloader.start();
-        mProgressBar.setVisibility(View.VISIBLE);
+            android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mCurrentTermRB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            Log.d("test", "mCurrentTermRB");
+                            if (isChecked) {
+                                mTerm = mCurrentTerm;
+                                mTermsParser.setParseType(TermsParser.ParseType.CATALOG_SCHEDULE.ordinal());
+                                mCourseScheduleURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint(mCurrentTerm, mSubject, mCatalogNumber));
+
+                                mProgressBar.setVisibility(View.VISIBLE);
+                                mRecyclerView.setVisibility(View.GONE);
+                                mRecyclerViewExpandableItemManager.collapseAll();
+                                mEmptyView.setVisibility(View.GONE);
+                                JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
+                                downloader.setOnDownloadListener(onDownloadListener);
+                                downloader.start();
+                            }
+                        }
+                    });
+
+                    mNextTermRB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            Log.d("test", "mNextTermRB");
+                            if (isChecked) {
+                                mTerm = mNextTerm;
+                                mTermsParser.setParseType(TermsParser.ParseType.CATALOG_SCHEDULE.ordinal());
+                                mCourseScheduleURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint(mNextTerm, mSubject, mCatalogNumber));
+
+                                mProgressBar.setVisibility(View.VISIBLE);
+                                mRecyclerView.setVisibility(View.GONE);
+                                mRecyclerViewExpandableItemManager.collapseAll();
+                                mEmptyView.setVisibility(View.GONE);
+                                JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
+                                downloader.setOnDownloadListener(onDownloadListener);
+                                downloader.start();
+                            }
+                        }
+                    });
+                }
+            });
+            mProgressBar.setVisibility(View.GONE);
+            if (mData == null || mData.getGroupCount() == 0) {
+                mEmptyView.setVisibility(View.VISIBLE);
+            } else {
+                mEmptyView.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
+                mAdapter = new CourseScheduleAdapter(mData, getActivity(),
+                        this);
+                mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
+                mRecyclerView.setAdapter(mWrappedAdapter);
+            }
+        }
     }
 
 
@@ -169,7 +239,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         Log.e(TAG, "Download failed.. url = " + givenURL);
     }
 
-    private String getTerm(String id){
+    private String getTermTitle(String id){
         String season = "";
         switch (Integer.valueOf(id.substring(3))){
             case WINTER:
@@ -187,16 +257,25 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
 
     @Override
     public void onDownloadComplete(APIResult  apiResult) {
+        Log.i(TAG, "onDownloadComplete");
+        final Activity activity = getActivity();
+        if(activity == null){
+            return;
+        }
+
         if(apiResult.getUrl().equals(mTermListURL)){
+            Log.i(TAG, "mTermListURL");
             mTermsParser.setAPIResult(apiResult);
             mTermsParser.parseJSON();
             final String currentTerm = mTermsParser.getCurrentTerm();
             final String nextTerm = mTermsParser.getNextTerm();
+            mCurrentTerm = currentTerm;
+            mNextTerm = nextTerm;
             mTerm = currentTerm;
-            final String currentTermTitle  = getTerm(currentTerm);
-            final String nextTermTitle  = getTerm(nextTerm);
+            final String currentTermTitle  = getTermTitle(currentTerm);
+            final String nextTermTitle  = getTermTitle(nextTerm);
 
-            android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+            android.os.Handler handler = new android.os.Handler(activity.getMainLooper());
             final JSONDownloader.onDownloadListener onDownloadListener = this;
             handler.post(new Runnable() {
                 @Override
@@ -254,10 +333,11 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
 
         }
         else if(apiResult.getUrl().equals(mCourseScheduleURL)) {
+            Log.i(TAG, "mCourseScheduleURL");
             mTermsParser.setAPIResult(apiResult);
-            mTermsParser.parseJSON(getActivity().getApplicationContext());
+            mTermsParser.parseJSON(activity.getApplicationContext());
 
-            android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+            android.os.Handler handler = new android.os.Handler(activity.getMainLooper());
             Runnable runnable;
             if(mAdapter == null) {
                 mData = new CourseScheduleData(mTermsParser.getCourseSchedule());
@@ -271,7 +351,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                         } else {
                             mEmptyView.setVisibility(View.GONE);
                             mRecyclerView.setVisibility(View.VISIBLE);
-                            mAdapter = new CourseScheduleAdapter(mData, getActivity(),
+                            mAdapter = new CourseScheduleAdapter(mData, activity,
                                     onButtonClickListener);
                             mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
                             mRecyclerView.setAdapter(mWrappedAdapter);
@@ -293,6 +373,9 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                             handler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
+                                    if(getActivity() == null){
+                                        return;
+                                    }
                                     mRecyclerView.setVisibility(View.VISIBLE);
                                 }
                             }, 150);
@@ -303,6 +386,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
             handler.post(runnable);
 
         }else{
+            Log.i(TAG, "mBuildingParser");
             mBuildingParser.setAPIResult(apiResult);
             mBuildingParser.parseJSON();
 
@@ -312,14 +396,14 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                         + String.valueOf(building.getLongitude()) + "(" + building.getBuildingCode() + ")");
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
-                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                if (mapIntent.resolveActivity(activity.getPackageManager()) != null) {
                     startActivity(mapIntent);
                 }
             }else{
                 Snackbar.make(mRecyclerView, "Section has no location to search", Snackbar.LENGTH_LONG).show();
             }
         }
-        Log.i(TAG, "completed ");
+        Log.i(TAG, "Completed ");
 
     }
 
@@ -334,6 +418,11 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                     SAVED_STATE_EXPANDABLE_ITEM_MANAGER,
                     mRecyclerViewExpandableItemManager.getSavedState());
         }
+
+        outState.putParcelable(DATA, mData);
+        outState.putBoolean(IS_CURRENT_TERM_SELECTED, mCurrentTermRB.isSelected());
+        outState.putString(CURRENT_TERM, mCurrentTerm);
+        outState.putString(NEXT_TERM, mNextTerm);
     }
 
     @Override
