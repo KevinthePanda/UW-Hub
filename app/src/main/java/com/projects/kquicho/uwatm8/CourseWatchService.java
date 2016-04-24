@@ -112,8 +112,8 @@ public class CourseWatchService extends IntentService {
         int id = settings.getInt(NOTIFICATION_ID, 1);
 
         Intent intent = new Intent(this, CourseTabActivity.class);
-        intent.putExtra(CourseTabActivity.CATALOG_NUMBER_TAG, catalogNumber);
-        intent.putExtra(CourseTabActivity.SUBJECT_TAG, subject);
+        intent.putExtra(CourseTabActivity.CATALOG_NUMBER, catalogNumber);
+        intent.putExtra(CourseTabActivity.SUBJECT, subject);
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
