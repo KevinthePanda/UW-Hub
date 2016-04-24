@@ -251,9 +251,9 @@ public static final String TAG = "GroupSubjectFragment";
                         }
 
                         Intent intent = new Intent(getActivity(), CourseTabActivity.class);
-                        intent.putExtra(CourseTabActivity.CATALOG_NUMBER_TAG, catalogNumber);
-                        intent.putExtra(CourseTabActivity.SUBJECT_TAG, mPreviousSearchSubject);
-                        intent.putExtra(CourseTabActivity.SUBTITLE_TAG, title);
+                        intent.putExtra(CourseTabActivity.CATALOG_NUMBER, catalogNumber);
+                        intent.putExtra(CourseTabActivity.SUBJECT, mPreviousSearchSubject);
+                        intent.putExtra(CourseTabActivity.SUBTITLE, title);
                         startActivity(intent);
                     }
                 });

@@ -120,15 +120,17 @@ public class CourseScheduleAdapter
 
 
     public CourseScheduleAdapter(CourseScheduleData data, Activity activity,
-                                 onButtonClickListener onButtonClickListener){
+                                 onButtonClickListener onButtonClickListener) {
         mData = data;
-        mEnrollmentStatusOpen = ContextCompat.getDrawable(activity, R.drawable.enrollment_status_open);
-        mEnrollmentStatusFull = ContextCompat.getDrawable(activity, R.drawable.enrollment_status_full);
-        mViewCalendarDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_calendar);
-        mAddCalendarDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_calendar_plus);
-        mEyeClosedDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_eye_off);
-        mEyeOpenDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_eye);
-        mDensity = (int)activity.getResources().getDisplayMetrics().density;
+        if (activity != null) {
+            mEnrollmentStatusOpen = ContextCompat.getDrawable(activity, R.drawable.enrollment_status_open);
+            mEnrollmentStatusFull = ContextCompat.getDrawable(activity, R.drawable.enrollment_status_full);
+            mViewCalendarDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_calendar);
+            mAddCalendarDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_calendar_plus);
+            mEyeClosedDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_eye_off);
+            mEyeOpenDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_eye);
+            mDensity = (int) activity.getResources().getDisplayMetrics().density;
+        }
         mOnButtonClickListener = onButtonClickListener;
 
 

@@ -155,13 +155,13 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.i(TAG, "onSaveInstanceState");
-        super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(DATA, mData);
         outState.putString(SUBJECT, mSubject);
         outState.putString(CALLING_FRAGMENT_TITLE, mCallingFragmentTitle);
         if(mTitle != null) {
             outState.putString(TITLE, mTitle);
         }
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -209,9 +209,9 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
     @Override
     public void onCourseClick(String catalogNumber, String title) {
         Intent intent = new Intent(getActivity(), CourseTabActivity.class);
-        intent.putExtra(CourseTabActivity.CATALOG_NUMBER_TAG, catalogNumber);
-        intent.putExtra(CourseTabActivity.SUBJECT_TAG, mSubject);
-        intent.putExtra(CourseTabActivity.SUBTITLE_TAG, title);
+        intent.putExtra(CourseTabActivity.CATALOG_NUMBER, catalogNumber);
+        intent.putExtra(CourseTabActivity.SUBJECT, mSubject);
+        intent.putExtra(CourseTabActivity.SUBTITLE, title);
         startActivity(intent);
     }
 

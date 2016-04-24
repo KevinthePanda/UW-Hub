@@ -1,10 +1,13 @@
 package com.projects.kquicho.uw_api_client.Course;
 
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by Kevin Quicho on 3/14/2016.
  */
-public class CourseDetails extends Course {
+public class CourseDetails extends Course implements Parcelable {
     private String mInstructions = null;
     private String mPrerequisites = null;
     private String mAntirequisites = null;
@@ -212,5 +215,74 @@ public class CourseDetails extends Course {
     public void setConradGrebelOnly(Boolean conradGrebelOnly) {
         mConradGrebelOnly = conradGrebelOnly;
     }
+
+    public CourseDetails(){}
+
+    public CourseDetails (Parcel in){
+        mInstructions = in.readString();
+        mPrerequisites = in.readString();
+        mAntirequisites = in.readString();
+        mCorequisites = in.readString();
+        mCrossListings = in.readString();
+        mTermsOffered = in.readString();
+        mNotes = in.readString();
+        mNeedsDepartmentConsent = in.readByte() != 0;
+        mNeedsInstructorConsent = in.readByte() != 0;
+        mExtra = in.readString();
+        mCalendarYear = in.readString();
+        mUrl = in.readString();
+        mOnline = in.readByte() != 0;
+        mOnlineOnly = in.readByte() != 0;
+        mStJeromes = in.readByte() != 0;
+        mStJeromesOnly = in.readByte() != 0;
+        mRenison = in.readByte() != 0;
+        mRenisonOnly = in.readByte() != 0;
+        mConradGrebel = in.readByte() != 0;
+        mConradGrebelOnly = in.readByte() != 0;
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public CourseDetails createFromParcel(Parcel in) {
+            return new CourseDetails(in);
+        }
+
+        public CourseDetails[] newArray(int size) {
+            return new CourseDetails[size];
+        }
+    };
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mInstructions);
+        dest.writeString(mPrerequisites);
+        dest.writeString(mAntirequisites);
+        dest.writeString(mCorequisites);
+        dest.writeString(mCrossListings);
+        dest.writeString(mTermsOffered);
+        dest.writeString(mNotes);
+        dest.writeByte((byte) (mNeedsDepartmentConsent ? 1 : 0));
+        dest.writeByte((byte) (mNeedsInstructorConsent ? 1 : 0));
+        dest.writeString(mExtra);
+        dest.writeString(mCalendarYear);
+        dest.writeString(mUrl);
+        dest.writeByte((byte) (mOnline ? 1 : 0));
+        dest.writeByte((byte) (mOnlineOnly ? 1 : 0));
+        dest.writeByte((byte) (mStJeromes ? 1 : 0));
+        dest.writeByte((byte) (mStJeromesOnly ? 1 : 0));
+        dest.writeByte((byte) (mRenison ? 1 : 0));
+        dest.writeByte((byte) (mRenisonOnly ? 1 : 0));
+        dest.writeByte((byte) (mConradGrebel ? 1 : 0));
+        dest.writeByte((byte) (mConradGrebelOnly ? 1 : 0));
+
+    }
+
+
+
 
 }

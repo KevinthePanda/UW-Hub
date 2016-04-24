@@ -1,14 +1,21 @@
 package com.projects.kquicho.uwatm8;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.util.Pair;
 
+import com.projects.kquicho.uw_api_client.Codes.Group;
+import com.projects.kquicho.uw_api_client.Codes.Subject;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Kevin Quicho on 3/19/2016.
  */
-public class CourseScheduleData extends  AbstractExpandableData{
+public class CourseScheduleData extends  AbstractExpandableData implements Parcelable{
     ArrayList<Pair<GroupData, ArrayList<ChildData>>> mData;
 
     public CourseScheduleData(ArrayList<Pair<GroupData, ArrayList<ChildData>>> data){
@@ -53,7 +60,40 @@ public class CourseScheduleData extends  AbstractExpandableData{
         mData.addAll(data);
     }
 
-    public void clearData(){
-        mData.clear();
+    public CourseScheduleData(Parcel in){
+        // ArrayList<Pair<GroupData, ArrayList<ChildData>>> mData;
+        int size = in.readInt();
+        mData = new ArrayList<>();
+        for(int i = 0; i < size; i++){
+            GroupData first = in.readParcelable(GroupData.class.getClassLoader());
+            ArrayList<ChildData> second = new ArrayList<>();
+            in.readTypedList(second, ChildData.CREATOR);
+            mData.add(new Pair<>(first, second));
+        }
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(mData.size());
+        for(Pair<GroupData, ArrayList<ChildData>> entry : mData){
+            dest.writeParcelable(entry.first, 0);
+            dest.writeTypedList(entry.second);
+        }
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public CourseScheduleData createFromParcel(Parcel in) {
+            return new CourseScheduleData(in);
+        }
+
+        public CourseScheduleData[] newArray(int size) {
+            return new CourseScheduleData[size];
+        }
+    };
+
 }
