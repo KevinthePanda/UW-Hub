@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.NinePatchDrawable;
@@ -18,8 +19,10 @@ import android.os.Parcelable;
 import android.provider.CalendarContract;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -666,7 +669,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd", Locale.CANADA);
         String endDate = dateFormat.format(endTime.getTime());
 
-        ContentValues values = new ContentValues();
+        final ContentValues values = new ContentValues();
         values.put(CalendarContract.Events.DTSTART, beginTime.getTimeInMillis());
         values.put(CalendarContract.Events.TITLE,  mSubject + " " + mCatalogNumber + " - " + sectionData.getSection());
         values.put(CalendarContract.Events.CALENDAR_ID, 1);
@@ -675,9 +678,27 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         values.put(CalendarContract.Events.EVENT_LOCATION, sectionData.getBuilding() + " - " + sectionData.getRoom());
         values.put(CalendarContract.Events.DURATION, "PT" + String.valueOf(hDuration) +
                 "H" + String.valueOf(mDuration) + "M0S");
-        Cookie cookie = new Cookie(sectionData.getSection()+ " " + mSubject + mCatalogNumber + mTerm,
+        final Cookie cookie = new Cookie(sectionData.getSection()+ " " + mSubject + mCatalogNumber + mTerm,
                 groupPosition, childPosition);
-        mHandler.startInsert(0,cookie , CalendarContract.Events.CONTENT_URI, values);
+
+        AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
+        alertDialog.setTitle("Google Calendar Event");
+        alertDialog.setMessage("Are you sure you want to add this event to your Primary Google Calendar?");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        mHandler.startInsert(0,cookie , CalendarContract.Events.CONTENT_URI, values);
+                        dialog.dismiss();
+
+                    }
+                });
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
 
     }
 
@@ -706,7 +727,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
             Log.e(TAG, ex.getMessage());
             return;
         }
-        ContentValues values = new ContentValues();
+        final ContentValues values = new ContentValues();
         values.put(CalendarContract.Events.DTSTART, date.getTime());
         values.put(CalendarContract.Events.TITLE,  mSubject + " " + mCatalogNumber + " - " + sectionData.getSection());
         values.put(CalendarContract.Events.CALENDAR_ID, 1);
@@ -718,9 +739,28 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         }
         values.put(CalendarContract.Events.DURATION, "PT" + String.valueOf(hDuration) +
                 "H" + String.valueOf(mDuration) + "M0S");
-        Cookie cookie = new Cookie(sectionData.getSection()+ " " + mSubject + mCatalogNumber + mTerm,
+        final Cookie cookie = new Cookie(sectionData.getSection()+ " " + mSubject + mCatalogNumber + mTerm,
                 groupPosition, childPosition);
-        mHandler.startInsert(0,cookie , CalendarContract.Events.CONTENT_URI, values);
+
+        AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
+        alertDialog.setTitle("Google Calendar Event");
+        alertDialog.setMessage("Are you sure you want to add this event to your Primary Google Calendar?");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        mHandler.startInsert(0,cookie , CalendarContract.Events.CONTENT_URI, values);
+                        dialog.dismiss();
+
+                    }
+                });
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
+
 
     }
 
