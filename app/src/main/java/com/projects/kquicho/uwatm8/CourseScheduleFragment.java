@@ -274,7 +274,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                 View perm_msg = mContainer.findViewById(R.id.permission_msg);
                 View perm_btn = mContainer.findViewById(R.id.permission_btn);
                 View term_toggle = mContainer.findViewById(R.id.term_toggle);
-                View coord_layout = mContainer.findViewById(R.id.coordinator_layout);
+                View coord_layout = mContainer.findViewById(R.id.group_view);
 
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mTermsParser.setParseType(TermsParser.ParseType.TERM_LIST.ordinal());
@@ -310,7 +310,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                         createTSTEvent(mCourseSectionData, mGroupPos, mChildPos);
                     }
                 } else {
-                    Snackbar.make(mContainer.findViewById(R.id.coordinator_layout),
+                    Snackbar.make(mContainer.findViewById(R.id.group_view),
                             "Requires \"Write Calendar\" Permission", Snackbar.LENGTH_LONG).show();
 
                 }
@@ -773,8 +773,10 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                 if(sectionData.getCampus().contains("ONLINE")){
                     Snackbar.make(mRecyclerView, "Cannot add online sections to calendar", Snackbar.LENGTH_LONG).show();
                     return;
-                }else if(sectionData.getWeekdays().equals("TBA") || !sectionData.getStartTime().contains(":")){
-                    Snackbar.make(mRecyclerView, "Cannot add non-finalized sections", Snackbar.LENGTH_LONG).show();
+                }else if(sectionData.getWeekdays().equals("TBA") || !sectionData.getStartTime().contains(":")
+                || !sectionData.getEndTime().contains(":") || sectionData.getSection() == null ||
+                        sectionData.getWeekdays().contains("(")){
+                    Snackbar.make(mRecyclerView, "Section has incompatible data, cannot create an event ", Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
@@ -852,6 +854,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
 
     @Override
     public void onInsertComplete(int token, final Object cookie, Uri uri) {
+        Log.d(TAG, "onInsertComplete");
         switch (token){
             case 0:
                 final Cookie cookieObject = (Cookie)cookie;
