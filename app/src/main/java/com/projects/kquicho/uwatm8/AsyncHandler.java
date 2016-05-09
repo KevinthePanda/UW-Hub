@@ -3,6 +3,8 @@ package com.projects.kquicho.uwatm8;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
 import android.net.Uri;
+import android.os.Message;
+import android.util.Log;
 
 import java.lang.ref.WeakReference;
 
