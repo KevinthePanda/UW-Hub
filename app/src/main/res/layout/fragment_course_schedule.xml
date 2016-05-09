@@ -47,8 +47,8 @@
             android:gravity="center"/>
     </RadioGroup>
 
-    <android.support.design.widget.CoordinatorLayout
-        android:id="@+id/coordinator_layout"
+    <RelativeLayout
+        android:id="@+id/group_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/term_toggle">
@@ -79,7 +79,7 @@
             android:paddingBottom="8dp"
             android:paddingRight="8dp"
             android:paddingLeft="8dp"/>
-    </android.support.design.widget.CoordinatorLayout>
+    </RelativeLayout>
     <TextView
         android:id="@+id/permission_msg"
         android:layout_width="wrap_content"
