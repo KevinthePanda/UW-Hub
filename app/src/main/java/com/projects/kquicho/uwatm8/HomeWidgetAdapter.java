@@ -271,7 +271,7 @@ public class HomeWidgetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                         bgResId = R.drawable.bg_item_dragging_active_state;
 
                         // need to clear drawable state here to get correct appearance of the dragging item.
-                        DrawableUtils.clearState(vh1.container.getForeground());
+                   //     DrawableUtils.clearState(vh1.container.getForeground());
                     } else if ((dragState1 & Draggable.STATE_FLAG_DRAGGING) != 0) {
                         bgResId = R.drawable.bg_item_dragging_state;
                     } else {
@@ -293,7 +293,7 @@ public class HomeWidgetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                         bgResId = R.drawable.bg_item_dragging_active_state;
 
                         // need to clear drawable state here to get correct appearance of the dragging item.
-                        DrawableUtils.clearState(vh2.container.getForeground());
+                       // DrawableUtils.clearState(vh2.container.getDraw());
                     } else if ((dragState2 & Draggable.STATE_FLAG_DRAGGING) != 0) {
                         bgResId = R.drawable.bg_item_dragging_state;
                     } else {
