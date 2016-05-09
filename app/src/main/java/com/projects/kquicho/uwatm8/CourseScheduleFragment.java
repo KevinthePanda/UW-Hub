@@ -1,5 +1,6 @@
 package com.projects.kquicho.uwatm8;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -7,6 +8,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.NinePatchDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -15,6 +17,7 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.provider.CalendarContract;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -61,10 +64,16 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     private final int WINTER = 1;
     private final int SPRING = 5;
     private final int FALL = 9;
+    private final int PERMISSIONS_REQUEST_GET_ACCOUNTS = 0;
+    private final int PERMISSIONS_REQUEST_WRITE_CALENDAR = 1;
+
     private final String DATA = "data";
     private final String IS_CURRENT_TERM_SELECTED = "isCurrentTermSelected";
     private final String CURRENT_TERM = "currentTerm";
     private final String NEXT_TERM = "nextTerm";
+    private final String COURSE_SECTION_DATA = "courseSectionData";
+    private final String GROUP_POS = "groupPos";
+    private final String CHILD_POS = "childPos";
 
     private CourseScheduleData mData;
     private CourseScheduleAdapter mAdapter;
@@ -91,6 +100,10 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     private View mProgressBar;
     private RadioButton mCurrentTermRB;
     private RadioButton mNextTermRB;
+    private View mContainer;
+    private CourseSectionData mCourseSectionData;
+    private Integer mGroupPos;
+    private Integer mChildPos;
 
     public static CourseScheduleFragment newInstance(String subject, String catalogNumber) {
 
@@ -109,7 +122,9 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         mSubject = args.getString(SUBJECT);
         mCatalogNumber = args.getString(CATALOG_NUMBER);
         mHandler = new AsyncHandler(getActivity().getContentResolver(), this);
+
         mDBHelper = CourseDBHelper.getInstance(getActivity().getApplicationContext());
+
     }
 
     @Override
@@ -122,6 +137,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
+        Log.d(TAG, "onViewCreated");
 
         mCurrentTermRB = (RadioButton)view.findViewById(R.id.current_term);
         mNextTermRB = (RadioButton)view.findViewById(R.id.next_term);
@@ -129,13 +145,22 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         mEmptyView = view.findViewById(R.id.empty_view);
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+        mContainer = view;
 
         if(savedInstanceState != null){
+            Log.d(TAG, "savedInstanceState != null");
             mData = savedInstanceState.getParcelable(DATA);
-            mCurrentTermRB.setSelected(savedInstanceState.getBoolean(IS_CURRENT_TERM_SELECTED));
+            boolean isCurrentSelected = savedInstanceState.getBoolean(IS_CURRENT_TERM_SELECTED);
+            mCurrentTermRB.setSelected(isCurrentSelected);
             mCurrentTerm = savedInstanceState.getString(CURRENT_TERM);
             mNextTerm = savedInstanceState.getString(NEXT_TERM);
-
+            mTerm = mNextTerm;
+            if(isCurrentSelected){
+                mTerm = mCurrentTerm;
+            }
+            mCourseSectionData = savedInstanceState.getParcelable(COURSE_SECTION_DATA);
+            mGroupPos = savedInstanceState.getInt(GROUP_POS);
+            mChildPos = savedInstanceState.getInt(CHILD_POS);
         }
 
         final Parcelable eimSavedState = (savedInstanceState != null) ? savedInstanceState.getParcelable(SAVED_STATE_EXPANDABLE_ITEM_MANAGER) : null;
@@ -162,12 +187,19 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         mRecyclerViewExpandableItemManager.attachRecyclerView(mRecyclerView);
 
         if(mData == null) {
-            mTermsParser.setParseType(TermsParser.ParseType.TERM_LIST.ordinal());
-            mTermListURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint());
-            JSONDownloader downloader = new JSONDownloader(mTermListURL);
-            downloader.setOnDownloadListener(this);
-            downloader.start();
-            mProgressBar.setVisibility(View.VISIBLE);
+            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.GET_ACCOUNTS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.GET_ACCOUNTS},
+                        PERMISSIONS_REQUEST_GET_ACCOUNTS);
+
+            }else {
+                mTermsParser.setParseType(TermsParser.ParseType.TERM_LIST.ordinal());
+                mTermListURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint());
+                JSONDownloader downloader = new JSONDownloader(mTermListURL);
+                downloader.setOnDownloadListener(this);
+                downloader.start();
+                mProgressBar.setVisibility(View.VISIBLE);
+            }
         }else{
             mCurrentTermRB.setText(getTermTitle(mCurrentTerm));
             mNextTermRB.setText(getTermTitle(mNextTerm));
@@ -181,7 +213,6 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                     mCurrentTermRB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            Log.d("test", "mCurrentTermRB");
                             if (isChecked) {
                                 mTerm = mCurrentTerm;
                                 mTermsParser.setParseType(TermsParser.ParseType.CATALOG_SCHEDULE.ordinal());
@@ -201,7 +232,6 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                     mNextTermRB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            Log.d("test", "mNextTermRB");
                             if (isChecked) {
                                 mTerm = mNextTerm;
                                 mTermsParser.setParseType(TermsParser.ParseType.CATALOG_SCHEDULE.ordinal());
@@ -230,6 +260,63 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                 mWrappedAdapter = mRecyclerViewExpandableItemManager.createWrappedAdapter(mAdapter);      // wrap for expanding
                 mRecyclerView.setAdapter(mWrappedAdapter);
             }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_GET_ACCOUNTS: {
+                View perm_msg = mContainer.findViewById(R.id.permission_msg);
+                View perm_btn = mContainer.findViewById(R.id.permission_btn);
+                View term_toggle = mContainer.findViewById(R.id.term_toggle);
+                View coord_layout = mContainer.findViewById(R.id.coordinator_layout);
+
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mTermsParser.setParseType(TermsParser.ParseType.TERM_LIST.ordinal());
+                    mTermListURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint());
+                    JSONDownloader downloader = new JSONDownloader(mTermListURL);
+                    downloader.setOnDownloadListener(this);
+                    downloader.start();
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    perm_msg.setVisibility(View.GONE);
+                    perm_btn.setVisibility(View.GONE);
+                    term_toggle.setVisibility(View.VISIBLE);
+                    coord_layout.setVisibility(View.VISIBLE);
+                } else {
+                    perm_msg.setVisibility(View.VISIBLE);
+                    perm_btn.setVisibility(View.VISIBLE);
+                    term_toggle.setVisibility(View.GONE);
+                    coord_layout.setVisibility(View.GONE);
+                    perm_btn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            requestPermissions(new String[]{Manifest.permission.GET_ACCOUNTS},
+                                    PERMISSIONS_REQUEST_GET_ACCOUNTS);
+                        }
+                    });
+                }
+                return;
+            }
+            case PERMISSIONS_REQUEST_WRITE_CALENDAR:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if(!mCourseSectionData.getSection().split(" ")[0].equals("TST")) {
+                        createLECorTUTEvent(mCourseSectionData, mGroupPos, mChildPos);
+                    }else{
+                        createTSTEvent(mCourseSectionData, mGroupPos, mChildPos);
+                    }
+                } else {
+                    Snackbar.make(mContainer.findViewById(R.id.coordinator_layout),
+                            "Requires \"Write Calendar\" Permission", Snackbar.LENGTH_LONG).show();
+
+                }
+                mCourseSectionData = null;
+                mGroupPos = null;
+                mChildPos = null;
+                return;
+
+
         }
     }
 
@@ -411,6 +498,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        Log.d(TAG, "onSavedInstanceState");
 
         // save current state to support screen rotation, etc...
         if (mRecyclerViewExpandableItemManager != null) {
@@ -423,6 +511,9 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
         outState.putBoolean(IS_CURRENT_TERM_SELECTED, mCurrentTermRB.isSelected());
         outState.putString(CURRENT_TERM, mCurrentTerm);
         outState.putString(NEXT_TERM, mNextTerm);
+        outState.putParcelable(COURSE_SECTION_DATA, mCourseSectionData);
+        outState.putInt(GROUP_POS, mGroupPos == null ? 0 : mGroupPos);
+        outState.putInt(CHILD_POS, mChildPos == null ? 0 : mChildPos);
     }
 
     @Override
@@ -640,13 +731,25 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
 
             case CourseScheduleAdapter.ADD_EVENT:
                 if(sectionData.getCampus().contains("ONLINE")){
-                    Snackbar.make(mRecyclerView, "Cannot add online courses to calendar", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(mRecyclerView, "Cannot add online sections to calendar", Snackbar.LENGTH_LONG).show();
+                    return;
+                }else if(sectionData.getWeekdays().equals("TBA") || !sectionData.getStartTime().contains(":")){
+                    Snackbar.make(mRecyclerView, "Cannot add non-finalized sections", Snackbar.LENGTH_LONG).show();
                     return;
                 }
-                if(!sectionData.getSection().split(" ")[0].equals("TST")) {
-                    createLECorTUTEvent(sectionData, groupPosition, childPosition);
+
+                if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_CALENDAR)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    mCourseSectionData = sectionData;
+                    mGroupPos = groupPosition;
+                    mChildPos = childPosition;
+                    requestPermissions(new String[]{Manifest.permission.WRITE_CALENDAR}, PERMISSIONS_REQUEST_WRITE_CALENDAR);
                 }else{
-                    createTSTEvent(sectionData, groupPosition, childPosition);
+                    if(!sectionData.getSection().split(" ")[0].equals("TST")) {
+                        createLECorTUTEvent(sectionData, groupPosition, childPosition);
+                    }else{
+                        createTSTEvent(sectionData, groupPosition, childPosition);
+                    }
                 }
                 break;
             case CourseScheduleAdapter.DIRECTION:
