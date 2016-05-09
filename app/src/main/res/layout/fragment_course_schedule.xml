@@ -48,6 +48,7 @@
     </RadioGroup>
 
     <android.support.design.widget.CoordinatorLayout
+        android:id="@+id/coordinator_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/term_toggle">
@@ -79,4 +80,20 @@
             android:paddingRight="8dp"
             android:paddingLeft="8dp"/>
     </android.support.design.widget.CoordinatorLayout>
+    <TextView
+        android:id="@+id/permission_msg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:text="Requires permission to your calendar\nto detect existing course events "
+        android:visibility="gone"/>
+    <Button
+        android:id="@+id/permission_btn"
+        android:layout_below="@id/permission_msg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="Give permission"
+        android:visibility="gone"/>
 </RelativeLayout>

@@ -31,7 +31,6 @@ public class CourseTabActivity extends AppCompatActivity {
 
     @Override
     public void onCreate(final Bundle savedInstanceState){
-        Log.i("test", "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_course_tabs);
 
@@ -62,41 +61,43 @@ public class CourseTabActivity extends AppCompatActivity {
         final ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
         mViewPager = viewPager;
         mTabLayout = tabLayout;
-        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                viewPager.setCurrentItem(tab.getPosition());
-            }
+        if(tabLayout!= null) {
+            tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    viewPager.setCurrentItem(tab.getPosition());
+                }
 
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
+                @Override
+                public void onTabUnselected(TabLayout.Tab tab) {
 
-            }
+                }
 
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {
 
-            }
-        });
+                }
+            });
+            tabLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    tabLayout.setupWithViewPager(viewPager);
+                    if(savedInstanceState != null)
+                        mViewPager.setCurrentItem(savedInstanceState.getInt(POSITION));
+                }
+            });
+        }
+        if(viewPager !=null) {
+            viewPager.setAdapter(new PagerAdapter(getSupportFragmentManager()));
+            viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        }
 
-        viewPager.setAdapter(new PagerAdapter(getSupportFragmentManager()));
-        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
 
-
-        tabLayout.post(new Runnable() {
-            @Override
-            public void run() {
-                tabLayout.setupWithViewPager(viewPager);
-                if(savedInstanceState != null)
-                    mViewPager.setCurrentItem(savedInstanceState.getInt(POSITION));
-            }
-        });
 
     }
 
     @Override
     protected void onStart(){
-        Log.i("test", "onStart");
         super.onStart();
         mTabLayout.post(new Runnable() {
             @Override
@@ -108,34 +109,26 @@ public class CourseTabActivity extends AppCompatActivity {
 
     @Override
     protected void onStop(){
-        Log.i("test", "onStop");
+        mCurrentPosition = mViewPager.getCurrentItem();
+        mViewPager.setCurrentItem(0);
         super.onStop();
-       // mCurrentPosition = mViewPager.getCurrentItem();
     }
     @Override
     protected void onRestoreInstanceState(final Bundle savedInstanceState) {
-        Log.i("test", "onRestoreInstanceState");
-        super.onRestoreInstanceState(savedInstanceState);
         mTabLayout.post(new Runnable() {
             @Override
             public void run() {
                 mViewPager.setCurrentItem(savedInstanceState.getInt(POSITION));
             }
         });
-
-
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        Log.i("test", "onSaveInstanceState");
         outState.putString(SUBJECT, mSubject);
         outState.putString(CATALOG_NUMBER, mCatalogNumber);
         outState.putString(SUBTITLE, mSubtitle);
         outState.putInt(POSITION, mTabLayout.getSelectedTabPosition());
-        mCurrentPosition = mViewPager.getCurrentItem();
-        mViewPager.setCurrentItem(0);
-
         super.onSaveInstanceState(outState);
     }
 
