@@ -67,22 +67,34 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:layout_alignBottom="@+id/saved_company_1"/>
+                android:layout_alignBottom="@+id/saved_row_1"/>
 
-            <TextView
-                android:id="@id/saved_company_1"
+            <RelativeLayout
+                android:id="@id/saved_row_1"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingRight="16dp"
-                android:singleLine="true"
-                android:ellipsize="end"
-                android:gravity="left"
-                android:textAppearance="@style/TextAppearance.AppCompat.Subhead"/>
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:id="@+id/saved_image_1"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_star"
+                    android:layout_centerVertical="true"/>
+                <TextView
+                    android:id="@+id/saved_company_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="16dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:gravity="left"
+                    android:layout_toRightOf="@id/saved_image"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"/>
+            </RelativeLayout>
             <TextView
                 android:id="@+id/saved_time_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/saved_company_1"
+                android:layout_below="@id/saved_row_1"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_alignParentRight="true"/>
             <TextView
@@ -90,7 +102,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:layout_below="@id/saved_company_1"/>
+                android:layout_below="@id/saved_row_1"/>
         </RelativeLayout>
         <RelativeLayout
             android:id="@+id/saved_company_2_container"
@@ -115,22 +127,33 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_below="@id/saved_divider_2"/>
 
-            <TextView
-                android:id="@+id/saved_company_2"
+            <RelativeLayout
+                android:id="@+id/saved_row_2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingRight="16dp"
-                android:singleLine="true"
-                android:ellipsize="end"
-                android:gravity="left"
-                android:layout_toLeftOf="@id/saved_date_2"
-                android:layout_below="@id/saved_divider_2"
-                android:textAppearance="@style/TextAppearance.AppCompat.Subhead"/>
+                android:layout_below="@id/saved_divider_2">
+                <ImageView
+                    android:id="@+id/saved_image_2"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_star"
+                    android:layout_centerVertical="true"/>
+                <TextView
+                    android:id="@+id/saved_company_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="16dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:gravity="left"
+                    android:layout_toRightOf="@id/saved_image"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"/>
+            </RelativeLayout>
             <TextView
                 android:id="@+id/saved_time_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/saved_company_2"
+                android:layout_below="@id/saved_row_2"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_alignParentRight="true"/>
             <TextView
@@ -138,7 +161,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:layout_below="@id/saved_company_2"/>
+                android:layout_below="@id/saved_row_2"/>
         </RelativeLayout>
         <RelativeLayout
             android:id="@+id/saved_company_3_container"
@@ -162,22 +185,33 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_alignParentRight="true"
                 android:layout_below="@id/saved_divider_3"/>
-            <TextView
-                android:id="@+id/saved_company_3"
+            <RelativeLayout
+                android:id="@+id/saved_row_3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingRight="16dp"
-                android:singleLine="true"
-                android:ellipsize="end"
-                android:gravity="left"
-                android:layout_toLeftOf="@id/saved_date_3"
-                android:layout_below="@id/saved_divider_3"
-                android:textAppearance="@style/TextAppearance.AppCompat.Subhead"/>
+                android:layout_below="@id/saved_divider_3">
+            <ImageView
+                    android:id="@+id/saved_image_3"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_star"
+                    android:layout_centerVertical="true"/>
+                <TextView
+                    android:id="@+id/saved_company_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="16dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:gravity="left"
+                    android:layout_toRightOf="@id/saved_image"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"/>
+            </RelativeLayout>
             <TextView
                 android:id="@+id/saved_time_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/saved_company_3"
+                android:layout_below="@id/saved_row_3"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:layout_alignParentRight="true"/>
             <TextView
@@ -185,7 +219,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:layout_below="@id/saved_company_3"/>
+                android:layout_below="@id/saved_row_3"/>
         </RelativeLayout>
 
         <TextView

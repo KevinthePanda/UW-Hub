@@ -1,15 +1,13 @@
 package com.projects.kquicho.uw_api_client.Resources;
 import android.content.Context;
 import android.util.Log;
-import android.view.ViewGroup;
 
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.projects.kquicho.uw_api_client.Core.APIResult;
 import com.projects.kquicho.uw_api_client.Core.MetaData;
 import com.projects.kquicho.uw_api_client.Core.MetaDataParser;
 import com.projects.kquicho.uw_api_client.Core.UWParser;
-import com.projects.kquicho.uwatm8.InfoSessionDBHelper;
-import com.projects.kquicho.uwatm8.InfoSessionDBModel;
+import com.projects.kquicho.uwhub.InfoSessionDBHelper;
+import com.projects.kquicho.uwhub.InfoSessionDBModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,6 +17,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 
@@ -304,6 +304,8 @@ public class ResourcesParser extends UWParser {
                         continue;
                     }
 
+                    location.setTime(date.getTime());
+
                     //add date
                     format = new SimpleDateFormat("yyyy-MM-dd", Locale.CANADA);
                     date = format.parse(rawDate);
@@ -341,12 +343,22 @@ public class ResourcesParser extends UWParser {
                 location.setBuildingCode(jsonBuildingObject.getString(CODE_TAG));
                 location.setBuildingRoom(jsonBuildingObject.getString(ROOM_TAG));
                 homeWidgetInfoSessions.add(location);
-                if(homeWidgetInfoSessions.size() == 3){
+                if(homeWidgetInfoSessions.size() == 10){
+                    Collections.sort(homeWidgetInfoSessions, new CustonComparator());
+                    homeWidgetInfoSessions = new ArrayList<>(homeWidgetInfoSessions.subList(0,3));
+
                     return;
                 }
             }
         } catch (JSONException e){
             e.printStackTrace();
+        }
+    }
+    public class CustonComparator implements Comparator<InfoSession>{
+        @Override
+        public int compare(InfoSession o1, InfoSession o2) {
+            return  o1.getTime()<o2.getTime()?-1:
+                    o1.getTime()>o2.getTime()?1:0;
         }
     }
 

@@ -69,7 +69,7 @@
         android:layout_margin="16dp"
         app:layout_anchor="@id/bottom_sheet"
         app:layout_anchorGravity="right|end"
-        app:layout_behavior="com.projects.kquicho.uwatm8.ScrollAwareFABBehavior"
+        app:layout_behavior="com.projects.kquicho.uwhub.ScrollAwareFABBehavior"
         app:backgroundTint="@color/theme_primary"
         android:visibility="gone"/>
     <FrameLayout
