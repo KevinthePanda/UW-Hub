@@ -6,7 +6,7 @@
     <statePointEntry>
       <state      
         class = "com.android.tools.idea.editors.navigation.model.ActivityState"      
-        className = "com.projects.kquicho.uwatm8.CourseTabActivity"/>
+        className = "com.projects.kquicho.uwhub.CourseTabActivity"/>
       <point      
         x = "500"      
         y = "100"/>
@@ -14,7 +14,7 @@
     <statePointEntry>
       <state      
         class = "com.android.tools.idea.editors.navigation.model.ActivityState"      
-        className = "com.projects.kquicho.uwatm8.InfoSessionActivity"/>
+        className = "com.projects.kquicho.uwhub.InfoSessionActivity"/>
       <point      
         x = "548"      
         y = "148"/>
@@ -22,7 +22,7 @@
     <statePointEntry>
       <state      
         class = "com.android.tools.idea.editors.navigation.model.ActivityState"      
-        className = "com.projects.kquicho.uwatm8.MainActivity"/>
+        className = "com.projects.kquicho.uwhub.MainActivity"/>
       <point      
         x = "600"      
         y = "200"/>

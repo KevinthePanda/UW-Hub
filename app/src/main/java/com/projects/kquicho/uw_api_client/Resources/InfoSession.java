@@ -22,6 +22,15 @@ public class InfoSession implements Parcelable{
     private double longitude =  0.0;
     private String link =  null;
     private boolean isCancelled = false;
+    private long time = 0;
+
+    public void setTime(long time){
+        this.time = time;
+    }
+
+    public long getTime(){
+        return time;
+    }
 
     public boolean isCancelled() {
         return isCancelled;
