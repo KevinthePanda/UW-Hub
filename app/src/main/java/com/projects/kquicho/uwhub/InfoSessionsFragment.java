@@ -2,8 +2,12 @@ package com.projects.kquicho.uwhub;
 
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
@@ -17,6 +21,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.LinearSmoothScroller;
@@ -49,11 +54,13 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.ListIterator;
 import java.util.Locale;
+import java.util.StringTokenizer;
 import java.util.TimeZone;
 
 public class InfoSessionsFragment extends Fragment implements JSONDownloader.onDownloadListener,
@@ -346,7 +353,6 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
         ListIterator li = infoSessions.listIterator(infoSessions.size());
         InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(activity.getApplicationContext());
         DateFormat format = new SimpleDateFormat("MMM d, yy HH:mm", Locale.CANADA);
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
         while (li.hasPrevious()){
             InfoSession infoSession = (InfoSession)li.previous();
             Date date = null;
@@ -398,7 +404,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     }
 
     @Override
-    public void onInfoSessionClick(InfoSessionData infoSessionData, int position, int type) {
+    public void onInfoSessionClick(final InfoSessionData infoSessionData, final int position, int type) {
         mCurrentInfoSessionPosition = position;
 
         switch (type) {
@@ -435,8 +441,90 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
 
                 break;
             case InfoSessionAdapter.SAVE_CLICK:
-                Snackbar.make(mRecyclerView, getString(R.string.info_session_save_message),Snackbar.LENGTH_LONG)
-                        .show();
+                final InfoSession infoSession = infoSessionData.getInfoSession();
+                final InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(getActivity().getApplicationContext());
+                final Intent newIntent = new Intent(getActivity().getApplicationContext(), InfoSessionAlarmReceiver.class);
+
+                if (infoSessionData.toggleAlert()) {
+                    final CharSequence[] items = {
+                            "At time of event", "10 minutes before", "30 minutes before"
+                    };
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    builder.setItems(items, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int item) {
+                            int time;
+                            String message;
+                            if(item == 0){
+                                time = 0;
+                                message = getString(R.string.info_session_save_at_time_of_event);
+                            }else if (item == 1){
+                                time = 600000;
+                                message = getString(R.string.info_session_save_before, "10 minutes");
+
+                            }else{
+                                time = 1800000;
+                                message = getString(R.string.info_session_save_before, "30 minutes");
+                            }
+                            long alarmTime = infoSessionData.getTime() - time;
+                            int id = infoSession.getId();
+
+                            InfoSessionDBModel infoSessionDBModel = new
+                                    InfoSessionDBModel(infoSession.getId(), alarmTime, infoSession.getEmployer(),
+                                    infoSession.getBuildingCode() + " - " + infoSession.getBuildingRoom(),
+                                    infoSession.getDate(),  infoSession.getDisplay_time_range());
+                            dbHelper.addInfoSession(infoSessionDBModel);
+
+                            newIntent.putExtra(InfoSessionAlarmReceiver.INFO_SESSION_MODEL, infoSessionDBModel);
+
+                            final PendingIntent pIntent = PendingIntent.getBroadcast(getActivity(),
+                                    id,newIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                            AlarmManager alarm = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+                            //set the alarm an hour before the start time
+                            alarm.set(AlarmManager.RTC_WAKEUP, alarmTime, pIntent);
+                            Log.d(TAG, "Setting alarm for " + id + " at " + alarmTime );
+                            Log.d(TAG, infoSessionData.getInfoSession().getStart_time());
+
+                            Snackbar.make(mRecyclerView, message, Snackbar.LENGTH_LONG)
+                                    .show();
+                            infoSessionData.setPinned(false);
+                            mAdapter.notifyItemChanged(position);
+                        }
+                    });
+                    AlertDialog alert = builder.create();
+                    alert.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                            infoSessionData.toggleAlert();
+                        }
+                    });
+                    alert.show();
+
+
+
+
+                } else {
+                    InfoSessionDBModel infoSessionDBModel = new InfoSessionDBModel();
+                    infoSessionDBModel.setId(infoSession.getId());
+                    dbHelper.deleteInfoSession(infoSessionDBModel);
+
+                    final PendingIntent pIntent = PendingIntent.getBroadcast(getActivity(), infoSession.getId(),
+                            newIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    AlarmManager alarm = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+                    alarm.cancel(pIntent);
+                    if(!mAdapter.getIsShowingAll()){
+                        mData.remove(infoSessionData);
+                        mAdapter.notifyItemRemoved(position);
+                        mAdapter.notifyItemRangeChanged(position, mData.size());
+                    }
+                    Snackbar.make(mRecyclerView, getString(R.string.info_session_removed),Snackbar.LENGTH_LONG)
+                            .show();
+                    infoSessionData.setPinned(false);
+                    mAdapter.notifyItemChanged(position);
+
+                }
+
                 break;
 
         }
