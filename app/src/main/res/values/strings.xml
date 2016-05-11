@@ -41,6 +41,8 @@
     <string name="no_saved_info_sessions">You have no saved info sessions</string>
     <string name="no_courses_available">No courses available</string>
     <string name="no_sections_available">No sections available</string>
-    <string name="info_session_save_message">Info session saved\nYou\'ll receive a reminder an hour before the event</string>
+    <string name="info_session_save_at_time_of_event">Info session saved\nYou\'ll receive a notification at the time of the event</string>
+    <string name="info_session_save_before">Info session saved\nYou\'ll receive a notification %1$s before the event</string>
+    <string name="info_session_removed">Info session removed</string>
 
 </resources>

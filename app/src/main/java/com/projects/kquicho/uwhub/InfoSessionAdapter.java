@@ -108,48 +108,7 @@ public class InfoSessionAdapter extends RecyclerView.Adapter<InfoSessionAdapter.
 
     public void toggleSetAlert(int position){
         final InfoSessionData data = mData.get(position);
-        if (data.toggleAlert()) {
-            mInfoSessionClickListener.onInfoSessionClick(data, position, SAVE_CLICK);
-            InfoSession infoSession = data.getInfoSession();
-            long alarmTime = data.getTime() - 3600000;
-            int id = infoSession.getId();
-
-            InfoSessionDBModel infoSessionDBModel = new
-                    InfoSessionDBModel(infoSession.getId(), alarmTime, infoSession.getEmployer(),
-                    infoSession.getBuildingCode() + " - " + infoSession.getBuildingRoom(),
-                    infoSession.getDate(),  infoSession.getDisplay_time_range());
-            mDBHelper.addInfoSession(infoSessionDBModel);
-
-            Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);
-            intent.putExtra(InfoSessionAlarmReceiver.INFO_SESSION_MODEL, infoSessionDBModel);
-
-            final PendingIntent pIntent = PendingIntent.getBroadcast(mActivity,
-                    id,intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            AlarmManager alarm = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
-            //set the alarm an hour before the start time
-            alarm.set(AlarmManager.RTC_WAKEUP, alarmTime, pIntent);
-            //http://www.fileformat.info/tip/java/date2millis.htm
-            Log.d(TAG, "Setting alarm for " + id + " at " + alarmTime );
-        } else {
-            InfoSession infoSession = data.getInfoSession();
-            InfoSessionDBModel infoSessionDBModel = new InfoSessionDBModel();
-            infoSessionDBModel.setId(infoSession.getId());
-            mDBHelper.deleteInfoSession(infoSessionDBModel);
-
-            Intent intent = new Intent(mActivity.getApplicationContext(), InfoSessionAlarmReceiver.class);
-            final PendingIntent pIntent = PendingIntent.getBroadcast(mActivity, infoSession.getId(),
-                    intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            AlarmManager alarm = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
-            alarm.cancel(pIntent);
-            if(!mIsShowingAll){
-                mData.remove(data);
-                notifyItemRemoved(position);
-                notifyItemRangeChanged(position, mData.size());
-            }
-        }
-        data.setPinned(false);
-        notifyItemChanged(position);
+        mInfoSessionClickListener.onInfoSessionClick(data, position, SAVE_CLICK);
     }
 
     @Override

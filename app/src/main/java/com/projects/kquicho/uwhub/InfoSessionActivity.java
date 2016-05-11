@@ -311,6 +311,7 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
             @Override
             public void run() {
                 if(infoSession != null) {
+                    mInfoSession = infoSession;
                     init(infoSession, true);
                 }else{
                     ((CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar)).setTitle("Could not load");
