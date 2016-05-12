@@ -18,6 +18,11 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
     private UWClientResponseHandler mHandler;
     private Context mContext;
 
+    public static boolean hasInstance(){
+        return mInstance != null;
+    }
+
+
     public static InfoSessionWidget getInstance(UWClientResponseHandler handler, Context context) {
         if(mInstance == null){
             mInstance = new InfoSessionWidget(handler, context);

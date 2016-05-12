@@ -20,8 +20,6 @@ public class MainActivity extends AppCompatActivity {
     final public static String BASE_FRAGMENT = "baseFragment";
     final public String TITLE = "title";
     final public String SUBTITLE = "subtitle";
-    final private int PERMISSIONS_REQUEST_GET_ACCOUNTS = 0;
-    final private int PERMISSIONS_REQUEST_WRITE_CALENDAR = 1;
     private DrawerLayout mDrawerLayout;
     private Toolbar mToolbar;
     private NavigationView mNavDrawer;

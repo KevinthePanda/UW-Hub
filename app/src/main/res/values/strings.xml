@@ -45,4 +45,7 @@
     <string name="info_session_save_before">Info session saved\nYou\'ll receive a notification %1$s before the event</string>
     <string name="info_session_removed">Info session removed</string>
 
+    <string name="weather_widget_exists">Already have a Weather Widget</string>
+    <string name="info_session_widget_exists">Already have an Info Session Widget</string>
+
 </resources>

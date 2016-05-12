@@ -1,10 +1,16 @@
 package com.projects.kquicho.uwhub;
 
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,6 +18,8 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -37,28 +45,42 @@ import java.util.ArrayList;
 /**
  * Created by Kevin Quicho on 4/5/2016.
  */
-public class InfoSessionActivity extends AppCompatActivity implements JSONDownloader.onDownloadListener{
+public class InfoSessionActivity extends AppCompatActivity implements JSONDownloader.onDownloadListener,
+                                                            SaveInfoSessionDialogFragment.ActivityDialogListener{
     public static final String TAG = "InfoSessionActivity";
     public static final String INFO_SESSION = "infoSession";
+    public static final String INFO_SESSION_DATA = "infoSessionData";
     public static final String IS_ALARM_SET = "isAlarmSet";
     public static final String IS_ALARM_SET_ORIGINAL = "isAlarmSetOriginal";
     public static final String INFO_SESSION_ID = "infoSessionId";
+    public static final String POSITION = "position";
+    public static final String HIDE_SAVE_OPTION = "hideSavedPosition";
     private boolean mIsAlertSet = true;
     private Boolean mIsAlertSetOriginal;
     private InfoSession mInfoSession;
+    private InfoSessionData mInfoSessionData;
     private String mUWLink;
     private String mEmployerLink;
     private LinearLayout mAudienceContainer;
-    private boolean mIsCancelled = false;
+    private boolean mHideSaveOption = false;
     private ResourcesParser mParser = new ResourcesParser();
     private int mId = -1;
+    private int mPosition = 0;
     private ProgressBar mProgressBar;
     private View mContainer;
+    private MenuItem mSave;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_info_session);
+        ConnectivityManager cm =
+                (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
 
         mProgressBar = (ProgressBar)findViewById(R.id.pbLoading);
         mContainer = findViewById(R.id.container);
@@ -70,8 +92,14 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
             mId = intent.getIntExtra(INFO_SESSION_ID, -1);
             if (mId == -1) {
                 mInfoSession = intent.getParcelableExtra(INFO_SESSION);
+                mInfoSessionData = intent.getParcelableExtra(INFO_SESSION_DATA);
+                mPosition = intent.getIntExtra(POSITION, 0);
                 init(mInfoSession, intent.getBooleanExtra(IS_ALARM_SET, false));
             } else {
+                if(!isConnected){
+                    return;
+                }
+                mHideSaveOption = true;
                 mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
                 String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
                 JSONDownloader downloader = new JSONDownloader(url);
@@ -80,11 +108,15 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
             }
         }else{
             mInfoSession = savedInstanceState.getParcelable(INFO_SESSION);
+            mInfoSessionData = savedInstanceState.getParcelable(INFO_SESSION_DATA);
+            mPosition = savedInstanceState.getInt(POSITION);
             mIsAlertSet = savedInstanceState.getBoolean(IS_ALARM_SET);
             mIsAlertSetOriginal = savedInstanceState.getBoolean(IS_ALARM_SET_ORIGINAL);
+            mHideSaveOption = savedInstanceState.getBoolean(HIDE_SAVE_OPTION);
 
             Intent data = new Intent();
             data.putExtra(InfoSessionsFragment.SHOULD_TOGGLE, mIsAlertSet != mIsAlertSetOriginal);
+            data.putExtra(InfoSessionsFragment.POSITION, mPosition);
             setResult(RESULT_OK, data);
 
             init(mInfoSession, mIsAlertSet);
@@ -94,34 +126,62 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.info_session_menu, menu);
         final View container  = findViewById(R.id.container);
-        final MenuItem save = menu.findItem(R.id.save);
+        mSave = menu.findItem(R.id.save);
         final MenuItem uw = menu.findItem(R.id.uw);
         final MenuItem employer = menu.findItem(R.id.employer);
-        final Drawable ic_starOutline = getResizedDrawable(save.getIcon());
+        final Drawable ic_starOutline = getResizedDrawable(mSave.getIcon());
         final Drawable ic_star = getResizedDrawable(ContextCompat.getDrawable(this, R.drawable.ic_star));
         final Drawable ic_uw = getResizedDrawable(uw.getIcon());
         final Drawable ic_employer = getResizedDrawable(employer.getIcon());
 
-        if(mIsCancelled){
-            save.setVisible(false);
+        if(mHideSaveOption){
+            mSave.setVisible(false);
         }else{
             if(mIsAlertSet) {
-                save.setIcon(ic_star);
+                mSave.setIcon(ic_star);
             }else{
-                save.setIcon(ic_starOutline);
+                mSave.setIcon(ic_starOutline);
             }
-            save.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            mSave.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
                     if (mIsAlertSet) {
                         item.setIcon(ic_starOutline);
+                        InfoSessionDBModel infoSessionDBModel = new InfoSessionDBModel();
+                        int id = mInfoSessionData.getInfoSession().getId();
+                        infoSessionDBModel.setId(id);
+                        InfoSessionDBHelper.getInstance(getApplicationContext())
+                                .deleteInfoSession(infoSessionDBModel);
+
+                        Intent serviceIntent = new Intent();
+                        serviceIntent.putExtra(InfoSessionAlarmReceiver.INFO_SESSION_MODEL, infoSessionDBModel);
+                        final PendingIntent pIntent = PendingIntent.getBroadcast(getBaseContext(), id,
+                                serviceIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                        AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                        alarm.cancel(pIntent);
+
+                        Snackbar.make(mContainer, getString(R.string.info_session_removed),Snackbar.LENGTH_LONG)
+                                .show();
+
+                        mIsAlertSet = false;
+                        Intent data = new Intent();
+                        data.putExtra(InfoSessionsFragment.SHOULD_TOGGLE, mIsAlertSet != mIsAlertSetOriginal);
+                        data.putExtra(InfoSessionsFragment.POSITION, mPosition);
+                        setResult(RESULT_CANCELED, data);
                     } else {
-                        item.setIcon(ic_star);
+                        final CharSequence[] items =
+                                {"At time of event", "10 minutes before", "30 minutes before"};
+
+                        android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
+                        if (prev != null) {
+                            ft.remove(prev);
+                        }
+                        ft.addToBackStack(null);
+                        DialogFragment dialogFrag = SaveInfoSessionDialogFragment.newInstance(items, mInfoSessionData, mPosition);
+                        dialogFrag.show(ft, "dialog");
+
                     }
-                    mIsAlertSet = !mIsAlertSet;
-                    Intent data = new Intent();
-                    data.putExtra(InfoSessionsFragment.SHOULD_TOGGLE, mIsAlertSet != mIsAlertSetOriginal);
-                    setResult(RESULT_OK, data);
                     return true;
                 }
             });
@@ -171,7 +231,14 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
     protected void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putParcelable(INFO_SESSION, mInfoSession);
         savedInstanceState.putBoolean(IS_ALARM_SET, mIsAlertSet);
-        savedInstanceState.putBoolean(IS_ALARM_SET_ORIGINAL, mIsAlertSetOriginal);
+        if(mIsAlertSetOriginal != null) {
+            savedInstanceState.putBoolean(IS_ALARM_SET_ORIGINAL, mIsAlertSetOriginal);
+        }
+        if(mInfoSessionData != null){
+            savedInstanceState.putParcelable(INFO_SESSION_DATA, mInfoSessionData);
+        }
+        savedInstanceState.putInt(POSITION, mPosition);
+        savedInstanceState.putBoolean(HIDE_SAVE_OPTION, mHideSaveOption);
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -209,7 +276,7 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
         collapsingToolbar.setTitle(infoSession.getEmployer());
 
         if(infoSession.isCancelled()){
-            mIsCancelled = true;
+            mHideSaveOption = true;
             findViewById(R.id.session_container).setVisibility(View.GONE);
             findViewById(R.id.description_card_view).setVisibility(View.GONE);
             findViewById(R.id.audience_card_view).setVisibility(View.GONE);
@@ -325,5 +392,17 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
     @Override
     public void onDownloadFail(String givenURL, int index) {
         Log.e(TAG, "Download failed.. url = " + givenURL);
+    }
+
+    @Override
+    public void onDialogFinish(String message) {
+        final Drawable ic_star = getResizedDrawable(ContextCompat.getDrawable(this, R.drawable.ic_star));
+        mSave.setIcon(ic_star);
+        Snackbar.make(mContainer, message, Snackbar.LENGTH_LONG).show();
+        mIsAlertSet = true;
+        Intent intent = new Intent();
+        intent.putExtra(InfoSessionsFragment.SHOULD_TOGGLE, mIsAlertSet != mIsAlertSetOriginal);
+        intent.putExtra(InfoSessionsFragment.POSITION, mPosition);
+        setResult(RESULT_OK, intent);
     }
 }

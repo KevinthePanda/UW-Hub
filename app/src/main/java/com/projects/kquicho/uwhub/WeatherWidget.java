@@ -16,6 +16,10 @@ public class WeatherWidget implements JSONDownloader.onDownloadListener {
     private UWClientResponseHandler mHandler;
     private static Integer mPosition;
 
+    public static boolean hasInstance(){
+        return mInstance != null;
+    }
+
     public static WeatherWidget getInstance(UWClientResponseHandler handler) {
         if(mInstance == null){
             mInstance = new WeatherWidget(handler);
