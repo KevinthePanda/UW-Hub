@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.gordonwong.materialsheetfab.MaterialSheetFab;
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
@@ -64,17 +65,17 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         return view;
     }
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState){
+    public void onViewCreated(final View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
 
-        Fab fab = (Fab) view.findViewById(R.id.fab);
+        final Fab fab = (Fab) view.findViewById(R.id.fab);
         View sheetView = view.findViewById(R.id.fab_sheet);
         View overlay = view.findViewById(R.id.dim_overlay);
         int sheetColor = ContextCompat.getColor(getActivity(), R.color.background_fab_card);
         int fabColor = ContextCompat.getColor(getActivity(), R.color.theme_primary_dark);
 
         // Initialize material sheet FAB
-        MaterialSheetFab materialSheetFab  = new MaterialSheetFab<>(fab, sheetView, overlay, sheetColor, fabColor);
+        final MaterialSheetFab materialSheetFab  = new MaterialSheetFab<>(fab, sheetView, overlay, sheetColor, fabColor);
 
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
@@ -159,17 +160,28 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
         }
 
         final UWClientResponseHandler handler = this;
+
         view.findViewById(R.id.fab_sheet_weather).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                WeatherWidget.getInstance(handler);
+                materialSheetFab.hideSheet();
+                if(WeatherWidget.hasInstance()){
+                    Toast.makeText(getActivity(),getString(R.string.weather_widget_exists), Toast.LENGTH_SHORT).show();
+                }else {
+                    WeatherWidget.getInstance(handler);
+                }
             }
         });
 
         view.findViewById(R.id.fab_sheet_info_session).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                InfoSessionWidget.getInstance(handler, getActivity().getApplicationContext());
+                materialSheetFab.hideSheet();
+                if(InfoSessionWidget.hasInstance()){
+                    Toast.makeText(getActivity(),getString(R.string.info_session_widget_exists), Toast.LENGTH_SHORT).show();
+                }else {
+                    InfoSessionWidget.getInstance(handler, getActivity().getApplicationContext());
+                }
             }
         });
     }
@@ -254,14 +266,15 @@ public class HomeFragment extends Fragment implements  UWClientResponseHandler{
             mData.remove(index);
             mData.add(index, data);
         }
-        Activity activity = getActivity();
+        final Activity activity = getActivity();
         if(getActivity() != null) {
             android.os.Handler handler = new android.os.Handler(activity.getMainLooper());
 
             Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-                    mAdapter.notifyDataSetChanged();
+                    if(getActivity() != null)
+                        mAdapter.notifyDataSetChanged();
                 }
             };
             handler.post(runnable);

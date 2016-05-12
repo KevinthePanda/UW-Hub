@@ -5,9 +5,7 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
@@ -17,11 +15,11 @@ import android.os.Handler;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.LinearSmoothScroller;
@@ -54,24 +52,23 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.ListIterator;
 import java.util.Locale;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
 
 public class InfoSessionsFragment extends Fragment implements JSONDownloader.onDownloadListener,
         InfoSessionAdapter.onInfoSessionClickListener,
         BottomSheetInfoSessionAdapter.onBottomSheetInfoSessionClickListener,
         MainActivity.FragmentOnBackClickInterface{
     public static final String TAG = "InfoSessionsFragment";
+    public static final String POSITION = "position";
     private final String DATA = "data";
     private final String IS_SHOWING_ALL = "isShowingAll";
     private final String CURRENT_INFO_SESSION_POSITION = "currentInfoSessionPosition";
     private final int ALERT_CHANGE_REQUEST = 1;
+    public final int DIALOG_FRAGMENT = 2;
     public static final String SHOULD_TOGGLE = "shouldToggle";
 
     private ArrayList<InfoSessionData> mData = new ArrayList<>();
@@ -394,11 +391,32 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == ALERT_CHANGE_REQUEST) {
-            if(resultCode == Activity.RESULT_OK) {
-                if (data.getBooleanExtra(SHOULD_TOGGLE, false)) {
-                    mAdapter.toggleSetAlert(mCurrentInfoSessionPosition);
+
+        if (requestCode == ALERT_CHANGE_REQUEST && data != null && data.getBooleanExtra(SHOULD_TOGGLE, false)) {
+            final int position = data.getIntExtra(POSITION, 0);
+            if (resultCode == Activity.RESULT_OK) {
+                Log.d("test" , "test " + position);
+                mData.get(position).toggleAlert();
+                mAdapter.notifyItemChanged(position);
+            }else{
+                Log.d("test" , "test1");
+                InfoSessionData infoSessionData = mData.get(position);
+                if(!mAdapter.getIsShowingAll()){
+                    mData.remove(infoSessionData);
+                    mAdapter.notifyItemRemoved(position);
+                    mAdapter.notifyItemRangeChanged(position, mData.size());
                 }
+
+                infoSessionData.setPinned(false);
+                infoSessionData.toggleAlert();
+                mAdapter.notifyItemChanged(position);
+            }
+        } else if (requestCode == DIALOG_FRAGMENT) {
+            Log.d("test" , "test3");
+            if (resultCode == Activity.RESULT_OK) {
+
+                Snackbar.make(mRecyclerView, data.getStringExtra(SaveInfoSessionDialogFragment.MESSAGE), Snackbar.LENGTH_LONG).show();
+                mAdapter.notifyItemChanged(data.getIntExtra(POSITION, 0));
             }
         }
     }
@@ -412,6 +430,8 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
                 Intent intent = new Intent(getActivity(), InfoSessionActivity.class);
                 intent.putExtra(InfoSessionActivity.INFO_SESSION, infoSessionData.getInfoSession());
                 intent.putExtra(InfoSessionActivity.IS_ALARM_SET, infoSessionData.isAlertSet());
+                intent.putExtra(InfoSessionActivity.INFO_SESSION_DATA, infoSessionData);
+                intent.putExtra(InfoSessionActivity.POSITION, position);
                 startActivityForResult(intent, ALERT_CHANGE_REQUEST);
                 break;
             case InfoSessionAdapter.ROUNDED_TEXT_VIEW_CLICK:
@@ -441,76 +461,32 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
 
                 break;
             case InfoSessionAdapter.SAVE_CLICK:
-                final InfoSession infoSession = infoSessionData.getInfoSession();
-                final InfoSessionDBHelper dbHelper = InfoSessionDBHelper.getInstance(getActivity().getApplicationContext());
-                final Intent newIntent = new Intent(getActivity().getApplicationContext(), InfoSessionAlarmReceiver.class);
 
-                if (infoSessionData.toggleAlert()) {
-                    final CharSequence[] items = {
-                            "At time of event", "10 minutes before", "30 minutes before"
-                    };
+                if (infoSessionData.shouldAttemptToggleAlert()) {
+                    final CharSequence[] items =
+                            {"At time of event", "10 minutes before", "30 minutes before"};
 
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                    builder.setItems(items, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int item) {
-                            int time;
-                            String message;
-                            if(item == 0){
-                                time = 0;
-                                message = getString(R.string.info_session_save_at_time_of_event);
-                            }else if (item == 1){
-                                time = 600000;
-                                message = getString(R.string.info_session_save_before, "10 minutes");
-
-                            }else{
-                                time = 1800000;
-                                message = getString(R.string.info_session_save_before, "30 minutes");
-                            }
-                            long alarmTime = infoSessionData.getTime() - time;
-                            int id = infoSession.getId();
-
-                            InfoSessionDBModel infoSessionDBModel = new
-                                    InfoSessionDBModel(infoSession.getId(), alarmTime, infoSession.getEmployer(),
-                                    infoSession.getBuildingCode() + " - " + infoSession.getBuildingRoom(),
-                                    infoSession.getDate(),  infoSession.getDisplay_time_range());
-                            dbHelper.addInfoSession(infoSessionDBModel);
-
-                            newIntent.putExtra(InfoSessionAlarmReceiver.INFO_SESSION_MODEL, infoSessionDBModel);
-
-                            final PendingIntent pIntent = PendingIntent.getBroadcast(getActivity(),
-                                    id,newIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-                            AlarmManager alarm = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-                            //set the alarm an hour before the start time
-                            alarm.set(AlarmManager.RTC_WAKEUP, alarmTime, pIntent);
-                            Log.d(TAG, "Setting alarm for " + id + " at " + alarmTime );
-                            Log.d(TAG, infoSessionData.getInfoSession().getStart_time());
-
-                            Snackbar.make(mRecyclerView, message, Snackbar.LENGTH_LONG)
-                                    .show();
-                            infoSessionData.setPinned(false);
-                            mAdapter.notifyItemChanged(position);
-                        }
-                    });
-                    AlertDialog alert = builder.create();
-                    alert.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-                            infoSessionData.toggleAlert();
-                        }
-                    });
-                    alert.show();
-
-
-
+                    android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                    Fragment prev = getActivity().getSupportFragmentManager().findFragmentByTag("dialog");
+                    if (prev != null) {
+                        ft.remove(prev);
+                    }
+                    ft.addToBackStack(null);
+                    DialogFragment dialogFrag = SaveInfoSessionDialogFragment.newInstance(items, infoSessionData, position);
+                    dialogFrag.setTargetFragment(this, DIALOG_FRAGMENT);
+                    dialogFrag.show(ft, "dialog");
 
                 } else {
                     InfoSessionDBModel infoSessionDBModel = new InfoSessionDBModel();
-                    infoSessionDBModel.setId(infoSession.getId());
-                    dbHelper.deleteInfoSession(infoSessionDBModel);
+                    int id = infoSessionData.getInfoSession().getId();
+                    infoSessionDBModel.setId(id);
+                    InfoSessionDBHelper.getInstance(getActivity().getApplicationContext())
+                            .deleteInfoSession(infoSessionDBModel);
 
-                    final PendingIntent pIntent = PendingIntent.getBroadcast(getActivity(), infoSession.getId(),
-                            newIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    Intent serviceIntent = new Intent();
+                    serviceIntent.putExtra(InfoSessionAlarmReceiver.INFO_SESSION_MODEL, infoSessionDBModel);
+                    final PendingIntent pIntent = PendingIntent.getBroadcast(getActivity(), id,
+                            serviceIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                     AlarmManager alarm = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
                     alarm.cancel(pIntent);
                     if(!mAdapter.getIsShowingAll()){
@@ -521,6 +497,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
                     Snackbar.make(mRecyclerView, getString(R.string.info_session_removed),Snackbar.LENGTH_LONG)
                             .show();
                     infoSessionData.setPinned(false);
+                    infoSessionData.toggleAlert();
                     mAdapter.notifyItemChanged(position);
 
                 }
