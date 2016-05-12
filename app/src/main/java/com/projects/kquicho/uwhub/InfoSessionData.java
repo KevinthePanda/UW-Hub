@@ -41,6 +41,10 @@ public class InfoSessionData implements Parcelable {
         return mIsAlertSet;
     }
 
+    public boolean shouldAttemptToggleAlert(){
+        return !mIsAlertSet;
+    }
+
     public void setAlert(boolean alert) {
         mIsAlertSet = alert;
     }
