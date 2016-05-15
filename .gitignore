@@ -6,3 +6,4 @@
 /build
 /captures
 /app/app-release.apk
+app/src/main/java/com/projects/kquicho/uw_api_client/Core/UWOpenDataAPI.java
