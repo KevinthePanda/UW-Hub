@@ -25,17 +25,17 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
     }
 
 
-    public static InfoSessionWidget getInstance(UWClientResponseHandler handler, Context context) {
+    public static InfoSessionWidget getInstance(Context context, UWClientResponseHandler handler) {
         if(mInstance == null){
-            mInstance = new InfoSessionWidget(handler, context);
+            mInstance = new InfoSessionWidget(context, handler);
         }
         return mInstance;
     }
 
-    public static InfoSessionWidget getInstance(UWClientResponseHandler handler, Integer position, Context context) {
+    public static InfoSessionWidget getInstance(Context context, UWClientResponseHandler handler, Integer position) {
         if(mInstance == null){
             mPosition = position;
-            mInstance = new InfoSessionWidget(handler, context);
+            mInstance = new InfoSessionWidget(context, handler);
         }
         return mInstance;
     }
@@ -47,21 +47,21 @@ public class InfoSessionWidget implements JSONDownloader.onDownloadListener {
     }
 
 
-    private InfoSessionWidget(UWClientResponseHandler handler, Context context) {
+    private InfoSessionWidget(Context context, UWClientResponseHandler handler) {
         mParser = new ResourcesParser();
         mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
         mHandler = handler;
         mContext = context;
         String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
 
-        JSONDownloader downloader = new JSONDownloader(url);
+        JSONDownloader downloader = new JSONDownloader(context, url);
         downloader.setOnDownloadListener(this);
         downloader.start();
     }
 
     @Override
-    public void onDownloadFail(String givenURL, int index) {
-        mHandler.onError(TAG + ": " + "Download failed.. url = " + givenURL );
+    public void onDownloadFail(String givenURL, int index, boolean noConnection) {
+        mHandler.onError(TAG + ": " + "Download failed.. url = " + givenURL, noConnection );
     }
 
     @Override

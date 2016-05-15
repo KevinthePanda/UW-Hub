@@ -75,6 +75,7 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
     private ProgressBar mProgressBar;
     private View mContainer;
     private MenuItem mSave;
+    private View mNoConnection;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -92,6 +93,14 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
         mContainer = findViewById(R.id.container);
         mProgressBar.setVisibility(View.VISIBLE);
         mContainer.setVisibility(View.GONE);
+        mNoConnection = findViewById(R.id.no_connection);
+        View connectBtn = findViewById(R.id.connect_btn);
+        connectBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                attemptNetworkRequest();
+            }
+        });
 
         if(savedInstanceState == null) {
             Intent intent = getIntent();
@@ -106,11 +115,7 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
                     return;
                 }
                 mHideSaveOption = true;
-                mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
-                String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
-                JSONDownloader downloader = new JSONDownloader(url);
-                downloader.setOnDownloadListener(this);
-                downloader.start();
+                attemptNetworkRequest();
             }
         }else{
             mInfoSession = savedInstanceState.getParcelable(INFO_SESSION);
@@ -320,6 +325,15 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
     }
 
 
+    private void attemptNetworkRequest(){
+        mNoConnection.setVisibility(View.GONE);
+        mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
+        String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
+        JSONDownloader downloader = new JSONDownloader(this, url);
+        downloader.setOnDownloadListener(this);
+        downloader.start();
+    }
+
     private void createAudienceViews(String[] audienceList){
         String prevDepartment = "";
         ArrayList<String> programs = new ArrayList<>();
@@ -396,8 +410,18 @@ public class InfoSessionActivity extends AppCompatActivity implements JSONDownlo
     }
 
     @Override
-    public void onDownloadFail(String givenURL, int index) {
+    public void onDownloadFail(String givenURL, int index, boolean noNetwork) {
         Log.e(TAG, "Download failed.. url = " + givenURL);
+        if(noNetwork){
+            android.os.Handler handler = new android.os.Handler(this.getMainLooper());
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mNoConnection.setVisibility(View.VISIBLE);
+                }
+            });
+
+        }
     }
 
     @Override

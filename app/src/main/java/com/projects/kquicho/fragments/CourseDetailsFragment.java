@@ -73,7 +73,7 @@ public class CourseDetailsFragment extends Fragment implements JSONDownloader.on
             mCoursesParser.setParseType(CourseParser.ParseType.COURSE_DETAILS.ordinal());
             mUrl = UWOpenDataAPI.buildURL(String.format(mCoursesParser.getEndPoint(), mSubject, mCatalogNumber));
             mProgressBar.setVisibility(View.VISIBLE);
-            JSONDownloader downloader = new JSONDownloader(mUrl);
+            JSONDownloader downloader = new JSONDownloader(getActivity(), mUrl);
             downloader.setOnDownloadListener(this);
             downloader.start();
         }else{
@@ -90,7 +90,7 @@ public class CourseDetailsFragment extends Fragment implements JSONDownloader.on
 
 
     @Override
-    public void onDownloadFail(String givenURL, int index) {
+    public void onDownloadFail(String givenURL, int index, boolean noConnection) {
         Log.e(TAG, "Download failed.. url = " + givenURL);
     }
 

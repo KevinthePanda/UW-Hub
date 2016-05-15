@@ -147,7 +147,7 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
             mUrl = UWOpenDataAPI.buildURL(String.format(mCoursesParser.getEndPoint(), mSubject));
 
             mProgressBar.setVisibility(View.VISIBLE);
-            JSONDownloader downloader = new JSONDownloader(mUrl);
+            JSONDownloader downloader = new JSONDownloader(getActivity(), mUrl);
             downloader.setOnDownloadListener(this);
             downloader.start();
         }
@@ -166,7 +166,7 @@ public class CatalogNumberFragment extends Fragment implements JSONDownloader.on
     }
 
     @Override
-    public void onDownloadFail(String givenURL, int index) {
+    public void onDownloadFail(String givenURL, int index, boolean noNetwork) {
         Log.e(TAG, "Download failed.. url = " + givenURL);
         mProgressBar.setVisibility(View.GONE);
         mEmptyView.setVisibility(View.VISIBLE);

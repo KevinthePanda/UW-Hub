@@ -281,7 +281,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
             mParser.setParseType(ResourcesParser.ParseType.INFOSESSIONS.ordinal());
             String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
             mProgressBar.setVisibility(View.VISIBLE);
-            JSONDownloader downloader = new JSONDownloader(url);
+            JSONDownloader downloader = new JSONDownloader(getActivity(), url);
             downloader.setOnDownloadListener(this);
             downloader.start();
         }
@@ -343,7 +343,7 @@ public class InfoSessionsFragment extends Fragment implements JSONDownloader.onD
     }
 
     @Override
-    public void onDownloadFail(String givenURL, int index) {
+    public void onDownloadFail(String givenURL, int index, boolean noNetwork) {
         Log.e(TAG, "Download failed.. url = " + givenURL);
     }
 
