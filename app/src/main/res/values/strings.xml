@@ -18,6 +18,8 @@
     <string name="components">Components</string>
     <string name="campus_offerings">Campus Offerings</string>
     <string name="required_consent">Required Consent</string>
+    <string name="no_connection">No Connection</string>
+    <string name="connect">Connect</string>
 
     <string name="online">Online</string>
     <string name="online_only">Online Only</string>

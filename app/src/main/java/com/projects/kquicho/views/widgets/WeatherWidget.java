@@ -1,6 +1,7 @@
 package com.projects.kquicho.views.widgets;
 
 
+import android.content.Context;
 import android.util.Log;
 
 import com.projects.kquicho.models.WeatherWidgetData;
@@ -22,27 +23,27 @@ public class WeatherWidget implements JSONDownloader.onDownloadListener {
         return mInstance != null;
     }
 
-    public static WeatherWidget getInstance(UWClientResponseHandler handler) {
+    public static WeatherWidget getInstance(Context context, UWClientResponseHandler handler) {
         if(mInstance == null){
-            mInstance = new WeatherWidget(handler);
+            mInstance = new WeatherWidget(context, handler);
         }
         return mInstance;
     }
-    public static WeatherWidget getInstance(UWClientResponseHandler handler, int position) {
+    public static WeatherWidget getInstance(Context context, UWClientResponseHandler handler, int position) {
         if(mInstance == null){
             mPosition = position;
-            mInstance = new WeatherWidget(handler);
+            mInstance = new WeatherWidget(context, handler);
         }
         return mInstance;
     }
 
-    private WeatherWidget(UWClientResponseHandler handler) {
+    private WeatherWidget(Context context, UWClientResponseHandler handler) {
         mParser = new WeatherParser();
         mParser.setParseType(WeatherParser.ParseType.CURRENT.ordinal());
         mHandler = handler;
         String url = UWOpenDataAPI.buildURL(mParser.getEndPoint());
 
-        JSONDownloader downloader = new JSONDownloader(url);
+        JSONDownloader downloader = new JSONDownloader(context, url);
         downloader.setOnDownloadListener(this);
         downloader.start();
     }
@@ -53,8 +54,8 @@ public class WeatherWidget implements JSONDownloader.onDownloadListener {
     }
 
     @Override
-    public void onDownloadFail(String givenURL, int index) {
-        mHandler.onError(TAG + ": " + "Download failed.. url = " + givenURL );
+    public void onDownloadFail(String givenURL, int index, boolean noNetwork) {
+        mHandler.onError(TAG + ": " + "Download failed.. url = " + givenURL, noNetwork );
     }
 
     @Override

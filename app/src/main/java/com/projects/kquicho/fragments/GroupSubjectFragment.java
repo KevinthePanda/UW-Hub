@@ -225,7 +225,7 @@ public static final String TAG = "GroupSubjectFragment";
                     mCoursesParser.setParseType(CourseParser.ParseType.COURSES.ordinal());
                     mCourseUrl = UWOpenDataAPI.buildURL(String.format(mCoursesParser.getEndPoint(), subject));
 
-                    JSONDownloader downloader = new JSONDownloader(mCourseUrl);
+                    JSONDownloader downloader = new JSONDownloader(getActivity(),mCourseUrl);
                     downloader.setOnDownloadListener(onDownloadListener);
                     downloader.start();
                     mPreviousSearchSubject = subject;
@@ -316,7 +316,7 @@ public static final String TAG = "GroupSubjectFragment";
             mCodeUrl = UWOpenDataAPI.buildURL(mCodesParser.getEndPoint());
 
             mProgressBar.setVisibility(View.VISIBLE);
-            JSONDownloader downloader = new JSONDownloader(mCodeUrl);
+            JSONDownloader downloader = new JSONDownloader(getActivity(),mCodeUrl);
             downloader.setOnDownloadListener(this);
             downloader.start();
         }else{
@@ -338,7 +338,7 @@ public static final String TAG = "GroupSubjectFragment";
 
 
     @Override
-    public void onDownloadFail(String givenURL, int index) {
+    public void onDownloadFail(String givenURL, int index, boolean noNetwork) {
         Log.e(TAG, "Download failed.. url = " + givenURL);
     }
     @Override
@@ -354,7 +354,7 @@ public static final String TAG = "GroupSubjectFragment";
                 mCodesParser.setParseType(CodesParser.ParseType.SUBJECTS_WITH_GROUPS.ordinal());
                 mCodeUrl = UWOpenDataAPI.buildURL(mCodesParser.getEndPoint());
 
-                JSONDownloader downloader = new JSONDownloader(mCodeUrl);
+                JSONDownloader downloader = new JSONDownloader(getActivity(),mCodeUrl);
                 downloader.setOnDownloadListener(this);
                 downloader.start();
             }else{

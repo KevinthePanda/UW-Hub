@@ -50,6 +50,8 @@ public class HomeFragment extends Fragment implements UWClientResponseHandler {
     private RecyclerViewSwipeManager mRecyclerViewSwipeManager;
     private RecyclerViewTouchActionGuardManager mRecyclerViewTouchActionGuardManager;
     private SharedPreferences mSettings;
+    private View mNoConnection;
+    private View mFab;
 
     public HomeFragment(){
         super();
@@ -75,14 +77,22 @@ public class HomeFragment extends Fragment implements UWClientResponseHandler {
     public void onViewCreated(final View view, Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
 
-        final Fab fab = (Fab) view.findViewById(R.id.fab);
+        mNoConnection = view.findViewById(R.id.no_connection);
+        mFab = (Fab) view.findViewById(R.id.fab);
         View sheetView = view.findViewById(R.id.fab_sheet);
         View overlay = view.findViewById(R.id.dim_overlay);
         int sheetColor = ContextCompat.getColor(getActivity(), R.color.background_fab_card);
         int fabColor = ContextCompat.getColor(getActivity(), R.color.theme_primary_dark);
+        View connectBtn = view.findViewById(R.id.connect_btn);
+        connectBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                attemptNetworkRequest();
+            }
+        });
 
         // Initialize material sheet FAB
-        final MaterialSheetFab materialSheetFab  = new MaterialSheetFab<>(fab, sheetView, overlay, sheetColor, fabColor);
+        final MaterialSheetFab materialSheetFab  = new MaterialSheetFab<>((Fab)mFab, sheetView, overlay, sheetColor, fabColor);
 
         mRecyclerView =  (RecyclerView)view.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
@@ -123,48 +133,7 @@ public class HomeFragment extends Fragment implements UWClientResponseHandler {
         mRecyclerViewTouchActionGuardManager.attachRecyclerView(mRecyclerView);
         mRecyclerViewSwipeManager.attachRecyclerView(mRecyclerView);
 
-        if(mData.size() == 0) {
-            int size = mAvailableWidgets.size();
-            for (int i = 0; i < size; i++) {
-                String widget = mSettings.getString(String.valueOf(i), null);
-                if (widget == null) {
-                    Log.d(TAG, "Creating default widgets");
-                    if (i == 0) {
-                        WeatherWidget.getInstance(this, 0);
-                        InfoSessionWidget.getInstance(this, 1, getActivity().getApplicationContext());
-                    }
-                    break;
-                }
-                switch (widget) {
-                    case WeatherWidget.TAG:
-                        Log.d(TAG, "Creating WeatherWidget");
-                        WeatherWidget.getInstance(this, i);
-                        break;
-                    case InfoSessionWidget.TAG:
-                        Log.d(TAG, "Creating InfoSessionWidget");
-                        InfoSessionWidget.getInstance(this, getActivity().getApplicationContext());
-                        break;
-                }
-                mData.add(i, new UWData(widget));
-            }
-        }else{
-            int i = 0;
-            for(UWData data : mData){
-                if(data.isLoading()){
-                    switch (data.getWidgetTag()) {
-                        case WeatherWidget.TAG:
-                            Log.d(TAG, "Creating WeatherWidget");
-                            WeatherWidget.getInstance(this, i);
-                            break;
-                        case InfoSessionWidget.TAG:
-                            Log.d(TAG, "Creating InfoSessionWidget");
-                            InfoSessionWidget.getInstance(this, getActivity().getApplicationContext());
-                            break;
-                    }
-                }
-                i++;
-            }
-        }
+        attemptNetworkRequest();
 
         final UWClientResponseHandler handler = this;
 
@@ -175,7 +144,7 @@ public class HomeFragment extends Fragment implements UWClientResponseHandler {
                 if(WeatherWidget.hasInstance()){
                     Toast.makeText(getActivity(),getString(R.string.weather_widget_exists), Toast.LENGTH_SHORT).show();
                 }else {
-                    WeatherWidget.getInstance(handler);
+                    WeatherWidget.getInstance(getActivity(), handler);
                 }
             }
         });
@@ -187,12 +156,56 @@ public class HomeFragment extends Fragment implements UWClientResponseHandler {
                 if(InfoSessionWidget.hasInstance()){
                     Toast.makeText(getActivity(),getString(R.string.info_session_widget_exists), Toast.LENGTH_SHORT).show();
                 }else {
-                    InfoSessionWidget.getInstance(handler, getActivity().getApplicationContext());
+                    InfoSessionWidget.getInstance(getActivity().getApplicationContext(), handler);
                 }
             }
         });
     }
 
+    private void attemptNetworkRequest(){
+        if(mData.size() == 0) {
+            int size = mAvailableWidgets.size();
+            for (int i = 0; i < size; i++) {
+                String widget = mSettings.getString(String.valueOf(i), null);
+                if (widget == null) {
+                    Log.d(TAG, "Creating default widgets");
+                    if (i == 0) {
+                        WeatherWidget.getInstance(getActivity(), this, 0);
+                        InfoSessionWidget.getInstance(getActivity().getApplicationContext(), this, 1);
+                    }
+                    break;
+                }
+                switch (widget) {
+                    case WeatherWidget.TAG:
+                        Log.d(TAG, "Creating WeatherWidget");
+                        WeatherWidget.getInstance(getActivity(), this, i);
+                        break;
+                    case InfoSessionWidget.TAG:
+                        Log.d(TAG, "Creating InfoSessionWidget");
+                        InfoSessionWidget.getInstance(getActivity().getApplicationContext(), this);
+                        break;
+                }
+                mData.add(i, new UWData(widget));
+            }
+        }else{
+            int i = 0;
+            for(UWData data : mData){
+                if(data.isLoading()){
+                    switch (data.getWidgetTag()) {
+                        case WeatherWidget.TAG:
+                            Log.d(TAG, "Creating WeatherWidget");
+                            WeatherWidget.getInstance(getActivity(), this, i);
+                            break;
+                        case InfoSessionWidget.TAG:
+                            Log.d(TAG, "Creating InfoSessionWidget");
+                            InfoSessionWidget.getInstance(getActivity().getApplicationContext(), this);
+                            break;
+                    }
+                }
+                i++;
+            }
+        }
+    }
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelableArrayList(DATA, mData);
@@ -280,8 +293,12 @@ public class HomeFragment extends Fragment implements UWClientResponseHandler {
             Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-                    if(getActivity() != null)
+                    if(getActivity() != null) {
+                        mNoConnection.setVisibility(View.GONE);
+                        mRecyclerView.setVisibility(View.VISIBLE);
+                        mFab.setVisibility(View.VISIBLE);
                         mAdapter.notifyDataSetChanged();
+                    }
                 }
             };
             handler.post(runnable);
@@ -289,8 +306,22 @@ public class HomeFragment extends Fragment implements UWClientResponseHandler {
     }
 
     @Override
-    public void onError(String error){
+    public void onError(String error, boolean noNetwork){
         Log.e(TAG, error);
+        final Activity activity = getActivity();
+        android.os.Handler handler = new android.os.Handler(getActivity().getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if(activity != null) {
+                    mNoConnection.setVisibility(View.VISIBLE);
+                    mRecyclerView.setVisibility(View.GONE);
+                    mFab.setVisibility(View.GONE);
+                    WeatherWidget.destroyWidget();
+                    InfoSessionWidget.destroyWidget();
+                }
+            }
+        });
     }
 
 

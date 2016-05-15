@@ -1,5 +1,9 @@
 package com.projects.kquicho.network.Core;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +23,7 @@ public class JSONDownloader extends Thread {
 
     // url array to contain all urls that we will download from
     String urls[] = null;
+    Context mContext;
 
     // callback used to pass APIResults back at the class that created this object
     onDownloadListener callBack = null;
@@ -28,7 +33,7 @@ public class JSONDownloader extends Thread {
 
     public interface onDownloadListener {
         void onDownloadComplete(@NonNull APIResult apiResult);
-        void onDownloadFail(String givenURL, int index);
+        void onDownloadFail(String givenURL, int index, boolean noNetwork);
     }
 
 
@@ -43,7 +48,8 @@ public class JSONDownloader extends Thread {
     }
 
     // urls should be created using UWOpenDataAPI.buildURL(...);
-    public JSONDownloader(String ... urls) {
+    public JSONDownloader(Context context, String ... urls){
+        this.mContext = context;
         this.urls = urls;
     }
 
@@ -63,13 +69,17 @@ public class JSONDownloader extends Thread {
         int NUM_URLS = urls.length;
         for(int i = 0; i <NUM_URLS; i++){
             String executableURL = urls[i];
+            if(!isNetworkAvailable()){
+                callBack.onDownloadFail(executableURL, i, true);
+                continue;
+            }
             APIResult result = downloadJSON(executableURL, i);
 
             if(callBack != null) {
                 if (result != null) {
                     callBack.onDownloadComplete(result);
                 } else {
-                    callBack.onDownloadFail(executableURL, i);
+                    callBack.onDownloadFail(executableURL, i, false);
                 }
             }
         }
@@ -115,4 +125,12 @@ public class JSONDownloader extends Thread {
         }
         return null;
     }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
 }

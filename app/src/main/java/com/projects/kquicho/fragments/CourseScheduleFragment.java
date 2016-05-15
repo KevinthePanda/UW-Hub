@@ -205,7 +205,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
             }else {
                 mTermsParser.setParseType(TermsParser.ParseType.TERM_LIST.ordinal());
                 mTermListURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint());
-                JSONDownloader downloader = new JSONDownloader(mTermListURL);
+                JSONDownloader downloader = new JSONDownloader(getActivity(), mTermListURL);
                 downloader.setOnDownloadListener(this);
                 downloader.start();
                 mProgressBar.setVisibility(View.VISIBLE);
@@ -232,7 +232,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                                 mRecyclerView.setVisibility(View.GONE);
                                 mRecyclerViewExpandableItemManager.collapseAll();
                                 mEmptyView.setVisibility(View.GONE);
-                                JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
+                                JSONDownloader downloader = new JSONDownloader(getActivity(),mCourseScheduleURL);
                                 downloader.setOnDownloadListener(onDownloadListener);
                                 downloader.start();
                             }
@@ -251,7 +251,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                                 mRecyclerView.setVisibility(View.GONE);
                                 mRecyclerViewExpandableItemManager.collapseAll();
                                 mEmptyView.setVisibility(View.GONE);
-                                JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
+                                JSONDownloader downloader = new JSONDownloader(getActivity(),mCourseScheduleURL);
                                 downloader.setOnDownloadListener(onDownloadListener);
                                 downloader.start();
                             }
@@ -286,7 +286,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mTermsParser.setParseType(TermsParser.ParseType.TERM_LIST.ordinal());
                     mTermListURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint());
-                    JSONDownloader downloader = new JSONDownloader(mTermListURL);
+                    JSONDownloader downloader = new JSONDownloader(getActivity(),mTermListURL);
                     downloader.setOnDownloadListener(this);
                     downloader.start();
                     mProgressBar.setVisibility(View.VISIBLE);
@@ -332,7 +332,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
 
 
     @Override
-    public void onDownloadFail(String givenURL, int index) {
+    public void onDownloadFail(String givenURL, int index, boolean noConnection) {
         Log.e(TAG, "Download failed.. url = " + givenURL);
     }
 
@@ -392,7 +392,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                                 mRecyclerView.setVisibility(View.GONE);
                                 mRecyclerViewExpandableItemManager.collapseAll();
                                 mEmptyView.setVisibility(View.GONE);
-                                JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
+                                JSONDownloader downloader = new JSONDownloader(getActivity(),mCourseScheduleURL);
                                 downloader.setOnDownloadListener(onDownloadListener);
                                 downloader.start();
                             }
@@ -411,7 +411,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                                 mRecyclerView.setVisibility(View.GONE);
                                 mRecyclerViewExpandableItemManager.collapseAll();
                                 mEmptyView.setVisibility(View.GONE);
-                                JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
+                                JSONDownloader downloader = new JSONDownloader(getActivity(),mCourseScheduleURL);
                                 downloader.setOnDownloadListener(onDownloadListener);
                                 downloader.start();
                             }
@@ -422,7 +422,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                     mCourseScheduleURL = UWOpenDataAPI.buildURL(mTermsParser.getEndPoint(currentTerm,mSubject, mCatalogNumber));
 
                     mProgressBar.setVisibility(View.VISIBLE);
-                    JSONDownloader downloader = new JSONDownloader(mCourseScheduleURL);
+                    JSONDownloader downloader = new JSONDownloader(getActivity(),mCourseScheduleURL);
                     downloader.setOnDownloadListener(onDownloadListener);
                     downloader.start();
                 }
@@ -805,7 +805,7 @@ public class CourseScheduleFragment extends Fragment implements JSONDownloader.o
                 mBuildingParser.setParseType(BuildingParser.ParseType.BUILDING_CODE.ordinal());
                 mBuildingURL = UWOpenDataAPI.buildURL(mBuildingParser.getEndPoint(sectionData.getBuilding()));
 
-            JSONDownloader downloader = new JSONDownloader(mBuildingURL);
+            JSONDownloader downloader = new JSONDownloader(getActivity(),mBuildingURL);
                 downloader.setOnDownloadListener(this);
                 downloader.start();
                 break;

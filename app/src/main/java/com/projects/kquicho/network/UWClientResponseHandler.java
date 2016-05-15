@@ -6,6 +6,6 @@ public interface UWClientResponseHandler {
 
     void onSuccess(UWData data, Integer position);
 
-    void onError(String error);
+    void onError(String error, boolean noNetwork);
 
 }
