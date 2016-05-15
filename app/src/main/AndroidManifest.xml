@@ -18,36 +18,36 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <service
-            android:name=".InfoSessionService"
+            android:name="com.projects.kquicho.utils.InfoSessionService"
             android:exported="false"/>
         <service
-            android:name=".CourseWatchService"
+            android:name="com.projects.kquicho.utils.CourseWatchService"
             android:exported="false"/>
         <service
-            android:name=".RemoveInfoSessionDBService"
+            android:name="com.projects.kquicho.utils.RemoveInfoSessionDBService"
             android:exported="false"/>
         <receiver
-            android:name=".InfoSessionAlarmReceiver"
+            android:name="com.projects.kquicho.utils.InfoSessionAlarmReceiver"
             android:process=":remote"/>
         <receiver
-            android:name=".CourseWatchAlarmReceiver"
+            android:name="com.projects.kquicho.utils.CourseWatchAlarmReceiver"
             android:process=":remote"/>
         <receiver
-            android:name=".RemoveInfoSessionAlarmReceiver"
+            android:name="com.projects.kquicho.utils.RemoveInfoSessionAlarmReceiver"
             android:process=":remote"/>
-        <receiver android:name=".InfoSessionBootReceiver"
+        <receiver android:name="com.projects.kquicho.utils.InfoSessionBootReceiver"
             android:enabled="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".CourseWatchBootReceiver"
+        <receiver android:name="com.projects.kquicho.utils.CourseWatchBootReceiver"
                   android:enabled="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".RemoveInfoSessionBootReceiver"
+        <receiver android:name="com.projects.kquicho.utils.RemoveInfoSessionBootReceiver"
                   android:enabled="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
@@ -55,7 +55,7 @@
         </receiver>
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.projects.kquicho.activities.MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop">
             <intent-filter>
@@ -68,15 +68,15 @@
             <meta-data android:name="android.app.searchable"
                        android:resource="@xml/searchable"/>
         </activity>
-        <activity android:name=".InfoSessionActivity"
-                  android:parentActivityName=".MainActivity">
+        <activity android:name="com.projects.kquicho.activities.InfoSessionActivity"
+                  android:parentActivityName="com.projects.kquicho.activities.MainActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                       android:value=".MainActivity" />
+                       android:value="com.projects.kquicho.activities.MainActivity" />
         </activity>
-        <activity android:name=".CourseTabActivity"
-                  android:parentActivityName=".MainActivity">
+        <activity android:name="com.projects.kquicho.activities.CourseTabActivity"
+                  android:parentActivityName="com.projects.kquicho.activities.MainActivity">
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                       android:value=".MainActivity" />
+                       android:value="com.projects.kquicho.activities.MainActivity" />
         </activity>
 
 
