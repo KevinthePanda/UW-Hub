@@ -22,13 +22,13 @@ Home page consists of a list of "View Cards" that are meant to give users a quic
  - Use the fab to add cards
  - Drag the card's header to swap with other cards
  
-  ![](http://i.imgur.com/6BWd487.gif)
+ ![](http://i.imgur.com/6BWd487.gif)
 
-
+-------------
 
 Future Plans
 -------------
  - Utilize location data for POI for proximity based features 
  - Set up a backend to replace the need for alarm receivers for notifications
- - ----------
 
+-------------
