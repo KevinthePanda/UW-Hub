@@ -5,7 +5,6 @@ UW Hub is on an on-going project with the goal to provide an intuitive platform 
 
 Download [here](https://play.google.com/store/apps/details?id=com.projects.kquicho.uwhub&hl=en) for Android
 
--------------
 
 Home Page
 -------------
@@ -21,14 +20,12 @@ Home page consists of a list of "View Cards" that are meant to give users a quic
  - Swipe cards to the left to remove them
  - Use the fab to add cards
  - Drag the card's header to swap with other cards
- 
- ![](http://i.imgur.com/6BWd487.gif)
 
--------------
+![](http://i.imgur.com/6BWd487.gif)
+
 
 Future Plans
 -------------
  - Utilize location data for POI for proximity based features 
  - Set up a backend to replace the need for alarm receivers for notifications
 
--------------
